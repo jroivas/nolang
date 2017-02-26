@@ -1,0 +1,12 @@
+import sys
+import IO
+
+# Comment
+
+main =>
+    val : int = sys.args[1]
+    match val =>
+        1: IO.print("A")
+        2: IO.print("B")
+        3: IO.print("C")
+        ?: IO.print("?")

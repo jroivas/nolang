@@ -1,0 +1,13 @@
+import sys
+import IO
+
+# Comment
+// Another comment
+/* Multiline
+ * comment
+ /* *  /
+ * /
+ * example */
+
+main =>
+    val : int = sys.args[1]
