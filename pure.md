@@ -11,9 +11,15 @@
  - Avoid side efects by design
  - Pure methods can call only pure methods
  - Side methods can call any methods
+ - All memory is cleared before given to application use
+ - Namespaces
+ - Namespaces may contain only methods and constants
+ - No other variables allowed in namescape (global) scope
+
 
 ## Example
 
+const MeaningOfTheLife : int32 = 42
 
 pure generatePerson(name:String, birthDay:Date) : Map =>
     [
