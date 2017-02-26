@@ -33,7 +33,6 @@ int main(int argc, char **argv)
     mpc_parser_t* Pure = mpc_new("pure");
     mpc_parser_t* NolangPure = mpc_new("nolangpure");
 
-    // "comment    : \"//\".*$ | '#'.*$ | \"/*\" .* \"*/\" ;"
     mpc_err_t* err = mpca_lang(MPCA_LANG_DEFAULT,
         "comment    : /(#|\\/\\/)[^\\r\\n]*/ | /\\/\\*[^\\*]*(\\*[^\\/][^\\*]*)*\\*\\// ;"
         "identifier : /[A-Za-z_][A-Za-z0-9_-]*/ ;"
@@ -53,8 +52,8 @@ int main(int argc, char **argv)
         "mapindex   : '[' <lexp> ']';"
         "namespacedef : <identifier> ('.' <identifier>)+ (<methodcall> | <mapindex>)?;"
         "assignment : <typeident> '=' <stmt> ;"
-        "matchcase  : (<identifier> | <number> | <string>) ':' <stmt>;"
-        "match      : \"match\" \"=>\" <matchcase>+;"
+        "matchcase  : (<identifier> | <number> | <string> | '?') ':' <stmt>;"
+        "match      : \"match\" (<identifier> | <namespacedef>) \"=>\" <matchcase>+;"
         "stmt       : <match> | <assignment> | <namespacedef> | <lexp>;"
         "body       : <stmt>* ;"
         "pure       : \"pure\" ;"
