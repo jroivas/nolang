@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <3pp/mpc.h>
+#include <3pp/mpc/mpc.h>
 
 int main(int argc, char **argv)
 {

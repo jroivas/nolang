@@ -18,7 +18,7 @@ src_inc = include_directories('src')
 nolang_pure = executable('nolang_pure',
     sources: [
         'src/pure.cpp',
-        '3pp/mpc.c'
+        '3pp/mpc/mpc.c'
     ],
     include_directories: [
         top_inc
