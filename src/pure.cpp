@@ -16,6 +16,7 @@ int main(int argc, char **argv)
     mpc_parser_t* Identifier = mpc_new("identifier");
     mpc_parser_t* TypeIdent = mpc_new("typeident");
     mpc_parser_t* Import = mpc_new("import");
+    mpc_parser_t* MethodRet = mpc_new("methodret");
     mpc_parser_t* MethodDef = mpc_new("methoddef");
     mpc_parser_t* ParamDef = mpc_new("paramdef");
     mpc_parser_t* String = mpc_new("string");
@@ -30,6 +31,7 @@ int main(int argc, char **argv)
     mpc_parser_t* Assignment = mpc_new("assignment");
     mpc_parser_t* Stmt = mpc_new("stmt");
     mpc_parser_t* Term = mpc_new("term");
+    mpc_parser_t* Const = mpc_new("const");
     mpc_parser_t* Pure = mpc_new("pure");
     mpc_parser_t* NolangPure = mpc_new("nolangpure");
 
@@ -41,7 +43,9 @@ int main(int argc, char **argv)
         "string     : /\"(\\\\.|[^\"])*\"/ | /\'(\\\\.|[^\'])*\'/ ; "
         "operator   : '+' | '-' | '*' | '/' ;                  "
         "import     : \"import\" <identifier> ;"
-        "methoddef  : <pure>? <identifier> <args>? \"=>\" <body> ;"
+        "const      : \"const\" <assignment> ;"
+        "methodret  : ':' <identifier> ;"
+        "methoddef  : <pure>? <identifier> <args>? <methodret>? \"=>\" <body> ;"
         "paramdef   : <typeident>? (',' <typeident>)*; "
         "args       : '(' <paramdef>? ')'; "
         "factor     : '(' <lexp> ')' | <number> | <string> | <identifier>; "
@@ -57,13 +61,14 @@ int main(int argc, char **argv)
         "stmt       : <match> | <assignment> | <namespacedef> | <lexp>;"
         "body       : <stmt>* ;"
         "pure       : \"pure\" ;"
-        "nolangpure : /^/ (<import> | <comment> | <methoddef>)* /$/ ;"
+        "nolangpure : /^/ (<import> | <const> | <comment> | <methoddef>)* /$/ ;"
       ,
         Comment,
         Identifier, TypeIdent,
         Number, String,
         Operator,
-        Import, MethodDef, ParamDef, Args,
+        Import, Const,
+        MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
         Expr, MethodCall, MapIndex, Namespacedef,
         Assignment, MatchCase, Match, Stmt,

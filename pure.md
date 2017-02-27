@@ -219,5 +219,5 @@ side main() =>
     parallelSum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) == [66]
 
     // Squares are optional in trivial cases
-    // same as: summer(half([1, 2]))
-    summer half [1, 2]
+    // same as: dosum(half([1, 2]))
+    //dosum half [1, 2]
