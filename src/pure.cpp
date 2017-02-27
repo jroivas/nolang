@@ -25,6 +25,12 @@ int main(int argc, char **argv)
     mpc_parser_t* Factor = mpc_new("factor");
     mpc_parser_t* MethodCall = mpc_new("methodcall");
     mpc_parser_t* MapIndex = mpc_new("mapindex");
+    mpc_parser_t* ListItem = mpc_new("listitem");
+    mpc_parser_t* MapItem = mpc_new("mapitem");
+    mpc_parser_t* TupleMap = mpc_new("tuplemap");
+    mpc_parser_t* MapItems = mpc_new("mapitems");
+    mpc_parser_t* ListItems = mpc_new("listitems");
+    mpc_parser_t* List = mpc_new("list");
     mpc_parser_t* Namespacedef = mpc_new("namespacedef");
     mpc_parser_t* MatchCase = mpc_new("matchcase");
     mpc_parser_t* Match = mpc_new("match");
@@ -54,12 +60,19 @@ int main(int argc, char **argv)
         "expr       : <term> | <factor> ;"
         "methodcall : '(' <lexp>? ')';"
         "mapindex   : '[' <lexp> ']';"
+        "listitem   : <lexp>;"
+        "mapitem    : <string> ':' <lexp> ;"
+        "tuplemap   : '(' <string> ',' <lexp> ')';"
+        //"list       : '[' (<listitem> (',' <listitem>)*) | (<mapitem> (',' <mapitem>)*) ']';"
+        "mapitems   : (<tuplemap> | <mapitem>) (',' (<tuplemap> | <mapitem>)) *;"
+        "listitems   : <listitem> (',' <listitem>) *;"
+        "list       : '[' (<mapitems> | <listitems>) ?']';"
         "namespacedef : <identifier> ('.' <identifier>)+ (<methodcall> | <mapindex>)?;"
         "assignment : <typeident> '=' <stmt> ;"
         "matchcase  : (<identifier> | <number> | <string> | '?') ':' <stmt>;"
         "match      : \"match\" (<identifier> | <namespacedef>) \"=>\" <matchcase>+;"
-        "stmt       : <match> | <assignment> | <namespacedef> | <lexp>;"
-        "body       : <stmt>* ;"
+        "stmt       : <match> | <assignment> | <namespacedef> | <lexp> | <list>;"
+        "body       : (<stmt> | <comment>)* ;"
         "pure       : \"pure\" ;"
         "nolangpure : /^/ (<import> | <const> | <comment> | <methoddef>)* /$/ ;"
       ,
@@ -70,7 +83,9 @@ int main(int argc, char **argv)
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
-        Expr, MethodCall, MapIndex, Namespacedef,
+        Expr, MethodCall,
+        MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
+        Namespacedef,
         Assignment, MatchCase, Match, Stmt,
         Body, Pure,
         NolangPure, NULL);
