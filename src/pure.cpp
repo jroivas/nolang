@@ -9,6 +9,10 @@ int main(int argc, char **argv)
         return 1;
     }
     mpc_parser_t* Comment   = mpc_new("comment");
+    mpc_parser_t* Indent   = mpc_new("indent");
+    mpc_parser_t* Newline   = mpc_new("newline");
+    mpc_parser_t* WhiteSpace = mpc_new("ws");
+    mpc_parser_t* OptionalWhiteSpace = mpc_new("ows");
     mpc_parser_t* Number   = mpc_new("number");
     mpc_parser_t* Operator = mpc_new("operator");
     mpc_parser_t* Expr     = mpc_new("expr");
@@ -41,41 +45,45 @@ int main(int argc, char **argv)
     mpc_parser_t* Pure = mpc_new("pure");
     mpc_parser_t* NolangPure = mpc_new("nolangpure");
 
-    mpc_err_t* err = mpca_lang(MPCA_LANG_DEFAULT,
+    mpc_err_t* err = mpca_lang(MPCA_LANG_WHITESPACE_SENSITIVE,
         "comment    : /(#|\\/\\/)[^\\r\\n]*/ | /\\/\\*[^\\*]*(\\*[^\\/][^\\*]*)*\\*\\// ;"
+        "indent     : \"  \" ;"
+        "newline    : '\\n' | '\\0';"
+        "ws         : /[' ']+/ ;"
+        "ows        : ' '* ;"
         "identifier : /[A-Za-z_][A-Za-z0-9_-]*/ ;"
-        "typeident  : <identifier> ':' <identifier> ;"
+        "typeident  : <identifier> <ows> ':' <ows> <identifier> ;"
         "number     : /[0-9]+/ ;"
         "string     : /\"(\\\\.|[^\"])*\"/ | /\'(\\\\.|[^\'])*\'/ ; "
-        "operator   : '+' | '-' | '*' | '/' ;                  "
-        "import     : \"import\" <identifier> ;"
-        "const      : \"const\" <assignment> ;"
-        "methodret  : ':' <identifier> ;"
-        "methoddef  : <pure>? <identifier> <args>? <methodret>? \"=>\" <body> ;"
-        "paramdef   : <typeident>? (',' <typeident>)*; "
+        "operator   : '+' | '-' | '*' | '/' ;"
+        "import     : \"import\" <ws> <identifier> <newline>;"
+        "const      : \"const\" <assignment> <newline>;"
+        "methodret  : <ows> ':' <ows> <identifier> ;"
+        "methoddef  : (<pure> <ws>)? <identifier> <ows> <args>? <methodret>? <ows> \"=>\" (<newline>|<ws>) <body> ;"
+        "paramdef   : <typeident>? <ows> (',' <ows> <typeident>)*; "
         "args       : '(' <paramdef>? ')'; "
-        "factor     : '(' <lexp> ')' | <number> | <string> | <identifier>; "
-        "term       : <factor> (('*' | '/' | \"div\" | \"mod\" | \"rem\") <factor>)*;"
-        "lexp       : <term> (('+' | '-') <term>)* ; "
-        "expr       : <namespacedef> | <list> | <lexp> | <factor>;"
-        "methodcall : '(' (<expr> (',' <expr>)*)? ')';"
+        "factor     : <pure> | <namespacedef> | '(' <lexp> ')' | <number> | <string> | <identifier>; "
+        "term       : <factor> <ows> (('*' | '/' | \"div\" | \"mod\" | \"rem\") <ows> <factor>)*;"
+        "lexp       : <term> <ows> (('+' | '-') <ows> <term>)* ; "
+        "expr       : <list> | <lexp>;"
+        "methodcall : '(' (<expr> <ows> (',' <ows> <expr>)*)? ')';"
         "mapindex   : '[' <expr> ']';"
         "listitem   : <expr>;"
-        "mapitem    : <string> ':' <expr> ;"
-        "tuplemap   : '(' <string> ',' <lexp> ')';"
-        "mapitems   : (<tuplemap> | <mapitem>) (',' (<tuplemap> | <mapitem>)) *;"
-        "listitems   : <listitem> (',' <listitem>) *;"
+        "mapitem    : <string> <ows> ':' <ows> <expr> ;"
+        "tuplemap   : '(' <string> <ows> ',' <ows> <lexp> ')';"
+        "mapitems   : (<tuplemap> | <mapitem>) <ows> (',' <ows> (<tuplemap> | <mapitem>)) *;"
+        "listitems   : <listitem> <ows> (',' <ows> <listitem>) *;"
         "list       : '[' (<mapitems> | <listitems>) ?']';"
         "namespacedef : <identifier> ('.' <identifier>)* (<methodcall> | <mapindex>)?;"
-        "assignment : <typeident> '=' <expr> ;"
-        "matchcase  : (<identifier> | <number> | <string> | '?') ':' <stmt>;"
-        "match      : \"match\" (<identifier> | <namespacedef>) \"=>\" <matchcase>+;"
+        "assignment : <typeident> <ws> '=' <ws> <expr> ;"
+        "matchcase  : <indent>+ (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt> <newline>;"
+        "match      : \"match\" <ws> (<identifier> | <namespacedef>) <ows> \"=>\" <ows> (<newline>|<ws>) <matchcase>+;"
         "stmt       : <match> | <assignment> | <namespacedef> | <list> | <expr>;"
-        "body       : (<stmt> | <comment>)* ;"
+        "body       : ((<indent>+ (<stmt> | <comment>))? <newline>)* ;"
         "pure       : \"pure\" ;"
-        "nolangpure : /^/ (<import> | <const> | <comment> | <methoddef>)* /$/ ;"
+        "nolangpure : /^/ (<import> | <const> | <comment> | <methoddef> | <newline>)* /$/ ;"
       ,
-        Comment,
+        Comment, Indent, Newline, WhiteSpace, OptionalWhiteSpace,
         Identifier, TypeIdent,
         Number, String,
         Operator,

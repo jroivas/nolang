@@ -12,3 +12,5 @@ pure generatePerson(name:String, birthDay:Date) : Map =>
     mapSet("birthDate", birthDay)
     mapSet(mapSet([], "name", name), "birthDate", birthDay)
 
+pure timeInYearToDay(startDate:Date) : Double =>
+    toYears(Date() - startDate)
