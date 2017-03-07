@@ -66,7 +66,7 @@ int main(int argc, char **argv)
         "indent     : ' ' ' '+ ;"
         "newline    : '\\n';"
         "ws         : /[' ']+/ ;"
-        "ows        : /[' '\\t]*/ ;"
+        "ows        : /[' '\\t\\n]*/ ;"
         "identifier : /[A-Za-z_][A-Za-z0-9_-]*/ ;"
         "typeident  : <identifier> <ows> ':' <ows> <identifier> ;"
         "number     : /[0-9]+/ ;"
@@ -106,7 +106,6 @@ int main(int argc, char **argv)
         "namespacedef : <identifier> ('.' <identifier>)* (<methodcall> | <mapindex>)?;"
         "assignment : <typeident> <ws> '=' <ws> <expr>;"
         "matchcase  : <indent> (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt> <newline>;"
-        //"match      : \"match\" <ws> (<identifier> | <namespacedef>) <ows> \"=>\" <newline> <matchcase>+;"
         "match      : \"match\" <ws> <stmt> <ows> \"=>\" <newline> <matchcase>+;"
         "stmt       : <match>"
         "           | <assignment>"
@@ -123,7 +122,8 @@ int main(int argc, char **argv)
         "           | <newline>;"
         "nolangpure : /^/ <toplevel>* /$/;"
       ,
-        Comment, Indent, Newline, WhiteSpace, OptionalWhiteSpace,
+        Comment, Indent, Newline,
+        WhiteSpace, OptionalWhiteSpace,
         Identifier, TypeIdent,
         Number, String,
         Operator, FactorOperator, TermOperator,
@@ -155,7 +155,8 @@ int main(int argc, char **argv)
     }
 
     mpc_cleanup(39,
-        Comment, Indent, Newline, WhiteSpace, OptionalWhiteSpace,
+        Comment, Indent, Newline,
+        WhiteSpace, OptionalWhiteSpace,
         Identifier, TypeIdent,
         Number, String,
         Operator, FactorOperator, TermOperator,
