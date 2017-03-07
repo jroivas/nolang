@@ -15,6 +15,8 @@ int main(int argc, char **argv)
     mpc_parser_t* OptionalWhiteSpace = mpc_new("ows");
     mpc_parser_t* Number   = mpc_new("number");
     mpc_parser_t* Operator = mpc_new("operator");
+    mpc_parser_t* FactorOperator = mpc_new("factorop");
+    mpc_parser_t* TermOperator = mpc_new("termop");
     mpc_parser_t* Expr     = mpc_new("expr");
     mpc_parser_t* Body     = mpc_new("body");
     mpc_parser_t* Identifier = mpc_new("identifier");
@@ -43,59 +45,86 @@ int main(int argc, char **argv)
     mpc_parser_t* Term = mpc_new("term");
     mpc_parser_t* Const = mpc_new("const");
     mpc_parser_t* Pure = mpc_new("pure");
+    mpc_parser_t* TopLevel = mpc_new("toplevel");
     mpc_parser_t* NolangPure = mpc_new("nolangpure");
 
     mpc_err_t* err = mpca_lang(MPCA_LANG_WHITESPACE_SENSITIVE,
-        "comment    : /(#|\\/\\/)[^\\r\\n]*/ | /\\/\\*[^\\*]*(\\*[^\\/][^\\*]*)*\\*\\// ;"
-        "indent     : \"  \" ;"
-        "newline    : '\\n' | '\\0';"
+        "comment    : /(#|\\/\\/)[^\\r\\n]*/"
+        "           | /\\/\\*[^\\*]*(\\*[^\\/][^\\*]*)*\\*\\// ;"
+        "indent     : ' ' ' '+ ;"
+        "newline    : '\\n';"
         "ws         : /[' ']+/ ;"
-        "ows        : /[' '\\t\\n]*/ ;"
+        "ows        : /[' '\\t]*/ ;"
         "identifier : /[A-Za-z_][A-Za-z0-9_-]*/ ;"
         "typeident  : <identifier> <ows> ':' <ows> <identifier> ;"
         "number     : /[0-9]+/ ;"
-        "string     : /\"(\\\\.|[^\"])*\"/ | /\'(\\\\.|[^\'])*\'/ ; "
+        "string     : /\"(\\\\.|[^\"])*\"/ "
+        "           | /\'(\\\\.|[^\'])*\'/ ; "
         "operator   : '+' | '-' | '*' | '/' ;"
+        "factorop   : '*'"
+        "           | '/'"
+        "           | \"div\""
+        "           | \"mod\""
+        "           | \"rem\";"
+        "termop     : '+'"
+        "           | '-';"
         "import     : \"import\" <ws> <identifier> <newline>;"
-        "const      : \"const\" <assignment> <newline>;"
+        "const      : \"const\" <ws> <assignment> <newline>;"
         "methodret  : <ows> ':' <ows> <identifier> ;"
         "methoddef  : (<pure> <ws>)? <identifier> <ows> <args>? <methodret>? <ows> \"=>\" (<newline>|<ws>) <body> ;"
         "paramdef   : <typeident>? <ows> (',' <ows> <typeident>)*; "
         "args       : '(' <paramdef>? ')'; "
-        "factor     : <namespacedef> | '(' <lexp> ')' | <number> | <string> | <identifier>; "
-        "term       : <factor> <ows> (('*' | '/' | \"div\" | \"mod\" | \"rem\") <ows> <factor>)*;"
-        "lexp       : <term> <ows> (('+' | '-') <ows> <term>)* ; "
-        "expr       : <list> | <lexp>;"
-        "methodcall : '(' (<expr> <ows> (',' <ows> <expr>)*)? ')';"
+        "factor     : <namespacedef>"
+        "           | '(' <lexp> ')'"
+        "           | <number>"
+        "           | <string>"
+        "           | <identifier>; "
+        "term       : <factor> (<ows> <factorop> <ows> <factor>)*;"
+        "lexp       : <term> (<ows> <termop> <ows> <term>)* ; "
+        "expr       : <list>"
+        "           | <lexp>;"
+        "methodcall : '(' (<expr> (',' <ows> <expr>)*)? ')';"
         "mapindex   : '[' <expr> ']';"
         "listitem   : <expr>;"
         "mapitem    : <string> <ows> ':' <ows> <expr> ;"
         "tuplemap   : '(' <string> <ows> ',' <ows> <lexp> ')';"
         "mapitems   : (<tuplemap> | <mapitem>) <ows> (',' <ows> (<tuplemap> | <mapitem>)) *;"
         "listitems  : <listitem> (<ows> ',' <ows> <listitem>) *;"
-        "list       : '[' <ows> (<mapitems> | <listitems>)? <ows> ']';"
+        "list       : '[' <ows> (<mapitems> | <listitems>)? <ows> ']' ;"
         "namespacedef : <identifier> ('.' <identifier>)* (<methodcall> | <mapindex>)?;"
         "assignment : <typeident> <ws> '=' <ws> <expr>;"
-        "matchcase  : <indent>+ (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt> <newline>;"
-        "match      : \"match\" <ws> (<identifier> | <namespacedef>) <ows> \"=>\" <ows> (<newline>|<ws>) <matchcase>+;"
-        "stmt       : <match> | <assignment> | <namespacedef> | <list> | <expr>;"
-        "body       : ((<indent>+ (<stmt> | <comment>))? <newline>)* ;"
+        "matchcase  : <indent> (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt>;"
+        //"match      : \"match\" <ws> (<identifier> | <namespacedef>) <ows> \"=>\" <newline> <matchcase>+;"
+        "match      : \"match\" <ws> <stmt> <ows> \"=>\" <newline> <matchcase>+;"
+        "stmt       : <match>"
+        "           | <assignment>"
+        "           | <namespacedef>"
+        "           | <list>"
+        "           | <expr>"
+        "           | <comment>;"
+        "body       : ((<indent>+ <stmt>)? <newline>)* ;"
         "pure       : \"pure\" ;"
-        "nolangpure : /^/ (<import> | <const> | <comment> | <methoddef> | <newline>)* /$/ ;"
+        "toplevel   : <import>"
+        "           | <const>"
+        "           | <comment>"
+        "           | <methoddef>"
+        "           | <newline>;"
+        "nolangpure : /^/ <toplevel>* /$/;"
       ,
         Comment, Indent, Newline, WhiteSpace, OptionalWhiteSpace,
         Identifier, TypeIdent,
         Number, String,
-        Operator,
+        Operator, FactorOperator, TermOperator,
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
         Expr, MethodCall,
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
-        Assignment, MatchCase, Match, Stmt,
+        Assignment, MatchCase, Match,
+        Stmt,
         Body, Pure,
-        NolangPure, NULL);
+        TopLevel, NolangPure, NULL);
     // expr       : <number> | '(' <operator> <expr>+ ')' ;  
 
     if (err != NULL) {
@@ -117,7 +146,7 @@ int main(int argc, char **argv)
 
     mpc_cleanup(15, 
         Identifier, TypeIdent, Number, String,
-        Operator,
+        Operator, FactorOperator, TermOperator,
         MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
         Expr, Body, Pure,
