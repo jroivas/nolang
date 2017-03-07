@@ -1,6 +1,18 @@
 #include <iostream>
+#include <fstream>
+#include <streambuf>
 
 #include <3pp/mpc/mpc.h>
+
+std::string readFile(char *fname)
+{
+    std::ifstream is(fname, std::ifstream::in);
+    std::string str(
+        (std::istreambuf_iterator<char>(is)),
+        std::istreambuf_iterator<char>()
+    );
+    return str + '\n';
+}
 
 int main(int argc, char **argv)
 {
@@ -93,7 +105,7 @@ int main(int argc, char **argv)
         "list       : '[' <ows> (<mapitems> | <listitems>)? <ows> ']' ;"
         "namespacedef : <identifier> ('.' <identifier>)* (<methodcall> | <mapindex>)?;"
         "assignment : <typeident> <ws> '=' <ws> <expr>;"
-        "matchcase  : <indent> (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt>;"
+        "matchcase  : <indent> (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt> <newline>;"
         //"match      : \"match\" <ws> (<identifier> | <namespacedef>) <ows> \"=>\" <newline> <matchcase>+;"
         "match      : \"match\" <ws> <stmt> <ows> \"=>\" <newline> <matchcase>+;"
         "stmt       : <match>"
@@ -125,7 +137,6 @@ int main(int argc, char **argv)
         Stmt,
         Body, Pure,
         TopLevel, NolangPure, NULL);
-    // expr       : <number> | '(' <operator> <expr>+ ')' ;  
 
     if (err != NULL) {
         mpc_err_print(err);
@@ -134,23 +145,30 @@ int main(int argc, char **argv)
     }
 
     mpc_result_t r;
-    if (mpc_parse_contents(argv[1], NolangPure, &r)) {
-      /* On Success Print the AST */
+    std::string data = readFile(argv[1]);
+    if (mpc_parse(argv[1], data.c_str(), NolangPure, &r)) {
       mpc_ast_print(static_cast<mpc_ast_t*>(r.output));
       mpc_ast_delete(static_cast<mpc_ast_t*>(r.output));
     } else {
-      /* Otherwise Print the Error */
       mpc_err_print(r.error);
       mpc_err_delete(r.error);
     }
 
-    mpc_cleanup(15, 
-        Identifier, TypeIdent, Number, String,
+    mpc_cleanup(39,
+        Comment, Indent, Newline, WhiteSpace, OptionalWhiteSpace,
+        Identifier, TypeIdent,
+        Number, String,
         Operator, FactorOperator, TermOperator,
-        MethodDef, ParamDef, Args,
+        Import, Const,
+        MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
-        Expr, Body, Pure,
-        NolangPure);
+        Expr, MethodCall,
+        MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
+        Namespacedef,
+        Assignment, MatchCase, Match,
+        Stmt,
+        Body, Pure,
+        TopLevel, NolangPure);
 
     return 0;
 }
