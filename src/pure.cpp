@@ -104,7 +104,7 @@ int main(int argc, char **argv)
         "listitems  : <listitem> (<ows> ',' <ows> <listitem>) *;"
         "list       : '[' <ows> (<mapitems> | <listitems>)? <ows> ']' ;"
         "namespacedef : <identifier> ('.' <identifier>)* (<methodcall> | <mapindex>)?;"
-        "assignment : <typeident> <ws> '=' <ws> <expr>;"
+        "assignment : (<typeident>|<namespacedef>) <ws> '=' <ws> <expr>;"
         "matchcase  : <indent> (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt> <newline>;"
         "match      : \"match\" <ws> <stmt> <ows> \"=>\" <newline> <matchcase>+;"
         "stmt       : <match>"
