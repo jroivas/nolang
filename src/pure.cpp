@@ -25,6 +25,7 @@ int main(int argc, char **argv)
     mpc_parser_t* Newline   = mpc_new("newline");
     mpc_parser_t* WhiteSpace = mpc_new("ws");
     mpc_parser_t* OptionalWhiteSpace = mpc_new("ows");
+    mpc_parser_t* OptionalWhiteSpaceNewline = mpc_new("owsn");
     mpc_parser_t* Number   = mpc_new("number");
     mpc_parser_t* Operator = mpc_new("operator");
     mpc_parser_t* FactorOperator = mpc_new("factorop");
@@ -50,6 +51,8 @@ int main(int argc, char **argv)
     mpc_parser_t* ListItems = mpc_new("listitems");
     mpc_parser_t* List = mpc_new("list");
     mpc_parser_t* Namespacedef = mpc_new("namespacedef");
+    mpc_parser_t* Primitive = mpc_new("primitive");
+    mpc_parser_t* Range = mpc_new("range");
     mpc_parser_t* MatchCase = mpc_new("matchcase");
     mpc_parser_t* Match = mpc_new("match");
     mpc_parser_t* Assignment = mpc_new("assignment");
@@ -66,7 +69,8 @@ int main(int argc, char **argv)
         "indent     : ' ' ' '+ ;"
         "newline    : '\\n';"
         "ws         : /[' ']+/ ;"
-        "ows        : /[' '\\t\\n]*/ ;"
+        "ows        : /[' '\\t]*/ ;"
+        "owsn       : /[' '\\t\\n]*/ ;"
         "identifier : /[A-Za-z_][A-Za-z0-9_-]*/ ;"
         "typeident  : <identifier> <ows> ':' <ows> <identifier> ;"
         "number     : /[0-9]+/ ;"
@@ -98,14 +102,16 @@ int main(int argc, char **argv)
         "methodcall : '(' (<expr> (',' <ows> <expr>)*)? ')';"
         "mapindex   : '[' <expr> ']';"
         "listitem   : <expr>;"
-        "mapitem    : <string> <ows> ':' <ows> <expr> ;"
-        "tuplemap   : '(' <string> <ows> ',' <ows> <lexp> ')';"
-        "mapitems   : (<tuplemap> | <mapitem>) <ows> (',' <ows> (<tuplemap> | <mapitem>)) *;"
-        "listitems  : <listitem> (<ows> ',' <ows> <listitem>) *;"
-        "list       : '[' <ows> (<mapitems> | <listitems>)? <ows> ']' ;"
+        "mapitem    : <string> <ows> ':' <owsn> <expr> ;"
+        "tuplemap   : '(' <string> <owsn> ',' <owsn> <lexp> ')';"
+        "mapitems   : (<tuplemap> | <mapitem>) <owsn> (',' <owsn> (<tuplemap> | <mapitem>)) *;"
+        "listitems  : <listitem> (<owsn> ',' <owsn> <listitem>) *;"
+        "list       : '[' <owsn> (<mapitems> | <listitems>)? <owsn> ']' ;"
         "namespacedef : <identifier> ('.' <identifier>)* (<methodcall> | <mapindex>)?;"
+        "primitive  : <identifier> | <number> | <string> ;"
+        "range      : <primitive> \"..\" <primitive>?;"
         "assignment : (<typeident>|<namespacedef>) <ws> '=' <ws> <expr>;"
-        "matchcase  : <indent> (<identifier> | <number> | <string> | '?') <ows> ':' <ows> <stmt> <newline>;"
+        "matchcase  : <indent> (<range> | <primitive> | '?') <ows> ':' <ows> <stmt> <newline>;"
         "match      : \"match\" <ws> <stmt> <ows> \"=>\" <newline> <matchcase>+;"
         "stmt       : <match>"
         "           | <assignment>"
@@ -123,7 +129,7 @@ int main(int argc, char **argv)
         "nolangpure : /^/ <toplevel>* /$/;"
       ,
         Comment, Indent, Newline,
-        WhiteSpace, OptionalWhiteSpace,
+        WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
         Identifier, TypeIdent,
         Number, String,
         Operator, FactorOperator, TermOperator,
@@ -133,6 +139,7 @@ int main(int argc, char **argv)
         Expr, MethodCall,
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
+        Primitive, Range,
         Assignment, MatchCase, Match,
         Stmt,
         Body, Pure,
@@ -156,7 +163,7 @@ int main(int argc, char **argv)
 
     mpc_cleanup(39,
         Comment, Indent, Newline,
-        WhiteSpace, OptionalWhiteSpace,
+        WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
         Identifier, TypeIdent,
         Number, String,
         Operator, FactorOperator, TermOperator,
@@ -166,6 +173,7 @@ int main(int argc, char **argv)
         Expr, MethodCall,
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
+        Primitive, Range,
         Assignment, MatchCase, Match,
         Stmt,
         Body, Pure,
