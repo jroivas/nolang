@@ -123,7 +123,7 @@ int main(int argc, char **argv)
         "           | <comment>;"
         "body       : ((<indent>+ <stmt>)? <newline>)* ;"
         "pure       : \"pure\" ;"
-        "return     : \"return\" <ws> <stmt>;"
+        "return     : \"return\" <ws> <stmt> (<ows> ',' <ows> <stmt>)*;"
         "toplevel   : <import>"
         "           | <const>"
         "           | <comment>"
