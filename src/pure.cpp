@@ -59,6 +59,7 @@ int main(int argc, char **argv)
     mpc_parser_t* Stmt = mpc_new("stmt");
     mpc_parser_t* Term = mpc_new("term");
     mpc_parser_t* Const = mpc_new("const");
+    mpc_parser_t* Return = mpc_new("return");
     mpc_parser_t* Pure = mpc_new("pure");
     mpc_parser_t* TopLevel = mpc_new("toplevel");
     mpc_parser_t* NolangPure = mpc_new("nolangpure");
@@ -118,9 +119,11 @@ int main(int argc, char **argv)
         "           | <namespacedef>"
         "           | <list>"
         "           | <expr>"
+        "           | <return>"
         "           | <comment>;"
         "body       : ((<indent>+ <stmt>)? <newline>)* ;"
         "pure       : \"pure\" ;"
+        "return     : \"return \" <stmt>;"
         "toplevel   : <import>"
         "           | <const>"
         "           | <comment>"
@@ -142,7 +145,7 @@ int main(int argc, char **argv)
         Primitive, Range,
         Assignment, MatchCase, Match,
         Stmt,
-        Body, Pure,
+        Body, Pure, Return,
         TopLevel, NolangPure, NULL);
 
     if (err != NULL) {
@@ -153,12 +156,14 @@ int main(int argc, char **argv)
 
     mpc_result_t r;
     std::string data = readFile(argv[1]);
+    int res = 0;
     if (mpc_parse(argv[1], data.c_str(), NolangPure, &r)) {
       mpc_ast_print(static_cast<mpc_ast_t*>(r.output));
       mpc_ast_delete(static_cast<mpc_ast_t*>(r.output));
     } else {
-      mpc_err_print(r.error);
-      mpc_err_delete(r.error);
+        mpc_err_print(r.error);
+        mpc_err_delete(r.error);
+        res = 1;
     }
 
     mpc_cleanup(39,
@@ -176,8 +181,8 @@ int main(int argc, char **argv)
         Primitive, Range,
         Assignment, MatchCase, Match,
         Stmt,
-        Body, Pure,
+        Body, Pure, Return,
         TopLevel, NolangPure);
 
-    return 0;
+    return res;
 }
