@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     mpc_parser_t* OptionalWhiteSpace = mpc_new("ows");
     mpc_parser_t* OptionalWhiteSpaceNewline = mpc_new("owsn");
     mpc_parser_t* Number   = mpc_new("number");
-    mpc_parser_t* Operator = mpc_new("operator");
+    mpc_parser_t* Comparator = mpc_new("comparator");
     mpc_parser_t* FactorOperator = mpc_new("factorop");
     mpc_parser_t* TermOperator = mpc_new("termop");
     mpc_parser_t* Expr     = mpc_new("expr");
@@ -53,6 +53,7 @@ int main(int argc, char **argv)
     mpc_parser_t* Namespacedef = mpc_new("namespacedef");
     mpc_parser_t* Primitive = mpc_new("primitive");
     mpc_parser_t* Range = mpc_new("range");
+    mpc_parser_t* MatchCond = mpc_new("matchcond");
     mpc_parser_t* MatchCase = mpc_new("matchcase");
     mpc_parser_t* Match = mpc_new("match");
     mpc_parser_t* Assignment = mpc_new("assignment");
@@ -77,7 +78,12 @@ int main(int argc, char **argv)
         "number     : /[0-9]+/ ;"
         "string     : /\"(\\\\.|[^\"])*\"/ "
         "           | /\'(\\\\.|[^\'])*\'/ ; "
-        "operator   : '+' | '-' | '*' | '/' ;"
+        "comparator : \">=\""
+        "           | \"<=\""
+        "           | '>'"
+        "           | '<'"
+        "           | \"==\""
+        "           | \"!=\";"
         "factorop   : '*'"
         "           | '/'"
         "           | \"div\""
@@ -112,7 +118,8 @@ int main(int argc, char **argv)
         "primitive  : <identifier> | <number> | <string> ;"
         "range      : <primitive> \"..\" <primitive>?;"
         "assignment : (<typeident>|<namespacedef>) <ws> '=' <ws> <expr>;"
-        "matchcase  : <comment> | (<indent> (<range> | <primitive> | '?') <ows> ':' <ows> <stmt> <newline>);"
+        "matchcond  : <range> | ((<comparator> <ows>)? <primitive>) | '?';"
+        "matchcase  : <comment> | (<indent> <matchcond> <ows> ':' <ows> <stmt> <newline>);"
         "match      : \"match\" <ws> <stmt> <ows> \"=>\" <newline> <matchcase>+;"
         "stmt       : <match>"
         "           | <return>"
@@ -135,7 +142,7 @@ int main(int argc, char **argv)
         WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
         Identifier, TypeIdent,
         Number, String,
-        Operator, FactorOperator, TermOperator,
+        Comparator, FactorOperator, TermOperator,
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
@@ -143,7 +150,7 @@ int main(int argc, char **argv)
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
         Primitive, Range,
-        Assignment, MatchCase, Match,
+        Assignment, MatchCond, MatchCase, Match,
         Stmt,
         Body, Pure, Return,
         TopLevel, NolangPure, NULL);
@@ -171,7 +178,7 @@ int main(int argc, char **argv)
         WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
         Identifier, TypeIdent,
         Number, String,
-        Operator, FactorOperator, TermOperator,
+        Comparator, FactorOperator, TermOperator,
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
@@ -179,7 +186,7 @@ int main(int argc, char **argv)
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
         Primitive, Range,
-        Assignment, MatchCase, Match,
+        Assignment, MatchCond, MatchCase, Match,
         Stmt,
         Body, Pure, Return,
         TopLevel, NolangPure);
