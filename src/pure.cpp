@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     mpc_parser_t* OptionalWhiteSpaceNewline = mpc_new("owsn");
     mpc_parser_t* Number   = mpc_new("number");
     mpc_parser_t* Comparator = mpc_new("comparator");
+    mpc_parser_t* BinaryOp = mpc_new("binaryop");
     mpc_parser_t* FactorOperator = mpc_new("factorop");
     mpc_parser_t* TermOperator = mpc_new("termop");
     mpc_parser_t* Expr     = mpc_new("expr");
@@ -85,6 +86,9 @@ int main(int argc, char **argv)
         "           | '<'"
         "           | \"==\""
         "           | \"!=\";"
+        "binaryop   : \"&&\""
+        "           | \"||\""
+        "           ;"
         "factorop   : '*'"
         "           | '/'"
         "           | \"div\""
@@ -106,7 +110,7 @@ int main(int argc, char **argv)
         "term       : <factor> (<ows> <factorop> <ows> <factor>)*;"
         "lexp       : <term> (<ows> (<termop> | <comparator>) <ows> <term>)* ; "
         "expr       : <list>"
-        "           | <lexp>;"
+        "           | <lexp> (<ows> <binaryop> <ows> <lexp>)*;"
         "methodcall : '(' (<expr> (',' <ows> <expr>)*)? ')';"
         "mapindex   : '[' <expr> ']';"
         "listitem   : <expr>;"
@@ -147,7 +151,7 @@ int main(int argc, char **argv)
         WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
         Identifier, TypeIdent,
         Number, String,
-        Comparator, FactorOperator, TermOperator,
+        Comparator, BinaryOp, FactorOperator, TermOperator,
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
@@ -185,7 +189,7 @@ int main(int argc, char **argv)
         WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
         Identifier, TypeIdent,
         Number, String,
-        Comparator, FactorOperator, TermOperator,
+        Comparator, BinaryOp, FactorOperator, TermOperator,
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
