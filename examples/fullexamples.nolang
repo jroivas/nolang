@@ -57,10 +57,10 @@ pure fibonacci(n:Number) =>
         > 1: fibonacci(n - 2) + fibonacci(n - 1)
         0..1: 1
 
-pure conditionalsTest(n) =>
+pure conditionalsTest(n: int32) =>
     if n then 42 else 2
 
-pure complexConditionalsTest(n) =>
+pure complexConditionalsTest(c : char) =>
     if c >= 'a' && c <= 'e'
         then 1
         else if c >= 'f' && c <= 'q'

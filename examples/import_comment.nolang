@@ -1,6 +1,12 @@
 import sys
 import IO
 
+// Import in own namespace
+import math
+
+// Import only one method, name imported method inside this namespace
+import math.sqrt as Sq
+
 # Comment
 // Another comment
 /* Multiline

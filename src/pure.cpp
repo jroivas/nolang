@@ -96,7 +96,7 @@ int main(int argc, char **argv)
         "           | \"rem\";"
         "termop     : '+'"
         "           | '-';"
-        "import     : \"import\" <ws> <identifier> <newline>;"
+        "import     : \"import\" <ws> <namespacedef> (<ws> \"as\" <ws> <identifier>)?  <newline>;"
         "const      : \"const\" <ws> <assignment> <newline>;"
         "methodret  : <ows> ':' <ows> <identifier> ;"
         "methoddef  : (<pure> <ws>)? <identifier> <ows> <args>? <methodret>? <ows> \"=>\" (<newline>|<ws>) <body> ;"
