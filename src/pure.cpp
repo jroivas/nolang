@@ -56,6 +56,7 @@ int main(int argc, char **argv)
     mpc_parser_t* MatchCond = mpc_new("matchcond");
     mpc_parser_t* MatchCase = mpc_new("matchcase");
     mpc_parser_t* Match = mpc_new("match");
+    mpc_parser_t* If = mpc_new("if");
     mpc_parser_t* Assignment = mpc_new("assignment");
     mpc_parser_t* Stmt = mpc_new("stmt");
     mpc_parser_t* Term = mpc_new("term");
@@ -103,7 +104,7 @@ int main(int argc, char **argv)
         "           | <string>"
         "           | <identifier>; "
         "term       : <factor> (<ows> <factorop> <ows> <factor>)*;"
-        "lexp       : <term> (<ows> <termop> <ows> <term>)* ; "
+        "lexp       : <term> (<ows> (<termop> | <comparator>) <ows> <term>)* ; "
         "expr       : <list>"
         "           | <lexp>;"
         "methodcall : '(' (<expr> (',' <ows> <expr>)*)? ')';"
@@ -121,7 +122,11 @@ int main(int argc, char **argv)
         "matchcond  : <range> | ((<comparator> <ows>)? <primitive>) | '?';"
         "matchcase  : <comment> | (<indent> <matchcond> <ows> ':' <ows> <stmt> <newline>);"
         "match      : \"match\" <ws> <stmt> <ows> \"=>\" <newline> <matchcase>+;"
+        "if         : \"if\" <ws> <stmt>"
+        "             <ows> \"then\" <ws> <stmt>+"
+        "             (<ows> \"else\" <ws> <stmt>+)?;"
         "stmt       : <match>"
+        "           | <if>"
         "           | <return>"
         "           | <assignment>"
         "           | <expr>"
@@ -150,7 +155,9 @@ int main(int argc, char **argv)
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
         Primitive, Range,
-        Assignment, MatchCond, MatchCase, Match,
+        Assignment,
+        MatchCond, MatchCase, Match,
+        If,
         Stmt,
         Body, Pure, Return,
         TopLevel, NolangPure, NULL);
@@ -186,7 +193,9 @@ int main(int argc, char **argv)
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
         Primitive, Range,
-        Assignment, MatchCond, MatchCase, Match,
+        Assignment,
+        MatchCond, MatchCase, Match,
+        If,
         Stmt,
         Body, Pure, Return,
         TopLevel, NolangPure);
