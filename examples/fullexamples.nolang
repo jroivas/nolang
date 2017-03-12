@@ -153,11 +153,11 @@ pure iterTest(d:List) =>
 
 side iotest() =>
     IO.print("Hello, world!")
-    write(IO.stdout, "Hello, world!)
+    write(IO.stdout, "Hello, world!")
 
 side iotest2() =>
     txt : File = IO.createFile("test.txt")
-    write(txt, "Hello, world!)
+    write(txt, "Hello, world!")
 
     writeNum(txt, 42)
 
