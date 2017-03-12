@@ -135,7 +135,7 @@ side handlePromise(p:Promise) =>
 
 side iterTest(d:List) =>
     // Each method with lambda
-    each(d, (val =>
+    each(d, (val : int32 =>
         IO.print(val)
     ))
 

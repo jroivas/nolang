@@ -20,3 +20,27 @@ pure lambdaCurryExample() =>
     l4(2) == 8
 
     bind(Promise((a : int32, b : int32 => a + b), [1, 2, 3, 4]), printResult)
+
+pure complexLambda() =>
+
+    fib : Lambda = (val : int32 =>
+        res : int32 = 0
+        if val == 0 then res = 0
+        else if val == 1 then res = 1
+        else res = self(val - 1) + self(val - 2)
+        return res
+    )
+
+    fib(5)
+
+pure lambdaInLambda() =>
+    tst : Lambda = (num : int32 =>
+        dd : Lambda = (v : int32 => v * 2)
+        ee : Lambda = (v : int32 =>
+            ff : Lambda = (e : int32 =>
+                e * 3
+            )
+            ff(dd(v + 1)) * 4
+        )
+        return ee(num + 1) + ee(num)
+    )

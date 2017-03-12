@@ -115,7 +115,7 @@ int main(int argc, char **argv)
         "expr       : <list>"
         "           | <lambda>"
         "           | <lexp> (<ows> <binaryop> <ows> <lexp>)*;"
-        "lambda     : '(' <ows> <paramdef> <ows> \"=>\" <ows> <stmt>* ')' ;"
+        "lambda     : '(' <ows> <paramdef> <ows> \"=>\" ((<newline> <body>) | (<ows> <stmt>)) <ows> ')' ;"
         "methodcall : '(' (<expr> (',' <ows> <expr>)*)? ')';"
         "mapindex   : '[' <expr> ']';"
         "listitem   : <expr>;"
