@@ -39,6 +39,7 @@ int main(int argc, char **argv)
     mpc_parser_t* MethodRet = mpc_new("methodret");
     mpc_parser_t* MethodDef = mpc_new("methoddef");
     mpc_parser_t* ParamDef = mpc_new("paramdef");
+    mpc_parser_t* LambdaParamDef = mpc_new("lambdaparamdef");
     mpc_parser_t* String = mpc_new("string");
     mpc_parser_t* Args = mpc_new("args");
     mpc_parser_t* Lexp = mpc_new("lexp");
@@ -103,6 +104,7 @@ int main(int argc, char **argv)
         "methodret  : <ows> ':' <ows> <identifier> ;"
         "methoddef  : (<pure> <ws>)? <identifier> <ows> <args>? <methodret>? <ows> \"=>\" (<newline>|<ws>) <body> ;"
         "paramdef   : <typeident>? <ows> (',' <ows> <typeident>)*; "
+        "lambdaparamdef : (<identifier> (<ows> ':' <ows> <identifier>)?)? <ows> (',' <ows> <identifier> (<ows> ':' <ows> <identifier>)?)*; "
         "args       : '(' <paramdef>? ')'; "
         "factor     : <par>"
         "           | <namespacedef>"
@@ -115,7 +117,7 @@ int main(int argc, char **argv)
         "expr       : <list>"
         "           | <lambda>"
         "           | <lexp> (<ows> <binaryop> <ows> <lexp>)*;"
-        "lambda     : '(' <ows> <paramdef> <ows> \"=>\" ((<newline> <body>) | (<ows> <stmt>)) <ows> ')' ;"
+        "lambda     : '(' <ows> <lambdaparamdef> <ows> \"=>\" ((<newline> <body>) | (<ows> <stmt>)) <ows> ')' ;"
         "methodcall : '(' (<stmt> (',' <ows> <stmt>)*)? ')';"
         "mapindex   : '[' <expr> ']';"
         "listitem   : <expr>;"
@@ -159,7 +161,7 @@ int main(int argc, char **argv)
         Number, String,
         Comparator, BinaryOp, FactorOperator, TermOperator,
         Import, Const,
-        MethodRet, MethodDef, ParamDef, Args,
+        MethodRet, MethodDef, ParamDef, LambdaParamDef, Args,
         Factor, Term, Lexp,
         Expr, Lambda, MethodCall,
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
@@ -197,7 +199,7 @@ int main(int argc, char **argv)
         Number, String,
         Comparator, BinaryOp, FactorOperator, TermOperator,
         Import, Const,
-        MethodRet, MethodDef, ParamDef, Args,
+        MethodRet, MethodDef, ParamDef, LambdaParamDef, Args,
         Factor, Term, Lexp,
         Expr, Lambda, MethodCall,
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,

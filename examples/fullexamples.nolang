@@ -131,6 +131,7 @@ side handlePromise(p:Promise) =>
         match res =>
             Exception: IO.print("Got error" + res)
             ?: IO.print(head(res))
+        endmatch
     ))
 
 side iterTest(d:List) =>
@@ -141,11 +142,11 @@ side iterTest(d:List) =>
 
 pure iterTest(d:List) =>
     // Map && lazy
-    Lambda add = (num, other => num + other)
+    add : Lambda = (num, other => num + other)
     map(d, add(1))
 
-    Lambda mapify = (a, b => ['key': a, 'value': b])
-    Map data = map([['a',1],['b',2],['a',3],['d',4],['f',5],['a',6],['p',7],['q',8],['m',9]], mapify)
+    mapify : Lambda = (a, b => ['key': a, 'value': b])
+    data : Map = map([['a',1],['b',2],['a',3],['d',4],['f',5],['a',6],['p',7],['q',8],['m',9]], mapify)
     at(data, 'm') == 9
 
 // IO
@@ -155,7 +156,7 @@ side iotest() =>
     write(IO.stdout, "Hello, world!)
 
 side iotest2() =>
-    File txt = IO.createFile("test.txt")
+    txt : File = IO.createFile("test.txt")
     write(txt, "Hello, world!)
 
     writeNum(txt, 42)
