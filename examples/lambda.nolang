@@ -1,0 +1,22 @@
+import IO
+
+side printResult(x:List) =>
+    IO.print(head(x))
+
+pure lambdaCurryExample() =>
+    l1 : Lambda = (val : int32 => val + 2)
+    l2 : Lambda = (val : int32, add : int32 => val + add + 1)
+
+    // Currying l2
+    l3 : Lambda = l2(2)
+    l1(5) == 7
+    l1(4) == 6
+    l2(4, 2) == 7
+    l2(3, 2) == 6
+    l3(2) == 5
+
+    // Currying second parameter
+    l4 : Lambda = l2(_, 5)
+    l4(2) == 8
+
+    bind(Promise((a : int32, b : int32 => a + b), [1, 2, 3, 4]), printResult)

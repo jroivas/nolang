@@ -43,6 +43,7 @@ int main(int argc, char **argv)
     mpc_parser_t* Args = mpc_new("args");
     mpc_parser_t* Lexp = mpc_new("lexp");
     mpc_parser_t* Factor = mpc_new("factor");
+    mpc_parser_t* Lambda = mpc_new("lambda");
     mpc_parser_t* MethodCall = mpc_new("methodcall");
     mpc_parser_t* MapIndex = mpc_new("mapindex");
     mpc_parser_t* ListItem = mpc_new("listitem");
@@ -112,7 +113,9 @@ int main(int argc, char **argv)
         "term       : <factor> (<ows> <factorop> <ows> <factor>)*;"
         "lexp       : <term> (<ows> (<termop> | <comparator>) <ows> <term>)* ; "
         "expr       : <list>"
+        "           | <lambda>"
         "           | <lexp> (<ows> <binaryop> <ows> <lexp>)*;"
+        "lambda     : '(' <ows> <paramdef> <ows> \"=>\" <ows> <stmt>* ')' ;"
         "methodcall : '(' (<expr> (',' <ows> <expr>)*)? ')';"
         "mapindex   : '[' <expr> ']';"
         "listitem   : <expr>;"
@@ -141,7 +144,7 @@ int main(int argc, char **argv)
         "           | <list>"
         "           | <comment>;"
         "body       : ((<indent>+ <stmt>)? <newline>)* ;"
-        "pure       : \"pure\" ;"
+        "pure       : \"pure\" | \"side\" ;"
         "return     : \"return\" <ws> <stmt> (<ows> ',' <ows> <stmt>)*;"
         "toplevel   : <import>"
         "           | <const>"
@@ -158,7 +161,7 @@ int main(int argc, char **argv)
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
-        Expr, MethodCall,
+        Expr, Lambda, MethodCall,
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
         Primitive, Range,
@@ -196,7 +199,7 @@ int main(int argc, char **argv)
         Import, Const,
         MethodRet, MethodDef, ParamDef, Args,
         Factor, Term, Lexp,
-        Expr, MethodCall,
+        Expr, Lambda, MethodCall,
         MapIndex, ListItem, MapItem, TupleMap, MapItems, ListItems, List,
         Namespacedef,
         Primitive, Range,
