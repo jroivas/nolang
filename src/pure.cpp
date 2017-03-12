@@ -59,6 +59,7 @@ int main(int argc, char **argv)
     mpc_parser_t* Match = mpc_new("match");
     mpc_parser_t* If = mpc_new("if");
     mpc_parser_t* Assignment = mpc_new("assignment");
+    mpc_parser_t* Par = mpc_new("par");
     mpc_parser_t* Stmt = mpc_new("stmt");
     mpc_parser_t* Term = mpc_new("term");
     mpc_parser_t* Const = mpc_new("const");
@@ -102,7 +103,8 @@ int main(int argc, char **argv)
         "methoddef  : (<pure> <ws>)? <identifier> <ows> <args>? <methodret>? <ows> \"=>\" (<newline>|<ws>) <body> ;"
         "paramdef   : <typeident>? <ows> (',' <ows> <typeident>)*; "
         "args       : '(' <paramdef>? ')'; "
-        "factor     : <namespacedef>"
+        "factor     : <par>"
+        "           | <namespacedef>"
         "           | '(' <lexp> ')'"
         "           | <number>"
         "           | <string>"
@@ -129,6 +131,7 @@ int main(int argc, char **argv)
         "if         : \"if\" <ws> <stmt>"
         "             <ows> \"then\" <ws> <stmt>+"
         "             (<ows> \"else\" <ws> <stmt>+)?;"
+        "par        : \"par\" <ws> <stmt>;"
         "stmt       : <match>"
         "           | <if>"
         "           | <return>"
@@ -161,7 +164,7 @@ int main(int argc, char **argv)
         Primitive, Range,
         Assignment,
         MatchCond, MatchCase, Match,
-        If,
+        If, Par,
         Stmt,
         Body, Pure, Return,
         TopLevel, NolangPure, NULL);
@@ -199,7 +202,7 @@ int main(int argc, char **argv)
         Primitive, Range,
         Assignment,
         MatchCond, MatchCase, Match,
-        If,
+        If, Par,
         Stmt,
         Body, Pure, Return,
         TopLevel, NolangPure);

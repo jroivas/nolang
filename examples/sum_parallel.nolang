@@ -1,0 +1,15 @@
+// Simple calculation: get list, return two first elements summed up
+pure dosum(x:List) : List =>
+    match length(x) =>
+        0: []
+        1: x
+        2: [head(x) + at(x, 1)]
+        >2: dosum(half(x)) + dosum(halfRest(x))
+
+pure parallelSum(x:List) : List =>
+    match length(x) =>
+        0: []
+        1: x
+        2: [head(x) + at(x, 1)]
+        >2: par parallelSum(half(x)) + par parallelSum(halfRest(x))
+

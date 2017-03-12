@@ -20,4 +20,3 @@ pure personWithNewName(person:Map, newName:String) : Map =>
 
     // Same as:
     mapSet(copy(person), "name", newName)
-
