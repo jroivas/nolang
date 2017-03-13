@@ -80,7 +80,7 @@ int main(int argc, char **argv)
         "owsn       : /[\\s\\t\\n]*/ ;"
         "identifier : /[A-Za-z_][A-Za-z0-9_-]*/ (<ows> \"::\" <ows> <identifier>)?;"
         "typeident  : <identifier> <ows> ':' <ows> <identifier> ;"
-        "number     : /[0-9]+/ ;"
+        "number     : '-'? /[0-9]+/ ('.' /[0-9]+/)? ;"
         "string     : /\"(\\\\.|[^\"])*\"/ "
         "           | /\'(\\\\.|[^\'])*\'/ ; "
         "comparator : \">=\""
