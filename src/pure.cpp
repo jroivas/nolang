@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <streambuf>
+#include <vector>
 #include <map>
 
 #include <3pp/mpc/mpc.h>
@@ -239,9 +240,12 @@ void walk(mpc_ast_t *res, int l=0)
     }
 }
 
-std::string codegen(mpc_ast_t *tree, std::map<std::string, std::string> &methods, std::map<int, std::string> &blocks, int level=0);
+//std::string codegen(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::map<int, std::string> &blocks, int level=0);
 
-PureMethod* parseMethod(mpc_ast_t *tree, std::map<std::string, std::string> &methods, std::map<int, std::string> &blocks, int level)
+std::string codegen(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::vector<std::string> &blocks, int level=0, PureMethod *m=nullptr);
+
+//void parseMethod(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::map<int, std::string> &blocks, int level)
+void parseMethod(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::vector<std::string> &blocks, int level)
 {
     PureMethod *m = new PureMethod();
     bool waitName = true;
@@ -258,7 +262,7 @@ PureMethod* parseMethod(mpc_ast_t *tree, std::map<std::string, std::string> &met
             // Body should follow
             waitBody = true;
         } else if (waitBody && tag.find("body") != std::string::npos) {
-            m->body = codegen(tree->children[c], methods, blocks, level);
+            m->body = codegen(tree->children[c], methods, blocks, level, m);
         } else if (tag.find("newline") != std::string::npos) {
         //} else if (cnts.length() == 0) {
             // SKIP
@@ -266,10 +270,21 @@ PureMethod* parseMethod(mpc_ast_t *tree, std::map<std::string, std::string> &met
             std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
         }
     }
-    return m;
+    methods[m->name] = m;
 }
 
-std::string codegen(mpc_ast_t *tree, std::map<std::string, std::string> &methods, std::map<int, std::string> &blocks, int level)
+/*
+void ensureBlockLevel(std::map<int, std::string> &blocks, int level)
+{
+    auto item = blocks.find(level);
+    if (item == blocks.end()) {
+        blocks[level] = "";
+    }
+}
+*/
+
+//std::string codegen(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::map<int, std::string> &blocks, int level)
+std::string codegen(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::vector<std::string> &blocks, int level, PureMethod *m)
 {
     std::string res = "";
 
@@ -281,23 +296,34 @@ std::string codegen(mpc_ast_t *tree, std::map<std::string, std::string> &methods
         //std::cout << "ROOT\n";
     } else if (tag.find("methoddef") != std::string::npos) {
         // New method
-        PureMethod *m = parseMethod(tree, methods, blocks, level);
-        (void)m;
+        parseMethod(tree, methods, blocks, level);
         recurse = false;
         level = 0;
     } else if (tag.find("indent") != std::string::npos) {
-        level = cnts.length();
-        //std::cout << "LVL " << level << " '" << cnts << "'\n";
-        auto item = blocks.find(level);
-        if (item == blocks.end()) {
-            blocks[level] = "";
+        int new_level = cnts.length();
+        if (new_level != level) {
+            if (m) {
+                m->blocks.push_back(blocks);
+                blocks = std::vector<std::string>();
+            }
         }
+        // FIME Blocks does not work this way
+        //ensureBlockLevel(blocks, level);
+        //std::cout << "LVL " << level << " '" << cnts << "'\n";
     } else if ((tag.find("regex") != std::string::npos && cnts.length() == 0) ||
                (tag.find("stmt") != std::string::npos && cnts.length() == 0) ||
                (tag.find("body") != std::string::npos && cnts.length() == 0)) {
         // SKIP
     } else if (tag.find("number") != std::string::npos) {
         res += cnts;
+    } else if (tag.find("termop") != std::string::npos) {
+        res += cnts;
+    } else if (tag.find("newline") != std::string::npos) {
+        // Commit?
+        //ensureBlockLevel(blocks, level);
+        blocks.push_back(res);
+        res = "";
+        //blocks[level].push_back(res);
     } else if (tag.find("ows") != std::string::npos) {
     } else {
         std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
@@ -327,14 +353,24 @@ int main(int argc, char **argv)
         exit(res);
     }
 
-    std::map<std::string, std::string> methods;
-    std::map<int, std::string> blocks;
+    std::map<std::string, PureMethod*> methods;
+    //std::map<int, std::string> blocks;
+    std::vector<std::string> blocks;
     
     if (res == 0) {
         mpc_ast_print(static_cast<mpc_ast_t*>(r.output));
         //walk(static_cast<mpc_ast_t*>(r.output));
         std::cout << codegen(static_cast<mpc_ast_t*>(r.output), methods, blocks) << "\n";
         mpc_ast_delete(static_cast<mpc_ast_t*>(r.output));
+        for (auto i : methods) {
+            std::cout << i.first << ":\n";
+            std::cout << i.second->body << "\n";
+            for (auto v : i.second->blocks) {
+                for (auto w : v) {
+                    std::cout << "  " << w << ":\n";
+                }
+            }
+        }
     } else {
         mpc_err_print(r.error);
         mpc_err_delete(r.error);
