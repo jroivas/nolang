@@ -19,6 +19,7 @@ nolang_pure = executable('nolang_pure',
     sources: [
         'src/pure.cpp',
         'src/parser.cpp',
+        'src/compiler.cpp',
         '3pp/mpc/mpc.c'
     ],
     include_directories: [

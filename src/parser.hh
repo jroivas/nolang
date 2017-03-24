@@ -4,6 +4,9 @@
 
 #include <3pp/mpc/mpc.h>
 
+namespace nolang
+{
+
 class Parser {
 public:
     Parser();
@@ -72,3 +75,5 @@ protected:
     mpc_parser_t* TopLevel;
     mpc_parser_t* NolangPure;
 };
+
+}

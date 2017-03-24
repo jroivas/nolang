@@ -4,6 +4,7 @@
 
 #include <3pp/mpc/mpc.h>
 #include "parser.hh"
+#include "compiler.hh"
 #include "puremethod.hh"
 
 std::string lvl(int l)
@@ -31,6 +32,7 @@ void walk(mpc_ast_t *res, int l=0)
 }
 
 
+#if 0
 std::string codegen(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::vector<std::string> &blocks, int level=0, PureMethod *m=nullptr);
 
 void parseMethod(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods, std::vector<std::string> &blocks, int level)
@@ -125,6 +127,7 @@ std::string codegen(mpc_ast_t *tree, std::map<std::string, PureMethod*> &methods
 
     return res;
 }
+#endif
 
 int main(int argc, char **argv)
 {
@@ -133,7 +136,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    Parser p;
+    nolang::Parser p;
     mpc_result_t *res = p.readParse(argv[1]);
     if (res == nullptr) {
         mpc_err_print(res->error);
@@ -141,13 +144,19 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    /*
     std::map<std::string, PureMethod*> methods;
     std::vector<std::string> blocks;
+    */
     
+    nolang::Compiler c;
+
     mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
     //walk(static_cast<mpc_ast_t*>(r.output));
-    std::cout << codegen(static_cast<mpc_ast_t*>(res->output), methods, blocks) << "\n";
+    std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
     mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
+    c.dump();
+    #if 0
     for (auto i : methods) {
         std::cout << i.first << ":\n";
         std::cout << i.second->body << "\n";
@@ -157,6 +166,7 @@ int main(int argc, char **argv)
             }
         }
     }
+    #endif
 
     return 0;
 }

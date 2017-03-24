@@ -3,6 +3,8 @@
 #include <fstream>
 #include <streambuf>
 
+using namespace nolang;
+
 Parser::Parser()
 {
     init();
