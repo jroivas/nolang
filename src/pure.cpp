@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
     nolang::Parser p;
     mpc_result_t *res = p.readParse(argv[1]);
-    if (res == nullptr) {
+    if (!p.success()) {
         mpc_err_print(res->error);
         mpc_err_delete(res->error);
         exit(1);

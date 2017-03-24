@@ -13,9 +13,12 @@ public:
     ~Parser();
 
     std::string readFile(char *);
-    mpc_result_t *parse(std::string name, std::string data) const;
+    mpc_result_t *parse(std::string name, std::string data);
     mpc_result_t *readParse(char *f) {
         return parse(f, readFile(f));
+    }
+    bool success() const {
+        return m_success;
     }
 
 
@@ -24,6 +27,7 @@ protected:
     void deinit();
     bool generateLang();
     bool m_ok;
+    bool m_success;
 
     mpc_parser_t* Comment;
     mpc_parser_t* Indent;

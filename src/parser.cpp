@@ -6,6 +6,7 @@
 using namespace nolang;
 
 Parser::Parser()
+    : m_success(false)
 {
     init();
 }
@@ -142,10 +143,10 @@ bool Parser::generateLang()
         "par        : \"par\" <ws> <stmt>;"
         "stmt       : <match>"
         "           | <if>"
-        "           | <methodcall>"
         "           | <return>"
         "           | <assignment>"
         "           | <expr>"
+        "           | <methodcall>"
         "           | <namespacedef>"
         "           | <list>"
         "           | <comment>;"
@@ -220,12 +221,11 @@ std::string Parser::readFile(char *fname)
     return str + '\n';
 }
 
-mpc_result_t *Parser::parse(std::string name, std::string data) const
+mpc_result_t *Parser::parse(std::string name, std::string data)
 {
     mpc_result_t *res = new mpc_result_t;
-    if (!mpc_parse(name.c_str(), data.c_str(), NolangPure, res)) {
-        delete res;
-        return nullptr;
-    }
+
+    m_success = mpc_parse(name.c_str(), data.c_str(), NolangPure, res);
+
     return res;
 }
