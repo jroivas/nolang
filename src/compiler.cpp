@@ -39,9 +39,65 @@ void Compiler::addImport(mpc_ast_t *tree)
     }
 }
 
+std::vector<std::string> Compiler::parseNamespaceDef(mpc_ast_t *tree)
+{
+    std::vector<std::string> res;
+    for (int c = 0; c < tree->children_num; ++c) {
+        std::string tag = tree->children[c]->tag;
+        std::string cnts = tree->children[c]->contents;
+        if (tag.find("identifier") != std::string::npos) {
+            res.push_back(cnts);
+        }
+        else {
+            std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
+        }
+    }
+    return res;
+}
+
+std::string Compiler::parseMethodCall(mpc_ast_t *tree)
+{
+    std::string res;
+
+    std::vector<std::string> space;
+    std::string body;
+
+    bool wait_ns = true;
+    bool wait_call_end = false;
+
+    for (int c = 0; c < tree->children_num; ++c) {
+        std::string tag = tree->children[c]->tag;
+        std::string cnts = tree->children[c]->contents;
+        if (wait_ns && tag.find("namespacedef") != std::string::npos) {
+            res += "NS :";
+            space = parseNamespaceDef(tree->children[c]);
+            for (auto s : space) {
+                res += s + "|";
+            }
+            res += "(";
+            wait_ns = false;
+        }
+        else if (!wait_call_end && tag.find("char") != std::string::npos && cnts == "(") {
+            wait_call_end = true;
+        }
+        else if (wait_call_end && tag.find("char") != std::string::npos && cnts == ")") {
+            wait_call_end = false;
+        }
+        else if (wait_call_end) {
+            res += codegen(tree->children[c]);
+        }
+        else {
+            std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
+        }
+    }
+
+    // TODO Return methodcall object
+    return res;
+}
+
 std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
 {
-    std::string res = "";
+    std::string res;
 
     std::string tag = tree->tag;
     std::string cnts = tree->contents;
@@ -65,11 +121,19 @@ std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
         // FIME Blocks does not work this way
         //ensureBlockLevel(blocks, level);
         //std::cout << "LVL " << level << " '" << cnts << "'\n";
-    } else if ((tag.find("regex") != std::string::npos && cnts.length() == 0) ||
-               (tag.find("stmt") != std::string::npos && cnts.length() == 0) ||
+    /*} else if ((tag.find("regex") != std::string::npos && cnts.length() == 0) ||
                (tag.find("body") != std::string::npos && cnts.length() == 0)) {
-        // SKIP
+        */
+        // SKIP and recurse
+    } else if (tag.find("methodcall") != std::string::npos) {
+        std::string cc = parseMethodCall(tree);
+        std::cout << "MCALL:\n";
+        std::cout << cc << "\n";
+        res += cc;
+        recurse = false;
     } else if (tag.find("number") != std::string::npos) {
+        res += cnts;
+    } else if (tag.find("string") != std::string::npos) {
         res += cnts;
     } else if (tag.find("termop") != std::string::npos) {
         res += cnts;
@@ -82,7 +146,8 @@ std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
         m_blocks.push_back(res);
         res = "";
         //blocks[level].push_back(res);
-    } else if (tag.find("ows") != std::string::npos) {
+    } else if (tag.find("ows") != std::string::npos ||
+               tag.find("ws") != std::string::npos) {
     } else {
         std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
     }

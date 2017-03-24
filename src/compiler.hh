@@ -17,7 +17,10 @@ public:
     std::string codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0);
     void parseMethod(mpc_ast_t *tree, int level=0);
 
-    void addImport(mpc_ast_t *tree);
+    std::string parseMethodCall(mpc_ast_t *);
+    std::vector<std::string> parseNamespaceDef(mpc_ast_t *);
+    void addImport(mpc_ast_t *);
+
     void dump() const;
 
 protected:
