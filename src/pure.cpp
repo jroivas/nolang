@@ -4,6 +4,7 @@
 
 #include <3pp/mpc/mpc.h>
 #include "parser.hh"
+#include "statement.hh"
 #include "compiler.hh"
 #include "puremethod.hh"
 
@@ -25,7 +26,8 @@ int main(int argc, char **argv)
     nolang::Compiler c;
 
     mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
-    std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
+    std::vector<nolang::Statement*> r = c.codegen(static_cast<mpc_ast_t*>(res->output));
+    //std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
     mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
 
     c.dump();

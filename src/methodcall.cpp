@@ -3,5 +3,6 @@
 using namespace nolang;
 
 MethodCall::MethodCall()
+    : Statement("MethodCall", "")
 {
 }

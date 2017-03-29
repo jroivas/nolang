@@ -1,7 +1,6 @@
 #include "compiler.hh"
 
 #include <iostream>
-#include "methodcall.hh"
 
 using namespace nolang;
 
@@ -56,13 +55,9 @@ std::vector<std::string> Compiler::parseNamespaceDef(mpc_ast_t *tree)
     return res;
 }
 
-std::string Compiler::parseMethodCall(mpc_ast_t *tree)
+MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
 {
-    std::string res;
-
     MethodCall *mcall = new MethodCall();
-
-    std::string body;
 
     bool wait_ns = true;
     bool wait_call_end = false;
@@ -72,14 +67,6 @@ std::string Compiler::parseMethodCall(mpc_ast_t *tree)
         std::string cnts = tree->children[c]->contents;
         if (wait_ns && tag.find("namespacedef") != std::string::npos) {
             mcall->setNamespace(parseNamespaceDef(tree->children[c]));
-            /*
-            res += "NS :";
-            space = parseNamespaceDef(tree->children[c]);
-            for (auto s : space) {
-                res += s + "|";
-            }
-            res += "(";
-            */
             wait_ns = false;
         }
         else if (!wait_call_end && tag.find("char") != std::string::npos && cnts == "(") {
@@ -89,8 +76,7 @@ std::string Compiler::parseMethodCall(mpc_ast_t *tree)
             wait_call_end = false;
         }
         else if (wait_call_end) {
-            res += codegen(tree->children[c]);
-            res += "\n";
+            mcall->addParameter(codegen(tree->children[c]));
         }
         else {
             std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
@@ -98,11 +84,12 @@ std::string Compiler::parseMethodCall(mpc_ast_t *tree)
     }
 
     // TODO Return methodcall object
-    return res;
+    return mcall;
 }
 
-std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
+std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
 {
+    std::vector<Statement*> rdata;
     std::string res;
 
     std::string tag = tree->tag;
@@ -121,7 +108,8 @@ std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
         if (new_level != level) {
             if (m) {
                 m->m_blocks.push_back(m_blocks);
-                m_blocks = std::vector<std::string>();
+                //m_blocks = std::vector<std::string>();
+                m_blocks = std::vector<std::vector<Statement*>>();
             }
         }
         // FIME Blocks does not work this way
@@ -132,28 +120,36 @@ std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
         */
         // SKIP and recurse
     } else if (tag.find("methodcall") != std::string::npos) {
-        std::string cc = parseMethodCall(tree);
+        rdata.push_back(parseMethodCall(tree));
+        std::cout << "MCALL:\n";
+        /*std::string cc = parseMethodCall(tree);
         std::cout << "MCALL:\n";
         std::cout << cc << "\n";
         res += cc;
+        */
         recurse = false;
     } else if (tag.find("number") != std::string::npos) {
-        res += cnts;
+        //res += cnts;
+        rdata.push_back(new NumberValue(cnts));
     } else if (tag.find("string") != std::string::npos) {
-        res += cnts;
+        //res += cnts;
+        rdata.push_back(new StringValue(cnts));
     } else if (tag.find("identifier") != std::string::npos) {
         // FIXME Some idenfiers are special/reserver words
         res += cnts;
     } else if (tag.find("termop") != std::string::npos) {
-        res += cnts;
+        //res += cnts;
+        rdata.push_back(new Op(res));
     } else if (tag.find("import") != std::string::npos) {
         addImport(tree);
         recurse = false;
     } else if (tag.find("newline") != std::string::npos) {
         // Commit?
         //ensureBlockLevel(blocks, level);
-        m_blocks.push_back(res);
-        res = "";
+        //m_blocks.push_back(res);
+        m_blocks.push_back(rdata);
+        rdata = std::vector<Statement*>();
+        //res = "";
         //blocks[level].push_back(res);
     } else if (tag.find("ows") != std::string::npos ||
                tag.find("ws") != std::string::npos) {
@@ -163,11 +159,17 @@ std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
 
     if (recurse) {
         for (int c = 0; c < tree->children_num; ++c) {
-            res += codegen(tree->children[c], m, level);
+            for (auto l : codegen(tree->children[c], m, level)) {
+                rdata.push_back(l);
+            }
+            //res += codegen(tree->children[c], m, level);
         }
     }
+    if (!res.empty()) {
+        rdata.push_back(new Statement(res));
+    }
 
-    return res;
+    return rdata;
 }
 
 void Compiler::parseMethod(mpc_ast_t *tree, int level)
@@ -199,6 +201,28 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
     m_methods[m->m_name] = m;
 }
 
+void Compiler::dumpStatement(Statement *s) const
+{
+    if (s->type() == "MethodCall") {
+        MethodCall *mc = static_cast<MethodCall*>(s);
+        std::cout << " MethodCall: ";
+        for (auto d : mc->namespaces()) {
+            std::cout << d << " ";
+        }
+        std::cout << "\n";
+        std::cout << "Params:\n";
+        for (auto d : mc->params()) {
+            for (auto e : d) {
+                dumpStatement(e);
+            }
+        }
+    } else if (s->type() == "String") {
+        std::cout << " String: " << s->code() << "\n";
+    } else {
+        std::cout << "Unknown statement type: " << s->type() << "\n";
+    }
+}
+
 void Compiler::dump() const
 {
     std::cout << "== Imports\n";
@@ -209,10 +233,18 @@ void Compiler::dump() const
     std::cout << "== Methods\n";
     for (auto i : m_methods) {
         std::cout << i.first << ":\n";
-        std::cout << i.second->m_body << "\n";
+        for (auto b : i.second->m_body) {
+            std::cout << " BB " << b->type() << ": " << b->code() << "\n";
+            dumpStatement(b);
+        }
         for (auto v : i.second->m_blocks) {
+            std::cout << " VV \n";
             for (auto w : v) {
-                std::cout << "  " << w << ":\n";
+                std::cout << "  WW\n";
+                for (auto z : w) {
+                    std::cout << "   ZZ\n";
+                    std::cout << "  " << z->type() << ": " << z->code() << ":\n";
+                }
             }
         }
     }
