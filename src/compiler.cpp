@@ -1,6 +1,7 @@
 #include "compiler.hh"
 
 #include <iostream>
+#include "methodcall.hh"
 
 using namespace nolang;
 
@@ -59,7 +60,8 @@ std::string Compiler::parseMethodCall(mpc_ast_t *tree)
 {
     std::string res;
 
-    std::vector<std::string> space;
+    MethodCall *mcall = new MethodCall();
+
     std::string body;
 
     bool wait_ns = true;
@@ -69,12 +71,15 @@ std::string Compiler::parseMethodCall(mpc_ast_t *tree)
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
         if (wait_ns && tag.find("namespacedef") != std::string::npos) {
+            mcall->setNamespace(parseNamespaceDef(tree->children[c]));
+            /*
             res += "NS :";
             space = parseNamespaceDef(tree->children[c]);
             for (auto s : space) {
                 res += s + "|";
             }
             res += "(";
+            */
             wait_ns = false;
         }
         else if (!wait_call_end && tag.find("char") != std::string::npos && cnts == "(") {
@@ -85,6 +90,7 @@ std::string Compiler::parseMethodCall(mpc_ast_t *tree)
         }
         else if (wait_call_end) {
             res += codegen(tree->children[c]);
+            res += "\n";
         }
         else {
             std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
@@ -114,7 +120,7 @@ std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
         int new_level = cnts.length();
         if (new_level != level) {
             if (m) {
-                m->blocks.push_back(m_blocks);
+                m->m_blocks.push_back(m_blocks);
                 m_blocks = std::vector<std::string>();
             }
         }
@@ -134,6 +140,9 @@ std::string Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
     } else if (tag.find("number") != std::string::npos) {
         res += cnts;
     } else if (tag.find("string") != std::string::npos) {
+        res += cnts;
+    } else if (tag.find("identifier") != std::string::npos) {
+        // FIXME Some idenfiers are special/reserver words
         res += cnts;
     } else if (tag.find("termop") != std::string::npos) {
         res += cnts;
@@ -169,8 +178,9 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
     for (int c = 0; c < tree->children_num; ++c) {
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
+        // TODO parameters
         if (waitName && tag.find("identifier") != std::string::npos) {
-            m->name = cnts;
+            m->m_name = cnts;
             waitName = false;
         } else if (tag.find("ows") != std::string::npos) {
             // Optional whitespace
@@ -178,7 +188,7 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
             // Body should follow
             waitBody = true;
         } else if (waitBody && tag.find("body") != std::string::npos) {
-            m->body = codegen(tree->children[c], m, level);
+            m->m_body = codegen(tree->children[c], m, level);
         } else if (tag.find("newline") != std::string::npos) {
         //} else if (cnts.length() == 0) {
             // SKIP
@@ -186,7 +196,7 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
             std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
         }
     }
-    m_methods[m->name] = m;
+    m_methods[m->m_name] = m;
 }
 
 void Compiler::dump() const
@@ -199,8 +209,8 @@ void Compiler::dump() const
     std::cout << "== Methods\n";
     for (auto i : m_methods) {
         std::cout << i.first << ":\n";
-        std::cout << i.second->body << "\n";
-        for (auto v : i.second->blocks) {
+        std::cout << i.second->m_body << "\n";
+        for (auto v : i.second->m_blocks) {
             for (auto w : v) {
                 std::cout << "  " << w << ":\n";
             }

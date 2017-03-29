@@ -1,3 +1,3 @@
-#include "puremethod.h"
+#include "puremethod.hh"
 
 
