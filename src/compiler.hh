@@ -27,6 +27,15 @@ public:
     void dump() const;
     void dumpStatement(Statement *s, int level=0) const;
 
+    std::vector<std::string> imports() const
+    {
+        return m_imports;
+    }
+    std::map<std::string, PureMethod*> methods() const
+    {
+        return m_methods;
+    }
+
 protected:
 
     std::map<std::string, PureMethod*> m_methods;

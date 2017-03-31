@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     //std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
     mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
 
-    c.dump();
+    //c.dump();
 
     return 0;
 }

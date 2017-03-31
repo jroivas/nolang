@@ -22,6 +22,7 @@ nolang_pure = executable('nolang_pure',
         'src/compiler.cpp',
         'src/methodcall.cpp',
         'src/puremethod.cpp',
+        'src/codegen/cgen.cpp',
         '3pp/mpc/mpc.c'
     ],
     include_directories: [
