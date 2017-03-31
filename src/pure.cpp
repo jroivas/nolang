@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
     nolang::Compiler c;
 
-    mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
+    //mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
     std::vector<nolang::Statement*> r = c.codegen(static_cast<mpc_ast_t*>(res->output));
     //std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
     mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
