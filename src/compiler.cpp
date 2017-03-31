@@ -214,10 +214,10 @@ void Compiler::dumpStatement(Statement *s, int l) const
             std::cout << d << " ";
         }
         std::cout << "\n";
-        std::cout << "+Params:\n";
+        std::cout << lvl(l+1) << "Params:\n";
         for (auto d : mc->params()) {
             for (auto e : d) {
-                dumpStatement(e);
+                dumpStatement(e, l + 2);
             }
         }
     } else if (s->type() == "String") {
