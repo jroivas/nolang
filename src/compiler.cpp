@@ -121,7 +121,6 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         // SKIP and recurse
     } else if (tag.find("methodcall") != std::string::npos) {
         rdata.push_back(parseMethodCall(tree));
-        std::cout << "MCALL:\n";
         /*std::string cc = parseMethodCall(tree);
         std::cout << "MCALL:\n";
         std::cout << cc << "\n";
@@ -210,7 +209,7 @@ void Compiler::dumpStatement(Statement *s) const
             std::cout << d << " ";
         }
         std::cout << "\n";
-        std::cout << "Params:\n";
+        std::cout << "+Params:\n";
         for (auto d : mc->params()) {
             for (auto e : d) {
                 dumpStatement(e);
@@ -234,7 +233,6 @@ void Compiler::dump() const
     for (auto i : m_methods) {
         std::cout << i.first << ":\n";
         for (auto b : i.second->m_body) {
-            std::cout << " BB " << b->type() << ": " << b->code() << "\n";
             dumpStatement(b);
         }
         for (auto v : i.second->m_blocks) {

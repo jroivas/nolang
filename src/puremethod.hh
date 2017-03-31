@@ -12,9 +12,16 @@ namespace nolang
 class PureMethod : public Statement
 {
 public:
-    PureMethod() : Statement("Method", ""), m_pure(false) {}
+    PureMethod()
+        : Statement("Method", ""),
+          m_pure(false),
+          m_return(VoidType())
+    {
+    }
+
     bool m_pure;
     std::string m_name;
+    TypeDef m_return;
     //std::vector<std::string> body;
     //std::string m_body;
     std::vector<Statement*> m_body;

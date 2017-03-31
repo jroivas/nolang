@@ -21,10 +21,21 @@ public:
     {
     }
 
+    Statement(const Statement &other)
+     : m_type(other.m_type),
+       m_code(other.m_code)
+    {
+        //copy(other);
+    }
+
+    //virtual ~Statement() {}
+
+
     std::string type() const { return m_type; }
     std::string code() const { return m_code; }
 
 protected:
+    //virtual void copy(const Statement &other) {}
     std::string m_type;
     std::string m_code;
 };
@@ -45,6 +56,18 @@ class Op : public Statement
 {
 public:
     Op(std::string val) : Statement("Op", val) {}
+};
+
+class TypeDef : public Statement
+{
+public:
+    TypeDef(std::string val) : Statement("TypeDef", val) {}
+};
+
+class VoidType : public TypeDef
+{
+public:
+    VoidType() : TypeDef("void") {}
 };
 
 }
