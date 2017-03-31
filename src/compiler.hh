@@ -25,7 +25,7 @@ public:
     void addImport(mpc_ast_t *);
 
     void dump() const;
-    void dumpStatement(Statement *s) const;
+    void dumpStatement(Statement *s, int level=0) const;
 
 protected:
 

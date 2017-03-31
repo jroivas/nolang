@@ -40,6 +40,12 @@ protected:
     std::string m_code;
 };
 
+class Identifier : public Statement
+{
+public:
+    Identifier(std::string val) : Statement("Identifier", val) {}
+};
+
 class StringValue : public Statement
 {
 public:
@@ -68,6 +74,12 @@ class VoidType : public TypeDef
 {
 public:
     VoidType() : TypeDef("void") {}
+};
+
+class EOS : public Statement
+{
+public:
+    EOS() : Statement("EOS", "EOS") {}
 };
 
 }

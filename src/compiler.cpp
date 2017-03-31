@@ -90,7 +90,6 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
-    std::string res;
 
     std::string tag = tree->tag;
     std::string cnts = tree->contents;
@@ -121,24 +120,16 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         // SKIP and recurse
     } else if (tag.find("methodcall") != std::string::npos) {
         rdata.push_back(parseMethodCall(tree));
-        /*std::string cc = parseMethodCall(tree);
-        std::cout << "MCALL:\n";
-        std::cout << cc << "\n";
-        res += cc;
-        */
         recurse = false;
     } else if (tag.find("number") != std::string::npos) {
-        //res += cnts;
         rdata.push_back(new NumberValue(cnts));
     } else if (tag.find("string") != std::string::npos) {
-        //res += cnts;
         rdata.push_back(new StringValue(cnts));
     } else if (tag.find("identifier") != std::string::npos) {
-        // FIXME Some idenfiers are special/reserver words
-        res += cnts;
+        // FIXME Some idenfiers are special/reserved words
+        rdata.push_back(new Identifier(cnts));
     } else if (tag.find("termop") != std::string::npos) {
-        //res += cnts;
-        rdata.push_back(new Op(res));
+        rdata.push_back(new Op(cnts));
     } else if (tag.find("import") != std::string::npos) {
         addImport(tree);
         recurse = false;
@@ -146,10 +137,16 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         // Commit?
         //ensureBlockLevel(blocks, level);
         //m_blocks.push_back(res);
+        /*
         m_blocks.push_back(rdata);
+        std::cout << "NL\n";
+        for (auto b : rdata) {
+            dumpStatement(b);
+        }
+        std::cout << "CC\n";
         rdata = std::vector<Statement*>();
-        //res = "";
-        //blocks[level].push_back(res);
+        */
+        rdata.push_back(new EOS());
     } else if (tag.find("ows") != std::string::npos ||
                tag.find("ws") != std::string::npos) {
     } else {
@@ -158,14 +155,17 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
 
     if (recurse) {
         for (int c = 0; c < tree->children_num; ++c) {
-            for (auto l : codegen(tree->children[c], m, level)) {
-                rdata.push_back(l);
+            std::vector<Statement*>  st = codegen(tree->children[c], m, level);
+            //if (!st.empty()) {
+            for (auto s : st) {
+                if (s->type() == "EOS") {
+                    m_blocks.push_back(rdata);
+                    rdata = std::vector<Statement*>();
+                } else {
+                    rdata.push_back(s);
+                }
             }
-            //res += codegen(tree->children[c], m, level);
         }
-    }
-    if (!res.empty()) {
-        rdata.push_back(new Statement(res));
     }
 
     return rdata;
@@ -190,6 +190,11 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
             waitBody = true;
         } else if (waitBody && tag.find("body") != std::string::npos) {
             m->m_body = codegen(tree->children[c], m, level);
+            if (!m_blocks.empty()) {
+                m->m_blocks.push_back(m_blocks);
+                //m_blocks = std::vector<std::string>();
+                m_blocks = std::vector<std::vector<Statement*>>();
+            }
         } else if (tag.find("newline") != std::string::npos) {
         //} else if (cnts.length() == 0) {
             // SKIP
@@ -200,11 +205,11 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
     m_methods[m->m_name] = m;
 }
 
-void Compiler::dumpStatement(Statement *s) const
+void Compiler::dumpStatement(Statement *s, int l) const
 {
+    std::cout << lvl(l) << s->type() << ": ";
     if (s->type() == "MethodCall") {
         MethodCall *mc = static_cast<MethodCall*>(s);
-        std::cout << " MethodCall: ";
         for (auto d : mc->namespaces()) {
             std::cout << d << " ";
         }
@@ -216,7 +221,11 @@ void Compiler::dumpStatement(Statement *s) const
             }
         }
     } else if (s->type() == "String") {
-        std::cout << " String: " << s->code() << "\n";
+        std::cout << s->code() << "\n";
+    } else if (s->type() == "Number") {
+        std::cout << s->code() << "\n";
+    } else if (s->type() == "Op") {
+        std::cout << s->code() << "\n";
     } else {
         std::cout << "Unknown statement type: " << s->type() << "\n";
     }
@@ -233,7 +242,7 @@ void Compiler::dump() const
     for (auto i : m_methods) {
         std::cout << i.first << ":\n";
         for (auto b : i.second->m_body) {
-            dumpStatement(b);
+            dumpStatement(b, 2);
         }
         for (auto v : i.second->m_blocks) {
             std::cout << " VV \n";
@@ -241,7 +250,8 @@ void Compiler::dump() const
                 std::cout << "  WW\n";
                 for (auto z : w) {
                     std::cout << "   ZZ\n";
-                    std::cout << "  " << z->type() << ": " << z->code() << ":\n";
+                    dumpStatement(z, 4);
+                    //std::cout << "  " << z->type() << ": " << z->code() << ":\n";
                 }
             }
         }
