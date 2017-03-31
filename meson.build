@@ -26,6 +26,7 @@ nolang_pure = executable('nolang_pure',
         '3pp/mpc/mpc.c'
     ],
     include_directories: [
-        top_inc
+        top_inc,
+        src_inc,
     ]
 )

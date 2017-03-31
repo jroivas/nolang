@@ -7,6 +7,7 @@
 #include "statement.hh"
 #include "compiler.hh"
 #include "puremethod.hh"
+#include "codegen/cgen.hh"
 
 int main(int argc, char **argv)
 {
@@ -29,6 +30,9 @@ int main(int argc, char **argv)
     std::vector<nolang::Statement*> r = c.codegen(static_cast<mpc_ast_t*>(res->output));
     //std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
     mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
+
+    nolang::Cgen cgen;
+    std::cout << cgen.generateUnit(&c) << "\n";
 
     //c.dump();
 

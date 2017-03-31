@@ -106,7 +106,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         int new_level = cnts.length();
         if (new_level != level) {
             if (m) {
-                m->m_blocks.push_back(m_blocks);
+                m->addBlock(m_blocks);
                 //m_blocks = std::vector<std::string>();
                 m_blocks = std::vector<std::vector<Statement*>>();
             }
@@ -181,7 +181,7 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
         std::string cnts = tree->children[c]->contents;
         // TODO parameters
         if (waitName && tag.find("identifier") != std::string::npos) {
-            m->m_name = cnts;
+            m->setName(cnts);
             waitName = false;
         } else if (tag.find("ows") != std::string::npos) {
             // Optional whitespace
@@ -189,9 +189,9 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
             // Body should follow
             waitBody = true;
         } else if (waitBody && tag.find("body") != std::string::npos) {
-            m->m_body = codegen(tree->children[c], m, level);
+            m->setBody(codegen(tree->children[c], m, level));
             if (!m_blocks.empty()) {
-                m->m_blocks.push_back(m_blocks);
+                m->addBlock(m_blocks);
                 //m_blocks = std::vector<std::string>();
                 m_blocks = std::vector<std::vector<Statement*>>();
             }
@@ -202,7 +202,7 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
             std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
         }
     }
-    m_methods[m->m_name] = m;
+    m_methods[m->name()] = m;
 }
 
 void Compiler::dumpStatement(Statement *s, int l) const
@@ -241,10 +241,10 @@ void Compiler::dump() const
     std::cout << "== Methods\n";
     for (auto i : m_methods) {
         std::cout << i.first << ":\n";
-        for (auto b : i.second->m_body) {
+        for (auto b : i.second->body()) {
             dumpStatement(b, 2);
         }
-        for (auto v : i.second->m_blocks) {
+        for (auto v : i.second->blocks()) {
             std::cout << " VV \n";
             for (auto w : v) {
                 std::cout << "  WW\n";

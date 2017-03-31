@@ -19,6 +19,42 @@ public:
     {
     }
 
+    std::string name() const
+    {
+        return m_name;
+    }
+
+    void setName(std::string n)
+    {
+        m_name = n;
+    }
+
+    const TypeDef *returnType() const
+    {
+        return &m_return;
+    }
+
+    const std::vector<std::vector<std::vector<Statement*>>> blocks() const
+    {
+        return m_blocks;
+    }
+
+    void addBlock(std::vector<std::vector<Statement*>> block)
+    {
+        m_blocks.push_back(block);
+    }
+
+    const std::vector<Statement*> body() const
+    {
+        return m_body;
+    }
+
+    void setBody(std::vector<Statement*> b)
+    {
+        m_body = b;
+    }
+
+protected:
     bool m_pure;
     std::string m_name;
     TypeDef m_return;

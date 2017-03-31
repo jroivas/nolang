@@ -1,6 +1,7 @@
 #pragma once
 
 #include "codegen.hh"
+#include "statement.hh"
 
 namespace nolang
 {
@@ -17,6 +18,13 @@ public:
     std::string generateConst(Statement *);
     std::string generateImport(std::string);
     std::string generateMethod(PureMethod *);
+
+    std::string generateUnit(const Compiler *c);
+
+protected:
+    std::string solveNativeType(const TypeDef *t) const;
+    std::string generateStatement(Statement *s) const;
+    std::string generateBlock(std::vector<std::vector<Statement *>>, std::string ret) const;
 };
 
 }
