@@ -41,8 +41,19 @@ std::string Cgen::generateStatement(Statement *s) const
         s->type() == "Number" ||
         s->type() == "Op") {
         res += s->code() + " ";
+    } else if (s->type() == "MethodCall") {
+        MethodCall *mc = static_cast<MethodCall*>(s);
+
+        // FIXME handle param gen
+        for (auto parm : mc->params()) {
+        }
+        // FIXME Hardcoding
+        if (mc->namespaces().size() == 2 &&
+            mc->namespaces()[0] == "IO" &&
+            mc->namespaces()[1] == "print") {
+        }
     } else {
-        std::cerr << "** ERROR: Unhandled statement"  << s->type() << " " << s->code() << "\n";
+        std::cerr << "** ERROR: Unhandled statement: " << s->type() << " " << s->code() << "\n";
     }
 
     return res;
