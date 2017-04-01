@@ -123,13 +123,15 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         recurse = false;
     } else if (tag.find("number") != std::string::npos) {
         rdata.push_back(new NumberValue(cnts));
+    } else if (tag.find("termop") != std::string::npos) {
+        rdata.push_back(new Op(cnts));
+    } else if (tag.find("factorop") != std::string::npos) {
+        rdata.push_back(new Op(cnts));
     } else if (tag.find("string") != std::string::npos) {
         rdata.push_back(new StringValue(cnts));
     } else if (tag.find("identifier") != std::string::npos) {
         // FIXME Some idenfiers are special/reserved words
         rdata.push_back(new Identifier(cnts));
-    } else if (tag.find("termop") != std::string::npos) {
-        rdata.push_back(new Op(cnts));
     } else if (tag.find("import") != std::string::npos) {
         addImport(tree);
         recurse = false;
@@ -159,6 +161,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
             //if (!st.empty()) {
             for (auto s : st) {
                 if (s->type() == "EOS") {
+                    rdata.push_back(s);
                     m_blocks.push_back(rdata);
                     rdata = std::vector<Statement*>();
                 } else {
@@ -245,11 +248,11 @@ void Compiler::dump() const
             dumpStatement(b, 2);
         }
         for (auto v : i.second->blocks()) {
-            std::cout << " VV \n";
+            std::cout << " BLOCK \n";
             for (auto w : v) {
-                std::cout << "  WW\n";
+                //std::cout << "  WW\n";
                 for (auto z : w) {
-                    std::cout << "   ZZ\n";
+                    //std::cout << "   ZZ\n";
                     dumpStatement(z, 4);
                     //std::cout << "  " << z->type() << ": " << z->code() << ":\n";
                 }

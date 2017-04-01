@@ -30,6 +30,13 @@ public:
 
     //virtual ~Statement() {}
 
+    bool primitive() const
+    {
+        if (m_type == "String") return true;
+        if (m_type == "Number") return true;
+        if (m_type == "Op") return true;
+        return false;
+    }
 
     std::string type() const { return m_type; }
     std::string code() const { return m_code; }

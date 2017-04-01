@@ -89,14 +89,14 @@ std::string Cgen::generateImport(const std::string &imp)
     return res;
 }
 
-std::string Cgen::generateMethodCall(const MethodCall *mc)
+std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc)
 {
     // Strategy is to parse params first, and store result to temporary variables.
     std::vector<std::string> ptypes;
     std::vector<std::string> pnames;
-    std::string res;
+    std::vector<std::string> res;
     for (auto parm : mc->params()) {
-        std::string tmp;
+        //std::string tmp;
         std::string pname = autogen();
         std::string t = solveTypeOfChain(parm);
         if (t.empty()) {
@@ -105,12 +105,17 @@ std::string Cgen::generateMethodCall(const MethodCall *mc)
         ptypes.push_back(t);
         pnames.push_back(pname);
         //tmp = t + " " + pname + ";\n";
-        tmp = t + " " + pname + " = ";
+        //tmp = t + " " + pname + " = ";
+        res.push_back(t + " " + pname + " = ");
         for (auto v : parm) {
-            tmp += generateStatement(v);
+            for (auto l : generateStatement(v)) {
+                res.push_back(l);
+            }
+            //tmp += generateStatement(v);
         }
-        tmp += ";\n";
-        res += tmp;
+        //tmp += ";\n";
+        //res.push_back(";\n");
+        res.push_back("<EOS>");
         //ptypes.push_back(tmp);
     }
     // FIXME Hardcoding
@@ -136,24 +141,34 @@ std::string Cgen::generateMethodCall(const MethodCall *mc)
             tmp += v;
             first = false;
         }
-        tmp += ");\n";
-        res += tmp;
+        tmp += ");";
+        res.push_back(tmp);
+        res.push_back("<EOS>");
     }
 
     return res;
 }
 
-std::string Cgen::generateStatement(const Statement *s)
+std::vector<std::string> Cgen::generateStatement(const Statement *s)
 {
-    std::string res;
+    std::vector<std::string> res;
     
     if (s->type() == "String" ||
-        s->type() == "Number" ||
-        s->type() == "Op") {
-        res += s->code() + " ";
+        s->type() == "Number") {
+        res.push_back(s->code() + " ");
+    } else if (s->type() == "Op") {
+        std::string pp = s->code();
+        if (pp == "div") pp = "/";
+        res.push_back(pp + " ");
+        //res.push_back(s->code() + " ");
+        //res += s->code() + " ";
     } else if (s->type() == "MethodCall") {
         const MethodCall *mc = static_cast<const MethodCall*>(s);
-        res += generateMethodCall(mc);
+        for (auto l : generateMethodCall(mc)) {
+            res.push_back(l);
+        }
+    } else if (s->type() == "EOS") {
+        res.push_back("<EOS>");
     } else {
         std::cerr << "** ERROR: Unhandled statement: " << s->type() << " " << s->code() << "\n";
     }
@@ -161,26 +176,61 @@ std::string Cgen::generateStatement(const Statement *s)
     return res;
 }
 
-std::string Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret)
+std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret)
 {
     std::vector<std::string> lines;
     for (auto line : block) {
-        std::string tmp;
+        std::vector<std::string> tmp;
+        //std::cout << "BB\n";
         for (auto stmt : line) {
-            tmp += generateStatement(stmt);
+            //tmp += generateStatement(stmt);
+            for (auto l : generateStatement(stmt)) {
+                //tmp += l;
+                //res.push_back(l);
+                //l = trim(l);
+                if (!l.empty()) {
+                    tmp.push_back(l);
+                }
+            }
+            /*
+            std::cout << "LLLL ";
+            for (auto l : ltmp) {
+                std::cout << l;
+            }
+            std::cout << "\n";
+            */
         }
-        tmp = trim(tmp);
+        //tmp = trim(tmp);
         if (!tmp.empty()) {
-            lines.push_back(tmp);
+            std::string resline;
+            //tmp += ";\n";
+            for (auto ll : tmp) {
+                if (ll == "<EOS>") {
+                    resline = trim(resline);
+                    if (!resline.empty()) {
+                        lines.push_back(resline + ";\n");
+                    }
+                    resline = "";
+                } else {
+                    resline += ll;
+                    //lines.push_back(ll);
+                }
+            }
+            //lines.push_back(";");
+            if (!resline.empty()) {
+                lines.push_back(resline + ";\n");
+            }
         }
     }
 
+    /*
     if (lines.empty()) {
         return "";
     }
+    */
     // FIXME multiline block does not work with this
 #if 0
-    if (ret != "void") {
+    if (!lines.empty() && ret != "void") {
         std::string last = lines.back();
 
         if (last.substr(0, 6) != "return ") {
@@ -191,12 +241,15 @@ std::string Cgen::generateBlock(const std::vector<std::vector<Statement *>> &blo
     }
 #endif
 
+#if 0
     std::string res;
     for (auto line : lines) {
         res += line + ";\n";
     }
 
     return res;
+#endif
+    return lines;
 }
 
 std::string Cgen::generateMethod(const PureMethod *m)
@@ -211,9 +264,28 @@ std::string Cgen::generateMethod(const PureMethod *m)
         if (ret == "void") ret = "int";
     }
 #endif
-    std::string body;
+    std::vector<std::string> lines;
     for (auto block : m->blocks()) {
-        body += generateBlock(block, ret);
+        for (auto l : generateBlock(block, ret)) {
+            lines.push_back(l);
+            //body += l;
+        }
+    }
+
+    if (!lines.empty() && ret != "void") {
+        std::string last = lines.back();
+
+        if (last.substr(0, 6) != "return ") {
+            lines.pop_back();
+            last = "return " + last;
+            lines.push_back(last);
+        }
+    }
+
+    std::string body;
+    for (auto l : lines) {
+        body += l;
+        //body += l + "\n";
     }
 
     res += ret + " " + m->name() + "() {\n";

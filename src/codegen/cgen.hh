@@ -23,10 +23,10 @@ public:
 
 protected:
     std::string solveNativeType(const Statement *t) const;
-    std::string generateStatement(const Statement *s);
-    std::string generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret);
+    std::vector<std::string> generateStatement(const Statement *s);
+    std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret);
 
-    std::string generateMethodCall(const MethodCall *m);
+    std::vector<std::string> generateMethodCall(const MethodCall *m);
     std::string solveTypeOfChain(std::vector<Statement*>) const;
 
     std::string autogen();
