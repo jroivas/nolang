@@ -1,27 +1,83 @@
 #include "cgen.hh"
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 #include "trim.hh"
 
 using namespace nolang;
 
-std::string Cgen::solveNativeType(const TypeDef *t) const
+Cgen::Cgen()
+    : m_autogen_index(0),
+      m_autogen_prefix("__autogen_")
 {
-    if (t->code() == "void") {
-        return "void";
-    }
-    return "void *";
 }
 
-std::string Cgen::generateConst(Statement *)
+std::string Cgen::autogen()
+{
+    std::stringstream ss;
+    ss << m_autogen_prefix << ++m_autogen_index;
+    return ss.str();
+}
+
+std::string Cgen::solveNativeType(const Statement *s) const
+{
+    if (s->type() == "TypeDef") {
+        if (s->code() == "void") {
+            return "void";
+        }
+        // FIXME
+    }
+    else if (s->type() == "String") {
+        // FIXME "const char*" or "char*"
+        return "char *";
+    }
+    else if (s->type() == "Number") {
+        // FIXME type and size, floats
+        return "long";
+    }
+    #if 0
+    //if (TypeDef *tdef = dynamic_cast<TypeDef*>(s)) {
+    else if (StringValue *sval = dynamic_cast<StringValue*>(s)) {
+        // FIXME "const char*" or "char*"
+        return "char *";
+    }
+    else if (NumberValue *nval = dynamic_cast<NumberValue*>(s)) {
+        // FIXME type and size, floats
+        return "long";
+    }
+    #endif
+    return "";
+    //return "void *";
+}
+
+std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain) const
+{
+    std::string res;
+    for (auto c : chain) {
+        std::string t = solveNativeType(c);
+        if (!t.empty()) {
+            if (res.empty()) {
+                res = t;
+            } else if (res == t) {
+                // OK
+            } else {
+                // Need to solve
+                std::cerr << "*** ERROR: Can't solve type of chain, conflicting types: " << res << ", " << t << "\n";
+            }
+        }
+    }
+    return res;
+}
+
+std::string Cgen::generateConst(const Statement *)
 {
     // FIXME
     return "";
 }
 
-std::string Cgen::generateImport(std::string imp)
+std::string Cgen::generateImport(const std::string &imp)
 {
     std::string res;
     // FIXME Built-in import
@@ -33,7 +89,61 @@ std::string Cgen::generateImport(std::string imp)
     return res;
 }
 
-std::string Cgen::generateStatement(Statement *s) const
+std::string Cgen::generateMethodCall(const MethodCall *mc)
+{
+    // Strategy is to parse params first, and store result to temporary variables.
+    std::vector<std::string> ptypes;
+    std::vector<std::string> pnames;
+    std::string res;
+    for (auto parm : mc->params()) {
+        std::string tmp;
+        std::string pname = autogen();
+        std::string t = solveTypeOfChain(parm);
+        if (t.empty()) {
+            t = "void *";
+        }
+        ptypes.push_back(t);
+        pnames.push_back(pname);
+        //tmp = t + " " + pname + ";\n";
+        tmp = t + " " + pname + " = ";
+        for (auto v : parm) {
+            tmp += generateStatement(v);
+        }
+        tmp += ";\n";
+        res += tmp;
+        //ptypes.push_back(tmp);
+    }
+    // FIXME Hardcoding
+    if (mc->namespaces().size() == 2 &&
+        mc->namespaces()[0] == "IO" &&
+        (mc->namespaces()[1] == "print" ||
+         mc->namespaces()[1] == "println")) {
+        std::string tmp;
+        tmp += "printf(\"";
+        for (auto v : ptypes) {
+            if (v == "char *") tmp += "\%s";
+            else if (v == "int") tmp += "\%d";
+        }
+        if (mc->namespaces()[1] == "println") {
+            tmp += "\\n";
+        }
+        tmp += "\", ";
+        bool first = true;
+        for (auto v : pnames) {
+            if (!first) {
+                tmp += ", ";
+            }
+            tmp += v;
+            first = false;
+        }
+        tmp += ");\n";
+        res += tmp;
+    }
+
+    return res;
+}
+
+std::string Cgen::generateStatement(const Statement *s)
 {
     std::string res;
     
@@ -42,16 +152,8 @@ std::string Cgen::generateStatement(Statement *s) const
         s->type() == "Op") {
         res += s->code() + " ";
     } else if (s->type() == "MethodCall") {
-        MethodCall *mc = static_cast<MethodCall*>(s);
-
-        // FIXME handle param gen
-        for (auto parm : mc->params()) {
-        }
-        // FIXME Hardcoding
-        if (mc->namespaces().size() == 2 &&
-            mc->namespaces()[0] == "IO" &&
-            mc->namespaces()[1] == "print") {
-        }
+        const MethodCall *mc = static_cast<const MethodCall*>(s);
+        res += generateMethodCall(mc);
     } else {
         std::cerr << "** ERROR: Unhandled statement: " << s->type() << " " << s->code() << "\n";
     }
@@ -59,7 +161,7 @@ std::string Cgen::generateStatement(Statement *s) const
     return res;
 }
 
-std::string Cgen::generateBlock(std::vector<std::vector<Statement *>> block, std::string ret) const
+std::string Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret)
 {
     std::vector<std::string> lines;
     for (auto line : block) {
@@ -76,6 +178,8 @@ std::string Cgen::generateBlock(std::vector<std::vector<Statement *>> block, std
     if (lines.empty()) {
         return "";
     }
+    // FIXME multiline block does not work with this
+#if 0
     if (ret != "void") {
         std::string last = lines.back();
 
@@ -85,6 +189,7 @@ std::string Cgen::generateBlock(std::vector<std::vector<Statement *>> block, std
             lines.push_back(last);
         }
     }
+#endif
 
     std::string res;
     for (auto line : lines) {
@@ -94,7 +199,7 @@ std::string Cgen::generateBlock(std::vector<std::vector<Statement *>> block, std
     return res;
 }
 
-std::string Cgen::generateMethod(PureMethod *m)
+std::string Cgen::generateMethod(const PureMethod *m)
 {
     std::string res;
 
