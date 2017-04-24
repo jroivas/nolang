@@ -71,6 +71,13 @@ public:
     Op(std::string val) : Statement("Op", val) {}
 };
 
+class TypeIdent : public Statement
+{
+public:
+    TypeIdent(std::string val, std::string type) : Statement("TypeIdent", val), m_var_type(type) {}
+    std::string m_var_type;
+};
+
 class TypeDef : public Statement
 {
 public:

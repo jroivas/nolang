@@ -54,6 +54,10 @@ public:
         m_body = b;
     }
 
+    void addVariable(TypeIdent *id) {
+        m_variables.push_back(id);
+    }
+
 protected:
     bool m_pure;
     std::string m_name;
@@ -61,6 +65,7 @@ protected:
     //std::vector<std::string> body;
     //std::string m_body;
     std::vector<Statement*> m_body;
+    std::vector<TypeIdent*> m_variables;
 
     std::vector<Variable> m_params;
     //std::vector<std::vector<std::string>> m_blocks;

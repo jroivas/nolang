@@ -39,6 +39,22 @@ void Compiler::addImport(mpc_ast_t *tree)
     }
 }
 
+void Compiler::addConst(mpc_ast_t *tree)
+{
+    for (int c = 0; c < tree->children_num; ++c) {
+        /*
+        std::string tag = tree->children[c]->tag;
+        std::string cnts = tree->children[c]->contents;
+        std::cout << " CCC " << tag << " = " << cnts << "\n";
+        std::string tag = tree->children[c]->tag;
+        if (tag.find("namespacedef") != std::string::npos) {
+            std::string cnts = tree->children[c]->contents;
+            m_imports.push_back(cnts);
+        }
+        */
+    }
+}
+
 std::vector<std::string> Compiler::parseNamespaceDef(mpc_ast_t *tree)
 {
     std::vector<std::string> res;
@@ -87,6 +103,52 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
     return mcall;
 }
 
+bool Compiler::expect(mpc_ast_t *tree, std::string key, std::string val) const
+{
+    std::string tag = tree->tag;
+    std::string cnts = tree->contents;
+
+    if (tag.find(key) == std::string::npos) return false;
+    if (!val.empty() && cnts != val) return false;
+
+    return true;
+}
+
+void Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level)
+{
+    std::string name;
+    std::string type;
+    bool wait_colon = true;
+    for (int c = 0; c < tree->children_num; ++c) {
+        std::string tag = tree->children[c]->tag;
+        std::string cnts = tree->children[c]->contents;
+        if (expect(tree->children[c], "identifier")) {
+            if (wait_colon) name += cnts;
+            else type += cnts;
+        }
+        else if (wait_colon && expect(tree->children[c],"char", ":")) {
+            wait_colon = false;
+        }
+    }
+    m_last_indent = name;
+    m->addVariable(new TypeIdent(name, type));
+}
+
+void Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
+{
+    for (int c = 0; c < tree->children_num; ++c) {
+        if (expect(tree->children[c], "typeident")) {
+            parseTypeIdent(tree->children[c], m, level + 1);
+        } else if (expect(tree->children[c], "namespacedef")) {
+            m_last_indent = tree->children[c]->contents;
+        } else {
+            // FIXME
+            std::vector<Statement*> stmt = codegen(tree->children[c], m, level + 1);
+            (void)stmt;
+        }
+    }
+}
+
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
@@ -121,6 +183,8 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     } else if (tag.find("methodcall") != std::string::npos) {
         rdata.push_back(parseMethodCall(tree));
         recurse = false;
+    } else if (tag.find("assignment") != std::string::npos) {
+        parseAssignment(tree, m, level + 1);
     } else if (tag.find("number") != std::string::npos) {
         rdata.push_back(new NumberValue(cnts));
     } else if (tag.find("termop") != std::string::npos) {
@@ -129,11 +193,20 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata.push_back(new Op(cnts));
     } else if (tag.find("string") != std::string::npos) {
         rdata.push_back(new StringValue(cnts));
+    } else if (tag.find("typeident") != std::string::npos) {
+        if (!m) {
+            throw "Invalid typeident: " + tag;
+        }
+        parseTypeIdent(tree, m, level + 1);
+        recurse = false;
     } else if (tag.find("identifier") != std::string::npos) {
         // FIXME Some idenfiers are special/reserved words
         rdata.push_back(new Identifier(cnts));
     } else if (tag.find("import") != std::string::npos) {
         addImport(tree);
+        recurse = false;
+    } else if (tag.find("const") != std::string::npos) {
+        addConst(tree);
         recurse = false;
     } else if (tag.find("newline") != std::string::npos) {
         // Commit?

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
     nolang::Compiler c;
 
-#if 0
+#if 1
     std::cout << "/*\n";
     mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
     std::cout << "*/\n";

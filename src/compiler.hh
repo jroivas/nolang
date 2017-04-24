@@ -23,6 +23,7 @@ public:
     MethodCall *parseMethodCall(mpc_ast_t *);
     std::vector<std::string> parseNamespaceDef(mpc_ast_t *);
     void addImport(mpc_ast_t *);
+    void addConst(mpc_ast_t *);
 
     void dump() const;
     void dumpStatement(Statement *s, int level=0) const;
@@ -35,14 +36,19 @@ public:
     {
         return m_methods;
     }
+    void parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level=0);
+    void parseAssignment(mpc_ast_t *tree, PureMethod *m, int level=0);
 
 protected:
+    bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
     //std::vector<std::string> m_blocks;
     std::vector<std::string> m_imports;
     std::vector<std::string> m_consts;
+
+    std::string m_last_indent;
 };
 
 }
