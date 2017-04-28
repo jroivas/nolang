@@ -134,19 +134,36 @@ void Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level)
     m->addVariable(new TypeIdent(name, type));
 }
 
-void Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
+Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
 {
+    bool wait_for_ident = true;
+    bool wait_for_assign = false;
+    Assignment *ass = nullptr;
     for (int c = 0; c < tree->children_num; ++c) {
-        if (expect(tree->children[c], "typeident")) {
+        if (wait_for_ident && expect(tree->children[c], "typeident")) {
             parseTypeIdent(tree->children[c], m, level + 1);
-        } else if (expect(tree->children[c], "namespacedef")) {
+            wait_for_ident = false;
+            wait_for_assign = true;
+            ass = new Assignment(m_last_indent);
+        } else if (wait_for_ident && expect(tree->children[c], "namespacedef")) {
             m_last_indent = tree->children[c]->contents;
-        } else {
-            // FIXME
+            wait_for_ident = false;
+            wait_for_assign = true;
+            ass = new Assignment(m_last_indent);
+        } else if (wait_for_assign && expect(tree->children[c], "char", "=")) {
+            wait_for_assign = false;
+        } else if (!wait_for_assign && !wait_for_assign) {
+            // Now need to parse statements/expr...
             std::vector<Statement*> stmt = codegen(tree->children[c], m, level + 1);
-            (void)stmt;
+            ass->addStatements(stmt);
+        } else {
+            std::string tag = tree->children[c]->tag;
+            std::string cnts = tree->children[c]->contents;
+            std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
         }
     }
+
+    return ass;
 }
 
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
@@ -184,7 +201,8 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata.push_back(parseMethodCall(tree));
         recurse = false;
     } else if (tag.find("assignment") != std::string::npos) {
-        parseAssignment(tree, m, level + 1);
+        rdata.push_back(parseAssignment(tree, m, level + 1));
+        recurse = false;
     } else if (tag.find("number") != std::string::npos) {
         rdata.push_back(new NumberValue(cnts));
     } else if (tag.find("termop") != std::string::npos) {

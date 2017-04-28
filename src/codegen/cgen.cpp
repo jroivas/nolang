@@ -21,15 +21,64 @@ std::string Cgen::autogen()
     return ss.str();
 }
 
-std::string Cgen::solveNativeType(const Statement *s) const
+std::string Cgen::solveNativeType(const std::string & s) const
+{
+    if (s == "int32") {
+        return "int32_t";
+    } else if (s == "int8") {
+        return "int8_t";
+    } else if (s == "int16") {
+        return "int16_t";
+    } else if (s == "int64") {
+        return "int64_t";
+    } else if (s == "uint32") {
+        return "uint32_t";
+    } else if (s == "uint8") {
+        return "uint8_t";
+    } else if (s == "uint16") {
+        return "uint16_t";
+    } else if (s == "uint64") {
+        return "uint64_t";
+    } else if (s == "Double") {
+        return "double";
+    } else if (s == "f64") {
+        return "double";
+    } else if (s == "f32") {
+        return "float";
+    }
+    throw "ERR";
+}
+
+TypeIdent *Cgen::solveVariable(const std::string &name, const PureMethod *m) const
+{
+    if (!m) return nullptr;
+    for (auto var : m->variables()) {
+        if (var->code() == name) {
+            return var;
+        }
+    }
+    return nullptr;
+}
+
+std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
 {
     if (s->type() == "TypeDef") {
         if (s->code() == "void") {
             return "void";
         }
         // FIXME
-    }
-    else if (s->type() == "String") {
+    } else if (s->type() == "TypeIdent") {
+        const TypeIdent *i = static_cast<const TypeIdent *>(s);
+        std::string native = solveNativeType(i->m_var_type);
+        std::cout << "aSTT " << native << "\n";
+    } else if (s->type() == "Identifier") {
+        TypeIdent *var = solveVariable(s->code(), m);
+        if (var) {
+            return solveNativeType(var->m_var_type);
+            //std::cout << "STT " << native << "\n";
+        }
+        return "invalid";
+    } else if (s->type() == "String") {
         // FIXME "const char*" or "char*"
         return "char *";
     }
@@ -52,11 +101,11 @@ std::string Cgen::solveNativeType(const Statement *s) const
     //return "void *";
 }
 
-std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain) const
+std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
 {
     std::string res;
     for (auto c : chain) {
-        std::string t = solveNativeType(c);
+        std::string t = solveNativeType(c, m);
         if (!t.empty()) {
             if (res.empty()) {
                 res = t;
@@ -83,13 +132,14 @@ std::string Cgen::generateImport(const std::string &imp)
     // FIXME Built-in import
     if (imp == "IO") {
        res += "#include <stdio.h>\n";
+       res += "#include <stdint.h>\n";
     } else {
         std::cerr << "** ERROR: Unhandled import" << imp << "\n";
     }
     return res;
 }
 
-std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc)
+std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
 {
     // Strategy is to parse params first, and store result to temporary variables.
     std::vector<std::string> ptypes;
@@ -98,8 +148,9 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc)
     for (auto parm : mc->params()) {
         //std::string tmp;
         std::string pname = autogen();
-        std::string t = solveTypeOfChain(parm);
+        std::string t = solveTypeOfChain(parm, m);
         if (t.empty()) {
+            // FIXME
             t = "void *";
         }
         ptypes.push_back(t);
@@ -108,7 +159,7 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc)
         //tmp = t + " " + pname + " = ";
         res.push_back(t + " " + pname + " = ");
         for (auto v : parm) {
-            for (auto l : generateStatement(v)) {
+            for (auto l : generateStatement(v, m)) {
                 res.push_back(l);
             }
             //tmp += generateStatement(v);
@@ -128,6 +179,16 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc)
         for (auto v : ptypes) {
             if (v == "char *") tmp += "\%s";
             else if (v == "int") tmp += "\%d";
+            else if (v == "uint8_t") tmp += "\%u";
+            else if (v == "uint16_t") tmp += "\%u";
+            else if (v == "uint32_t") tmp += "\%lu";
+            else if (v == "uint64_t") tmp += "\%llu";
+            else if (v == "int8_t") tmp += "\%d";
+            else if (v == "int16_t") tmp += "\%d";
+            else if (v == "int32_t") tmp += "\%ld";
+            else if (v == "int64_t") tmp += "\%lld";
+            // FIXME
+            //else tmp += "\%d";
         }
         if (mc->namespaces()[1] == "println") {
             tmp += "\\n";
@@ -149,7 +210,7 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc)
     return res;
 }
 
-std::vector<std::string> Cgen::generateStatement(const Statement *s)
+std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureMethod *m)
 {
     std::vector<std::string> res;
     
@@ -164,9 +225,21 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s)
         //res += s->code() + " ";
     } else if (s->type() == "MethodCall") {
         const MethodCall *mc = static_cast<const MethodCall*>(s);
-        for (auto l : generateMethodCall(mc)) {
+        for (auto l : generateMethodCall(mc, m)) {
             res.push_back(l);
         }
+    } else if (s->type() == "Assignment") {
+        res.push_back(s->code() + " = ");
+        const Assignment *ass = static_cast<const Assignment*>(s);
+        for (auto s : ass->m_statements) {
+            for (auto l : generateStatement(s, m)) {
+                res.push_back(l);
+            }
+        }
+        //
+    } else if (s->type() == "Identifier") {
+        // Fixme typeconv
+        res.push_back(s->code() + " ");
     } else if (s->type() == "EOS") {
         res.push_back("<EOS>");
     } else {
@@ -176,7 +249,7 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s)
     return res;
 }
 
-std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret)
+std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret, const PureMethod *m)
 {
     std::vector<std::string> lines;
     for (auto line : block) {
@@ -184,7 +257,7 @@ std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<State
         //std::cout << "BB\n";
         for (auto stmt : line) {
             //tmp += generateStatement(stmt);
-            for (auto l : generateStatement(stmt)) {
+            for (auto l : generateStatement(stmt, m)) {
                 //tmp += l;
                 //res.push_back(l);
                 //l = trim(l);
@@ -252,11 +325,22 @@ std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<State
     return lines;
 }
 
+std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
+{
+    std::vector<std::string> res;
+
+    std::string native = solveNativeType(i->m_var_type);
+
+    res.push_back(native + " " + i->code() +  ";\n");
+
+    return res;
+}
+
 std::string Cgen::generateMethod(const PureMethod *m)
 {
     std::string res;
 
-    std::string ret = solveNativeType(m->returnType());
+    std::string ret = solveNativeType(m->returnType(), m);
 #if 1
     // FIXME Forcing main to be "int"
     if (m->name() == "main") {
@@ -265,8 +349,14 @@ std::string Cgen::generateMethod(const PureMethod *m)
     }
 #endif
     std::vector<std::string> lines;
+    for (auto var : m->variables()) {
+        for (auto l : generateVariable(var)) {
+            lines.push_back(l);
+        }
+    }
+
     for (auto block : m->blocks()) {
-        for (auto l : generateBlock(block, ret)) {
+        for (auto l : generateBlock(block, ret, m)) {
             lines.push_back(l);
             //body += l;
         }

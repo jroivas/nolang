@@ -37,7 +37,7 @@ public:
         return m_methods;
     }
     void parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level=0);
-    void parseAssignment(mpc_ast_t *tree, PureMethod *m, int level=0);
+    Assignment *parseAssignment(mpc_ast_t *tree, PureMethod *m, int level=0);
 
 protected:
     bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;

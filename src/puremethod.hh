@@ -58,6 +58,11 @@ public:
         m_variables.push_back(id);
     }
 
+    const std::vector<TypeIdent*> variables() const
+    {
+        return m_variables;
+    }
+
 protected:
     bool m_pure;
     std::string m_name;

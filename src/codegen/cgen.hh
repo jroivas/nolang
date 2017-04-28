@@ -22,12 +22,15 @@ public:
     std::string generateUnit(const Compiler *c);
 
 protected:
-    std::string solveNativeType(const Statement *t) const;
-    std::vector<std::string> generateStatement(const Statement *s);
-    std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret);
+    std::string solveNativeType(const Statement *t, const PureMethod *m) const;
+    std::string solveNativeType(const std::string & s) const;
+    std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
+    std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret, const PureMethod *m);
+    std::vector<std::string> generateVariable(const TypeIdent *i);
+    TypeIdent *solveVariable(const std::string &name, const PureMethod *m) const;
 
-    std::vector<std::string> generateMethodCall(const MethodCall *m);
-    std::string solveTypeOfChain(std::vector<Statement*>) const;
+    std::vector<std::string> generateMethodCall(const MethodCall *mc, const PureMethod *m);
+    std::string solveTypeOfChain(std::vector<Statement*>, const PureMethod *m) const;
 
     std::string autogen();
 

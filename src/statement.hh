@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace nolang
 {
@@ -94,6 +95,20 @@ class EOS : public Statement
 {
 public:
     EOS() : Statement("EOS", "EOS") {}
+};
+
+class Assignment : public Statement
+{
+public:
+    Assignment(std::string var) : Statement("Assignment", var) {}
+
+    void addStatements(std::vector<Statement*> stmt) {
+        for (auto s : stmt) {
+            m_statements.push_back(s);
+        }
+    }
+
+    std::vector<Statement*> m_statements;
 };
 
 }
