@@ -20,5 +20,7 @@ int main(int argc, char**argv) {\
     Y;\
     std::cout << "\n"; \
 }
-#define TEST_ASSERT_TRUE(X) do { __tests++; if ((X)) { __success++; std::cout << "SUCCESS"; } else { __failures++; std::cout << "FAIL"; } } while (0);
+#define TEST_ONE_ASSERT bool only_one_assert_per_test_case; (void)(only_one_assert_per_test_case);
+#define TEST_ASSERT_TRUE(X) TEST_ONE_ASSERT do { __tests++; if ((X)) { __success++; std::cout << "SUCCESS"; } else { __failures++; std::cout << "FAIL"; } } while (0);
 #define TEST_ASSERT_FALSE(X) TEST_ASSERT_TRUE(!X)
+#define TEST_ASSERT_EQUALS(X, Y) TEST_ONE_ASSERT do { __tests++; if ((X == Y)) { __success++; std::cout << "SUCCESS"; } else { __failures++; std::cout << "FAIL: " << #X << " != " << #Y << ", got " << X ; } } while (0);

@@ -184,7 +184,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     } else if (tag.find("indent") != std::string::npos) {
         int new_level = cnts.length();
         if (new_level != level) {
-            if (m) {
+            if (m && !m_blocks.empty()) {
                 m->addBlock(m_blocks);
                 //m_blocks = std::vector<std::string>();
                 m_blocks = std::vector<std::vector<Statement*>>();

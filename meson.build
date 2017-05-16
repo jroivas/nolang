@@ -57,4 +57,18 @@ test_parser = executable('test-parser',
     ]
 )
 
+test_compiler = executable('test-compiler',
+    sources: [
+        'test/test_compiler.cpp'
+    ],
+    include_directories: [
+        top_inc,
+        src_inc,
+    ],
+    link_with: [
+        nolang_lib
+    ]
+)
+
 test('test_parser', test_parser)
+test('test_compiler', test_compiler)
