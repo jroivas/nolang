@@ -21,3 +21,4 @@ int main(int argc, char**argv) {\
     std::cout << "\n"; \
 }
 #define TEST_ASSERT_TRUE(X) do { __tests++; if ((X)) { __success++; std::cout << "SUCCESS"; } else { __failures++; std::cout << "FAIL"; } } while (0);
+#define TEST_ASSERT_FALSE(X) TEST_ASSERT_TRUE(!X)

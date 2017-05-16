@@ -5,6 +5,11 @@
 TEST_SUITE(
     nolang::Parser parser;
 
+    TEST_CASE(empty_case,
+        parser.parse("test.nolang", "");
+        TEST_ASSERT_TRUE(parser.success())
+    )
+
     TEST_CASE(basic_parser,
         std::string data = "";
 
@@ -16,4 +21,8 @@ TEST_SUITE(
         TEST_ASSERT_TRUE(parser.success())
     )
 
+    TEST_CASE(fail_case,
+        parser.parse("test.nolang", "+");
+        TEST_ASSERT_FALSE(parser.success())
+    )
 )
