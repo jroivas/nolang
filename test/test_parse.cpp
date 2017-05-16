@@ -9,7 +9,7 @@ TEST_SUITE(
         std::string data = "";
 
         data += "main =>\n";
-        data += "    40 + 2";
+        data += "    40 + 2\n";
 
         parser.parse("test.nolang", data);
 
