@@ -65,7 +65,7 @@ std::vector<std::string> Compiler::parseNamespaceDef(mpc_ast_t *tree)
             res.push_back(cnts);
         }
         else {
-            std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
+            std::cerr << "** ERROR: Unknown node in namespace defination: " << tag << ": '" << cnts << "'\n";
         }
     }
     return res;
@@ -95,7 +95,7 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
             mcall->addParameter(codegen(tree->children[c]));
         }
         else {
-            std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
+            std::cerr << "** ERROR: Unknown node in method call: " << tag << ": '" << cnts << "'\n";
         }
     }
 
@@ -159,7 +159,7 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
         } else {
             std::string tag = tree->children[c]->tag;
             std::string cnts = tree->children[c]->contents;
-            std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
+            std::cerr << "** ERROR: Unknown node in assignment: " << tag << ": '" << cnts << "'\n";
         }
     }
 
@@ -243,7 +243,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     } else if (tag.find("ows") != std::string::npos ||
                tag.find("ws") != std::string::npos) {
     } else {
-        std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
+        std::cerr << "** ERROR: Unknown node in statement: " << tag << ": '" << cnts << "'\n";
     }
 
     if (recurse) {
@@ -293,7 +293,7 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
         //} else if (cnts.length() == 0) {
             // SKIP
         } else {
-            std::cerr << "***ERROR: Unknown node: " << tag << ": '" << cnts << "'\n";
+            std::cerr << "** ERROR: Unknown node in method: " << tag << ": '" << cnts << "'\n";
         }
     }
     m_methods[m->name()] = m;

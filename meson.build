@@ -15,8 +15,8 @@ add_global_arguments('-Wall', language : 'c')
 top_inc = include_directories('.')
 src_inc = include_directories('src')
 
-nolang_pure = executable('nolang_pure',
-    sources: [
+nolang_lib = static_library('nolang',
+    [
         'src/pure.cpp',
         'src/parser.cpp',
         'src/compiler.cpp',
@@ -30,3 +30,31 @@ nolang_pure = executable('nolang_pure',
         src_inc,
     ]
 )
+
+nolang_pure = executable('nolang-pure',
+    sources: [
+        'src/pure.cpp'
+    ],
+    include_directories: [
+        top_inc,
+        src_inc,
+    ],
+    link_with: [
+        nolang_lib
+    ]
+)
+
+test_parser = executable('test-parser',
+    sources: [
+        'test/test_parse.cpp'
+    ],
+    include_directories: [
+        top_inc,
+        src_inc,
+    ],
+    link_with: [
+        nolang_lib
+    ]
+)
+
+test('test_parser', test_parser)

@@ -23,7 +23,8 @@ std::string Cgen::autogen()
 
 std::string Cgen::solveNativeType(const std::string & s) const
 {
-    if (s == "int32") {
+    // Defaulting "int" to int32
+    if (s == "int32" || s == "int") {
         return "int32_t";
     } else if (s == "int8") {
         return "int8_t";
@@ -46,7 +47,7 @@ std::string Cgen::solveNativeType(const std::string & s) const
     } else if (s == "f32") {
         return "float";
     }
-    throw "ERR";
+    throw "Unknown native type: " + s;
 }
 
 TypeIdent *Cgen::solveVariable(const std::string &name, const PureMethod *m) const
@@ -132,9 +133,8 @@ std::string Cgen::generateImport(const std::string &imp)
     // FIXME Built-in import
     if (imp == "IO") {
        res += "#include <stdio.h>\n";
-       res += "#include <stdint.h>\n";
     } else {
-        std::cerr << "** ERROR: Unhandled import" << imp << "\n";
+        std::cerr << "** ERROR: Unhandled import " << imp << "\n";
     }
     return res;
 }
@@ -388,6 +388,7 @@ std::string Cgen::generateMethod(const PureMethod *m)
 std::string Cgen::generateUnit(const Compiler *c)
 {
     std::string code;
+    code += "#include <stdint.h>\n";
     for (auto m : c->imports()) {
         code += generateImport(m);
     }

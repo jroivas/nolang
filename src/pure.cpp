@@ -31,12 +31,21 @@ int main(int argc, char **argv)
     mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
     std::cout << "*/\n";
 #endif
+
     std::vector<nolang::Statement*> r = c.codegen(static_cast<mpc_ast_t*>(res->output));
     //std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
     mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
 
-    nolang::Cgen cgen;
-    std::cout << cgen.generateUnit(&c) << "\n";
+    try {
+        nolang::Cgen cgen;
+        std::cout << cgen.generateUnit(&c) << "\n";
+    }
+    catch (char const *m) {
+        std::cout << "== ERROR: Code gen: " << m << "\n";
+    }
+    catch (std::string m) {
+        std::cout << "== ERROR: Code gen: " << m << "\n";
+    }
 
     //c.dump();
 
