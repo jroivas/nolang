@@ -108,6 +108,10 @@ public:
         }
     }
 
+    std::vector<Statement*> statements() const {
+        return m_statements;
+    }
+
     std::vector<Statement*> m_statements;
 };
 
