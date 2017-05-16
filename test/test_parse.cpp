@@ -21,8 +21,23 @@ TEST_SUITE(
         TEST_ASSERT_TRUE(parser.success())
     )
 
-    TEST_CASE(fail_case,
+    TEST_CASE(invalid_top_level,
         parser.parse("test.nolang", "+");
         TEST_ASSERT_FALSE(parser.success())
+    )
+
+    TEST_CASE(empty_main_fail,
+        parser.parse("test.nolang", "main =>");
+        TEST_ASSERT_FALSE(parser.success())
+    )
+
+    TEST_CASE(empty_main_ok,
+        parser.parse("test.nolang", "main =>\n");
+        TEST_ASSERT_TRUE(parser.success())
+    )
+
+    TEST_CASE(empty_main_with_import,
+        parser.parse("test.nolang", "import sys\nmain =>\n");
+        TEST_ASSERT_TRUE(parser.success())
     )
 )
