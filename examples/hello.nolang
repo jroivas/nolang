@@ -1,0 +1,4 @@
+import IO
+
+main =>
+    IO.print("Hello, world!\n")

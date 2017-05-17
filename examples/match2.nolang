@@ -1,0 +1,9 @@
+pure matchAge(age:Double) =>
+    match age =>
+        0..2: 'infant'
+        3..6: 'kid'
+        7..12: 'school kid'
+        13..18: 'teen'
+        19..60: 'adult'
+        61..: 'senior'
+        ?: 'invalid age'

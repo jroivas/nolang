@@ -1,0 +1,4 @@
+pure fibonacci(n:Number) =>
+    match n =>
+        > 1: fibonacci(n - 2) + fibonacci(n - 1)
+        0..1: 1

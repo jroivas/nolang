@@ -1,0 +1,25 @@
+import IO
+
+side printResult(x:List) =>
+    IO.print(head(x))
+
+side promises() =>
+    // Bind result of call to method
+    bind(Promise(parallelSum, [1, 2, 3, 4]), printResult)
+
+    prom : Promise = Promise(parallelSum, [1, 2, 3, 4])
+    handlePromise(prom)
+
+side withoutLambda() =>
+    match res =>
+        Exception: IO.print("Got error" + res)
+        ?: IO.print(head(res))
+
+side handlePromise(p:Promise) =>
+    // Bind to lambda
+    bind(p, (res : List =>
+        match res =>
+            Exception: IO.print("Got error" + res)
+            ?: IO.print(head(res))
+        endmatch
+    ))

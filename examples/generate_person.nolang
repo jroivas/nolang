@@ -1,0 +1,22 @@
+pure generatePerson(name:String, birthDay:Date) : Map =>
+    // Just plain list
+    [1, 2, 3, 4, 8]
+    // Map
+    [
+        "name": name,
+        "birthDate": birthDay
+    ]
+    // Same as:
+    [("name", name), ("birthDate", birthDay)]
+    // Same as:
+    mapSet("birthDate", birthDay)
+    mapSet(mapSet([], "name", name), "birthDate", birthDay)
+
+pure personWithNewName(person:Map, newName:String) : Map =>
+    // Explicit copy, updating person is error
+    newPerson = copy(person)
+    newPerson.name = newName
+    newPerson
+
+    // Same as:
+    mapSet(copy(person), "name", newName)

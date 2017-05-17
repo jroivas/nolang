@@ -1,0 +1,3 @@
+const MeaningOfTheLife : int8 = 42
+const NumberOfTheBeast : int32 = 666
+const HelloWorld : string = "Hello, world"

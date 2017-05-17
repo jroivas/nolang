@@ -1,0 +1,8 @@
+pure singleReturnSimple(x:Double) =>
+    x * 2
+
+pure singleReturn(x:Double) =>
+    return x * 3
+
+pure multiReturn(x:Double,y:Double) =>
+    return x, y
