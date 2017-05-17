@@ -67,6 +67,7 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
         if (s->code() == "void") {
             return "void";
         }
+        return solveNativeType(s->code());
         // FIXME
     } else if (s->type() == "TypeIdent") {
         const TypeIdent *i = static_cast<const TypeIdent *>(s);
@@ -82,10 +83,11 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
     } else if (s->type() == "String") {
         // FIXME "const char*" or "char*"
         return "char *";
-    }
-    else if (s->type() == "Number") {
+    } else if (s->type() == "Number") {
         // FIXME type and size, floats
         return "long";
+    } else {
+        throw std::string("Unknown type: " + s->type());
     }
     #if 0
     //if (TypeDef *tdef = dynamic_cast<TypeDef*>(s)) {
@@ -370,11 +372,11 @@ std::string Cgen::generateMethod(const PureMethod *m)
     }
 
     if (!lines.empty() && ret != "void") {
-        std::string last = lines.back();
+        std::string last = trim(lines.back());
 
-        if (last.substr(0, 6) != "return ") {
+        if (last.substr(0, 7) != "return ") {
             lines.pop_back();
-            last = "return " + last;
+            last = "   return " + last;
             lines.push_back(last);
         }
     }
