@@ -18,6 +18,19 @@ Please read [pure](pure.md) for more info.
 - Immutable by default
 - No side effects
 
+## Reference compiler
+
+This repository contains reference compiler and it's implementation.
+
+General parser has grammar defined in BNF.
+Compiler generates proper AST, which can be passed to next step.
+"Next step" here means code generator or interpreter.
+
+Currently only supported and targeted code generator is plain C backend.
+Thus code is transpiled to C code, and then compiled with any C compiler to native binary.
+
+Other code generator backends may be possible in future.
+
 ## Building
 
 Get [Meson](http://mesonbuild.com/) and [Ninja](https://ninja-build.org/).
