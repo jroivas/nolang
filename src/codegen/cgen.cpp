@@ -364,6 +364,9 @@ std::string Cgen::generateMethod(const PureMethod *m)
 
     std::string param_str;
     for (auto param : m->params()) {
+        std::string t = solveNativeType(param->varType());
+        if (!param_str.empty()) param_str += ", ";
+        param_str += t + " " + param->code();
     }
 
     if (!lines.empty() && ret != "void") {

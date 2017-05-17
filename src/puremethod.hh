@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "statement.hh"
-#include "variable.hh"
 
 namespace nolang
 {
@@ -59,7 +58,8 @@ public:
         m_body = b;
     }
 
-    void addVariable(TypeIdent *id) {
+    void addVariable(TypeIdent *id)
+    {
         m_variables.push_back(id);
     }
 
@@ -68,7 +68,12 @@ public:
         return m_variables;
     }
 
-    const std::vector<Variable> params() const
+    void addParameter(TypeIdent *i)
+    {
+        m_params.push_back(i);
+    }
+
+    const std::vector<TypeIdent*> params() const
     {
         return m_params;
     }
@@ -86,7 +91,7 @@ protected:
     std::vector<Statement*> m_body;
     std::vector<TypeIdent*> m_variables;
 
-    std::vector<Variable> m_params;
+    std::vector<TypeIdent*> m_params;
     //std::vector<std::vector<std::string>> m_blocks;
     std::vector<std::vector<std::vector<Statement*>>> m_blocks;
 };

@@ -14,7 +14,7 @@ namespace nolang
 class Compiler
 {
 public:
-    Compiler() {}
+    Compiler();
 
     //std::string codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0);
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0);
@@ -36,8 +36,12 @@ public:
     {
         return m_methods;
     }
-    void parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level=0);
+    TypeIdent *parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level=0);
     Assignment *parseAssignment(mpc_ast_t *tree, PureMethod *m, int level=0);
+
+    void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
+    void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);
+    void parseMethodRet(mpc_ast_t *tree, PureMethod *m, int level=0);
 
 protected:
     bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;
@@ -49,6 +53,7 @@ protected:
     std::vector<std::string> m_consts;
 
     std::string m_last_indent;
+    bool m_parameters;
 };
 
 }

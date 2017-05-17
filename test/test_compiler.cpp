@@ -144,5 +144,13 @@ TEST_MAIN(
         TEST_CASE(test method name, TEST_ASSERT_EQUALS(test->name(),  "test"))
         TEST_CASE(test method return type, TEST_ASSERT_EQUALS(test->returnType()->code(), "int32"))
         TEST_CASE(test method variables size, TEST_ASSERT_EQUALS(test->variables().size(), 0))
+
+        TEST_CASE(test method parameters size, TEST_ASSERT_EQUALS(test->params().size(), 2))
+        TEST_CASE(test method parameter1 type, TEST_ASSERT_EQUALS(test->params()[0]->type(), "TypeIdent"))
+        TEST_CASE(test method parameter1 value, TEST_ASSERT_EQUALS(test->params()[0]->code(), "x"))
+        TEST_CASE(test method parameter1 value, TEST_ASSERT_EQUALS(test->params()[0]->varType(), "int32"))
+        TEST_CASE(test method parameter1 type, TEST_ASSERT_EQUALS(test->params()[1]->type(), "TypeIdent"))
+        TEST_CASE(test method parameter1 value, TEST_ASSERT_EQUALS(test->params()[1]->code(), "y"))
+        TEST_CASE(test method parameter1 value, TEST_ASSERT_EQUALS(test->params()[1]->varType(), "int32"))
     )
 )

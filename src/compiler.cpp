@@ -28,6 +28,11 @@ static void walk(mpc_ast_t *res, int l=0)
     }
 }
 
+Compiler::Compiler() :
+    m_parameters(false)
+{
+}
+
 void Compiler::addImport(mpc_ast_t *tree)
 {
     for (int c = 0; c < tree->children_num; ++c) {
@@ -110,7 +115,7 @@ bool Compiler::expect(mpc_ast_t *tree, std::string key, std::string val) const
     return true;
 }
 
-void Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level)
+TypeIdent *Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::string name;
     std::string type;
@@ -127,7 +132,7 @@ void Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level)
         }
     }
     m_last_indent = name;
-    m->addVariable(new TypeIdent(name, type));
+    return new TypeIdent(name, type);
 }
 
 Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
@@ -137,7 +142,7 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
     Assignment *ass = nullptr;
     for (int c = 0; c < tree->children_num; ++c) {
         if (wait_for_ident && expect(tree->children[c], "typeident")) {
-            parseTypeIdent(tree->children[c], m, level + 1);
+            m->addVariable(parseTypeIdent(tree->children[c], m, level + 1));
             wait_for_ident = false;
             wait_for_assign = true;
             ass = new Assignment(m_last_indent);
@@ -214,7 +219,12 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         if (!m) {
             throw "Invalid typeident: " + tag;
         }
-        parseTypeIdent(tree, m, level + 1);
+        TypeIdent *ident = parseTypeIdent(tree, m, level + 1);
+        if (m_parameters) {
+            rdata.push_back(ident);
+        } else {
+            m->addVariable(ident);
+        }
         recurse = false;
     } else if (tag.find("identifier") != std::string::npos) {
         // FIXME Some idenfiers are special/reserved words
@@ -264,6 +274,68 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     return rdata;
 }
 
+void Compiler::parseParamDef(mpc_ast_t *tree, PureMethod *m, int level)
+{
+    int numparams = 0;
+    for (int c = 0; c < tree->children_num; ++c) {
+        std::string tag = tree->children[c]->tag;
+        std::string cnts = tree->children[c]->contents;
+        if (expect(tree->children[c], "typeident")) {
+            m_parameters = true;
+            auto res = codegen(tree->children[c], m, level + 1);
+            m_parameters = false;
+            for (auto r: res ){
+                if (r->type() == "TypeIdent") {
+                    m->addParameter(static_cast<TypeIdent*>(r));
+                } else {
+                    throw std::string("Invalid parameter definition: " + r->code());
+                }
+            }
+        } else if (expect(tree->children[c], "char") && cnts == ",") {
+            // FIXME?
+            numparams += 1;
+        } else {
+            std::cerr << "** ERROR: Unknown node in parameter: " << tag << ": '" << cnts << "'\n";
+        }
+    }
+}
+
+void Compiler::parseArgs(mpc_ast_t *tree, PureMethod *m, int level)
+{
+    int open = 0;
+    for (int c = 0; c < tree->children_num; ++c) {
+        std::string cnts = tree->children[c]->contents;
+        if (expect(tree->children[c], "char")) {
+            if (cnts == "(") open++;
+            else if (cnts == ")") open--;
+            else {
+                throw std::string("Unexpected char: " + cnts);
+            }
+        } else if (open > 0 && expect(tree->children[c], "paramdef")) {
+            parseParamDef(tree->children[c], m, level + 1);
+        } else {
+            std::string tag = tree->children[c]->tag;
+            std::cerr << "** ERROR: Unknown node in arguments: " << tag << ": '" << cnts << "'\n";
+        }
+    }
+}
+
+void Compiler::parseMethodRet(mpc_ast_t *tree, PureMethod *m, int level)
+{
+    auto r = codegen(tree, m, level);
+
+    if (r.size() > 1) {
+        throw std::string("Expected one return type, got " + std::to_string(r.size()) + " for '" + m->name() + "'");
+    }
+
+    if (r.size() == 1) {
+        if (r[0]->type() != "Identifier") {
+            throw std::string("Expected identifier as return type, got " + r[0]->type() + " for '" + m->name() + "'");
+        }
+        m->setReturnType(TypeDef(r[0]->code()));
+    }
+}
+
 void Compiler::parseMethod(mpc_ast_t *tree, int level)
 {
     PureMethod *m = new PureMethod();
@@ -272,25 +344,15 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
     for (int c = 0; c < tree->children_num; ++c) {
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
-        // TODO parameters
         if (waitName && tag.find("pure") != std::string::npos) {
             m->setPure();
         } else if (waitName && tag.find("identifier") != std::string::npos) {
             m->setName(cnts);
             waitName = false;
+        } else if (!waitName && expect(tree->children[c], "args")) {
+            parseArgs(tree->children[c], m, level + 1);
         } else if (!waitName && expect(tree->children[c], "methodret")) {
-            auto r = codegen(tree->children[c], m, level);
-
-            if (r.size() > 1) {
-                throw std::string("Expected one return type, got " + std::to_string(r.size()) + " for '" + m->name() + "'");
-            }
-
-            if (r.size() == 1) {
-                if (r[0]->type() != "Identifier") {
-                    throw std::string("Expected identifier as return type, got " + r[0]->type() + " for '" + m->name() + "'");
-                }
-                m->setReturnType(TypeDef(r[0]->code()));
-            }
+            parseMethodRet(tree->children[c], m, level + 1);
         } else if (tag.find("ows") != std::string::npos) {
             // Optional whitespace
         } else if (!waitBody && tag.find("string") != std::string::npos && cnts == "=>") {
