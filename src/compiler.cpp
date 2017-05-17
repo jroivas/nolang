@@ -86,7 +86,11 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
     for (int c = 0; c < tree->children_num; ++c) {
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
-        if (wait_ns && tag.find("namespacedef") != std::string::npos) {
+        if (wait_ns && tag.find("identifier") != std::string::npos) {
+            std::vector<std::string> res;
+            res.push_back(cnts);
+            mcall->setNamespace(res);
+        } else if (wait_ns && tag.find("namespacedef") != std::string::npos) {
             mcall->setNamespace(parseNamespaceDef(tree->children[c]));
             wait_ns = false;
         } else if (!wait_call_end && tag.find("char") != std::string::npos && cnts == "(") {

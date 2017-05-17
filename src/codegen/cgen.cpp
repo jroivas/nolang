@@ -207,6 +207,24 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
         tmp += ");";
         res.push_back(tmp);
         res.push_back("<EOS>");
+    } else {
+        std::string mname;
+        for (std::string n : mc->namespaces()) {
+            if (!mname.empty()) mname += '.';
+            mname += n;
+        }
+        std::string params = "(";
+        bool first = true;
+        for (auto v : pnames) {
+            if (!first) {
+                params += ", ";
+            }
+            params += v;
+            first = false;
+        }
+        params += ")";
+        res.push_back(mname + params);
+        res.push_back("<EOS>");
     }
 
     return res;
@@ -338,10 +356,8 @@ std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
     return res;
 }
 
-std::string Cgen::generateMethod(const PureMethod *m)
+std::string Cgen::solveReturnType(const Statement *t, const PureMethod *m) const
 {
-    std::string res;
-
     std::string ret = solveNativeType(m->returnType(), m);
 #if 1
     // FIXME Forcing main to be "int"
@@ -350,6 +366,33 @@ std::string Cgen::generateMethod(const PureMethod *m)
         if (ret == "void") ret = "int";
     }
 #endif
+    return ret;
+}
+
+std::string Cgen::generateMethodPrototype(const PureMethod *m)
+{
+    // FIXME combine with below
+    std::string res;
+
+    std::string ret = solveReturnType(m->returnType(), m);
+
+    std::string param_str;
+    for (auto param : m->params()) {
+        std::string t = solveNativeType(param->varType());
+        if (!param_str.empty()) param_str += ", ";
+        param_str += t + " " + param->code();
+    }
+
+    return ret + " " + m->name() + "(" + param_str +  ")";
+}
+
+std::string Cgen::generateMethod(const PureMethod *m)
+{
+    std::string res;
+    std::string proto = generateMethodPrototype(m);
+
+    std::string ret = solveReturnType(m->returnType(), m);
+
     std::vector<std::string> lines;
     for (auto var : m->variables()) {
         for (auto l : generateVariable(var)) {
@@ -360,15 +403,7 @@ std::string Cgen::generateMethod(const PureMethod *m)
     for (auto block : m->blocks()) {
         for (auto l : generateBlock(block, ret, m)) {
             lines.push_back(l);
-            //body += l;
         }
-    }
-
-    std::string param_str;
-    for (auto param : m->params()) {
-        std::string t = solveNativeType(param->varType());
-        if (!param_str.empty()) param_str += ", ";
-        param_str += t + " " + param->code();
     }
 
     if (!lines.empty() && ret != "void") {
@@ -384,11 +419,11 @@ std::string Cgen::generateMethod(const PureMethod *m)
     std::string body;
     for (auto l : lines) {
         body += l;
-        //body += l + "\n";
     }
 
 
-    res += ret + " " + m->name() + "(" + param_str +  ") {\n";
+    //res += ret + " " + m->name() + "(" + param_str +  ") {\n";
+    res += proto + " {\n";
     res += body + "\n";
     res += "}\n";
 
@@ -401,6 +436,10 @@ std::string Cgen::generateUnit(const Compiler *c)
     code += "#include <stdint.h>\n";
     for (auto m : c->imports()) {
         code += generateImport(m);
+    }
+    for (auto m : c->methods()) {
+        code += "\n/***** Prototype " + m.second->name() + " **/\n";
+        code += generateMethodPrototype(m.second) + ";\n";
     }
     for (auto m : c->methods()) {
         code += "\n/***** Method " + m.second->name() + " **/\n";
