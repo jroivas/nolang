@@ -437,8 +437,8 @@ std::string Cgen::generateUnit(const Compiler *c)
     for (auto m : c->imports()) {
         code += generateImport(m);
     }
+    code += "\n/***** Prototypes **/\n";
     for (auto m : c->methods()) {
-        code += "\n/***** Prototype " + m.second->name() + " **/\n";
         code += generateMethodPrototype(m.second) + ";\n";
     }
     for (auto m : c->methods()) {

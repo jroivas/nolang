@@ -1,0 +1,9 @@
+pure singleReturnSimple(x:Double) : Double =>
+    x * 2
+
+pure singleReturn(x:Double) : Double =>
+    return x * 3
+
+main =>
+    singleReturnSimple(5)
+    singleReturn(5)
