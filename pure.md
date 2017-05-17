@@ -19,205 +19,207 @@
 
 ## Example
 
-const MeaningOfTheLife : int32 = 42
+Work in progress example, for more accurate examples, see [examples](examples)
 
-pure generatePerson(name:String, birthDay:Date) : Map =>
-    [
-        "name": name,
-        "birthDate": birthDay
-    ]
-    // Same as:
-    [("name", name), ("birthDate", birthDay)]
-    // Same as:
-    mapSet(mapSet([], "name", name), "birthDate", birthDay)
+    const MeaningOfTheLife : int32 = 42
 
-pure timeInYearToDay(startDate:Date) : Double =>
-    toYears(Date() - startDate)
+    pure generatePerson(name:String, birthDay:Date) : Map =>
+        [
+            "name": name,
+            "birthDate": birthDay
+        ]
+        // Same as:
+        [("name", name), ("birthDate", birthDay)]
+        // Same as:
+        mapSet(mapSet([], "name", name), "birthDate", birthDay)
 
-pure personWithNewName(person:Map, newName:String) : Map =>
-    // Explicit copy, updating person is error
-    newPerson = copy(person)
-    newPerson.name = newName
-    newPerson
+    pure timeInYearToDay(startDate:Date) : Double =>
+        toYears(Date() - startDate)
 
-    // Same as:
-    mapSet(copy(person), "name", newName)
+    pure personWithNewName(person:Map, newName:String) : Map =>
+        // Explicit copy, updating person is error
+        newPerson = copy(person)
+        newPerson.name = newName
+        newPerson
 
-pure matchAge(age:Double) =>
-    match age =>
-        0..2 'infant'
-        3..6: 'kid'
-        7..12: 'school kid'
-        13..18: 'teen'
-        19..60: 'adult'
-        61..: 'senior'
-        ?: 'invalid age'
+        // Same as:
+        mapSet(copy(person), "name", newName)
 
-pure multiReturn(x:Double,y:Double)  =>
-    return x, y
+    pure matchAge(age:Double) =>
+        match age =>
+            0..2 'infant'
+            3..6: 'kid'
+            7..12: 'school kid'
+            13..18: 'teen'
+            19..60: 'adult'
+            61..: 'senior'
+            ?: 'invalid age'
 
-pure splitArray(x:List) =>
-    return head(x), tail(x)
+    pure multiReturn(x:Double,y:Double)  =>
+        return x, y
 
-pure splitArray2nd(x:List) =>
-    // First, skip second, take from third forward
-    return head(x), tail(x, 2)
+    pure splitArray(x:List) =>
+        return head(x), tail(x)
 
-pure splitArrayHalf(x:List) =>
-    return half(x), halfRest(x)
+    pure splitArray2nd(x:List) =>
+        // First, skip second, take from third forward
+        return head(x), tail(x, 2)
 
-pure firstLast(x:List) =>
-    return head(x), last(x)
+    pure splitArrayHalf(x:List) =>
+        return half(x), halfRest(x)
 
-pure fibonacci(n:Number) =>
-    match n =>
-        > 1: fibonacci(n - 2) + fibonacci(n - 1)
-        0..1: 1
+    pure firstLast(x:List) =>
+        return head(x), last(x)
 
-pure conditionalsTest(n) =>
-    if n then 42 else 2
+    pure fibonacci(n:Number) =>
+        match n =>
+            > 1: fibonacci(n - 2) + fibonacci(n - 1)
+            0..1: 1
 
-pure complexConditionalsTest(n) =>
-    if c >= 'a' && c <= 'e'
-        then 1
-        else if c >= 'f' && c <= 'q'
-            then 2
-            else 3
+    pure conditionalsTest(n) =>
+        if n then 42 else 2
 
-// Import in own namespace
-import math
+    pure complexConditionalsTest(n) =>
+        if c >= 'a' && c <= 'e'
+            then 1
+            else if c >= 'f' && c <= 'q'
+                then 2
+                else 3
 
-// Import only one method, name imported method inside this namespace
-import math.sqrt as Sq
+    // Import in own namespace
+    import math
 
-pure squareRootAbs(x:Double) =>
-    // Namespace required here
-    math.abs(math.sqrt(x))
+    // Import only one method, name imported method inside this namespace
+    import math.sqrt as Sq
 
-pure squareRootAbs2(x:Double) =>
-    // Namespace required for abs, but Sq imported here
-    math.abs(Sq(x))
+    pure squareRootAbs(x:Double) =>
+        // Namespace required here
+        math.abs(math.sqrt(x))
 
-// Futures and concurrency
-// Everything is pure by default, so no side effects
-// IO has side effects, so it's handled with care
+    pure squareRootAbs2(x:Double) =>
+        // Namespace required for abs, but Sq imported here
+        math.abs(Sq(x))
 
-// Simple calculation: get list, return two first elements summed up
-pure dosum(x:List) : List =>
-    match length(x) =>
-        0: []
-        1: x
-        2: [head(x) + at(x, 1)]
-        >2: dosum(half(x)) ++ dosum(halfRest(x))
+    // Futures and concurrency
+    // Everything is pure by default, so no side effects
+    // IO has side effects, so it's handled with care
 
-pure parallelSum(x:List) : List =>
-    match length(x) =>
-        0: []
-        1: x
-        2: [head(x) + at(x, 1)]
-        >2: par parallelSum(half(x)) ++ par parallelSum(halfRest(x))
+    // Simple calculation: get list, return two first elements summed up
+    pure dosum(x:List) : List =>
+        match length(x) =>
+            0: []
+            1: x
+            2: [head(x) + at(x, 1)]
+            >2: dosum(half(x)) ++ dosum(halfRest(x))
 
-side printResult(x) =>
-    IO.print(head(x))
+    pure parallelSum(x:List) : List =>
+        match length(x) =>
+            0: []
+            1: x
+            2: [head(x) + at(x, 1)]
+            >2: par parallelSum(half(x)) ++ par parallelSum(halfRest(x))
 
-side promises() =>
-    // Bind result of call to method
-    bind(Promise(parallelSum, [1, 2, 3, 4]), printResult)
+    side printResult(x) =>
+        IO.print(head(x))
 
-    Promise prom = Promise(parallelSum, [1, 2, 3, 4])
-    handlePromise(prom)
+    side promises() =>
+        // Bind result of call to method
+        bind(Promise(parallelSum, [1, 2, 3, 4]), printResult)
 
-pure lambdaCurryExample() =>
-    Lambda l1 = (val => val + 2)
-    Lambda l2 = (val, add => val + add + 1)
-    // Currying l2
-    Lambda l3 = l2(2)
-    l1(5) == 7
-    l1(4) == 6
-    l2(4, 2) == 7
-    l2(3, 2) == 6
-    l3(2) == 5
-    // Currying second parameter
-    Lambda l4 = l2(_, 5)
-    l4(2) == 8
-    bind(Promise((a, b => a + b), [1, 2, 3, 4]), printResult)
+        Promise prom = Promise(parallelSum, [1, 2, 3, 4])
+        handlePromise(prom)
 
-side handlePromise(p:Promise) =>
-    // Bind to lambda
-    bind(p, (res =>
-        match res =>
-            Exception: IO.print("Got error" + res)
-            ?: IO.print(head(res))
-    ))
+    pure lambdaCurryExample() =>
+        Lambda l1 = (val => val + 2)
+        Lambda l2 = (val, add => val + add + 1)
+        // Currying l2
+        Lambda l3 = l2(2)
+        l1(5) == 7
+        l1(4) == 6
+        l2(4, 2) == 7
+        l2(3, 2) == 6
+        l3(2) == 5
+        // Currying second parameter
+        Lambda l4 = l2(_, 5)
+        l4(2) == 8
+        bind(Promise((a, b => a + b), [1, 2, 3, 4]), printResult)
 
-side iterTest(d:List) =>
-    // Each method with lambda
-    each(d, (val =>
-        IO.print(val)
-    ))
+    side handlePromise(p:Promise) =>
+        // Bind to lambda
+        bind(p, (res =>
+            match res =>
+                Exception: IO.print("Got error" + res)
+                ?: IO.print(head(res))
+        ))
 
-pure iterTest(d:List) =>
-    // Map && lazy
-    Lambda add = (num, other => num + other)
-    map(d, add(1))
+    side iterTest(d:List) =>
+        // Each method with lambda
+        each(d, (val =>
+            IO.print(val)
+        ))
 
-    Lambda mapify = (a, b => ['key': a, 'value': b])
-    Map data = map([['a',1],['b',2],['a',3],['d',4],['f',5],['a',6],['p',7],['q',8],['m',9]], mapify)
-    at(data, 'm') == 9
+    pure iterTest(d:List) =>
+        // Map && lazy
+        Lambda add = (num, other => num + other)
+        map(d, add(1))
 
-// IO
+        Lambda mapify = (a, b => ['key': a, 'value': b])
+        Map data = map([['a',1],['b',2],['a',3],['d',4],['f',5],['a',6],['p',7],['q',8],['m',9]], mapify)
+        at(data, 'm') == 9
 
-side iotest() =>
-    IO.print("Hello, world!")
-    write(IO.stdout, "Hello, world!)
+    // IO
 
-side iotest2() =>
-    File txt = IO.createFile("test.txt")
-    write(txt, "Hello, world!)
+    side iotest() =>
+        IO.print("Hello, world!")
+        write(IO.stdout, "Hello, world!)
 
-    writeNum(txt, 42)
+    side iotest2() =>
+        File txt = IO.createFile("test.txt")
+        write(txt, "Hello, world!)
 
-side writeNum(f:File, n:Number) =>
-    write(f, "Num: " + n :: String + "\n")
+        writeNum(txt, 42)
 
-side main() =>
-    person = generatePerson("Eric Example", Date(1990, 10, 5))
-    age = timeInYearsToDay(person.birthDay)
-    x, y = multiReturn(42, 5)
+    side writeNum(f:File, n:Number) =>
+        write(f, "Num: " + n :: String + "\n")
 
-    1, [2, 3, 4] == splitArray([1, 2, 3, 4])
-    1, [3, 4] == splitArray2nd([1, 2, 3, 4])
+    side main() =>
+        person = generatePerson("Eric Example", Date(1990, 10, 5))
+        age = timeInYearsToDay(person.birthDay)
+        x, y = multiReturn(42, 5)
 
-    conditionalsTest(1)
-    conditionalsTest(true)
-    conditionalsTest(6 == 5)
-    conditionalsTest(6 == 6)
-    conditionalsTest("test")
-    conditionalsTest([])
+        1, [2, 3, 4] == splitArray([1, 2, 3, 4])
+        1, [3, 4] == splitArray2nd([1, 2, 3, 4])
 
-    complexConditionalsTest('a')
-    complexConditionalsTest('d')
-    complexConditionalsTest('f')
-    complexConditionalsTest('i')
-    complexConditionalsTest('r')
-    complexConditionalsTest('t')
-    complexConditionalsTest('z')
+        conditionalsTest(1)
+        conditionalsTest(true)
+        conditionalsTest(6 == 5)
+        conditionalsTest(6 == 6)
+        conditionalsTest("test")
+        conditionalsTest([])
 
-    [2, 3, 8, 10, 42] == map([1, 2, 7, 9, 41], add(1))
+        complexConditionalsTest('a')
+        complexConditionalsTest('d')
+        complexConditionalsTest('f')
+        complexConditionalsTest('i')
+        complexConditionalsTest('r')
+        complexConditionalsTest('t')
+        complexConditionalsTest('z')
 
-    # Float divide
-    41.0 / 2 == 20.5
+        [2, 3, 8, 10, 42] == map([1, 2, 7, 9, 41], add(1))
 
-    # Integer division
-    41 div 2 == 20
-    # Integer modulus
-    -41 mod 2 == 1
-    # Integer remainder
-    -41 rem 2 == -1
+        # Float divide
+        41.0 / 2 == 20.5
 
-    dosum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) == [66]
-    parallelSum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) == [66]
+        # Integer division
+        41 div 2 == 20
+        # Integer modulus
+        -41 mod 2 == 1
+        # Integer remainder
+        -41 rem 2 == -1
 
-    // Squares are optional in trivial cases
-    // same as: dosum(half([1, 2]))
-    //dosum half [1, 2]
+        dosum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) == [66]
+        parallelSum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) == [66]
+
+        // Squares are optional in trivial cases
+        // same as: dosum(half([1, 2]))
+        //dosum half [1, 2]
