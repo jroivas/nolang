@@ -44,7 +44,7 @@ TEST_MAIN(
         nolang::Parser parser;
         nolang::Compiler compiler;
 
-        mpc_result_t *res2 = nullptr;
+        mpc_result_t *res = nullptr;
         TEST_CASE(parse_println,
             std::string data = "";
             data += "import IO\n";
@@ -52,14 +52,14 @@ TEST_MAIN(
             data += "    life : int32 = 43 - 1\n";
             data += "    IO.println(life)\n";
 
-            res2 = parser.parse("test.nolang", data);
+            res = parser.parse("test.nolang", data);
             TEST_ASSERT_TRUE(parser.success())
         )
 
         TEST_CASE(compile_println,
             compiler = nolang::Compiler();
 
-            auto statements = compiler.codegen(static_cast<mpc_ast_t*>(res2->output));
+            auto statements = compiler.codegen(static_cast<mpc_ast_t*>(res->output));
         )
         nolang::PureMethod *main = compiler.methods()["main"];
 
@@ -103,5 +103,46 @@ TEST_MAIN(
         TEST_CASE(method call params 1 code, TEST_ASSERT_EQUALS(mcall->params()[0][0]->code(), "life"))
 
         TEST_CASE(basic_compile_main_block1_item1_type, TEST_ASSERT_EQUALS(main->blocks()[1][0][1]->type(), "EOS"))
+    )
+
+    TEST_SUITE(method with params,
+        nolang::Parser parser;
+        nolang::Compiler compiler;
+
+        mpc_result_t *res = nullptr;
+        TEST_CASE(parse,
+            std::string data = "";
+            data += "test(x : int32, y : int32) : int32 =>\n";
+            data += "    x * y\n";
+            data += "main =>\n";
+            data += "    test(1, 2)\n";
+
+            res = parser.parse("test.nolang", data);
+            TEST_ASSERT_TRUE(parser.success())
+        )
+
+        TEST_CASE(compile,
+            compiler = nolang::Compiler();
+
+            mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
+            auto statements = compiler.codegen(static_cast<mpc_ast_t*>(res->output));
+        )
+
+        TEST_CASE(basic_compile_imports, TEST_ASSERT_EQUALS(compiler.imports().size(), 0))
+        TEST_CASE(basic_compile_methods, TEST_ASSERT_EQUALS(compiler.methods().size(), 2))
+
+        nolang::PureMethod *main = compiler.methods()["main"];
+        nolang::PureMethod *test = compiler.methods()["test"];
+
+        TEST_CASE(main method valid, TEST_ASSERT_TRUE(main != nullptr))
+        TEST_CASE(main method name, TEST_ASSERT_EQUALS(main->name(),  "main"))
+
+        TEST_CASE(main method return type void, TEST_ASSERT_EQUALS(main->returnType()->code(), "void"))
+        TEST_CASE(main method variables size, TEST_ASSERT_EQUALS(main->variables().size(), 0))
+
+        TEST_CASE(test method valid, TEST_ASSERT_TRUE(test != nullptr))
+        TEST_CASE(test method name, TEST_ASSERT_EQUALS(test->name(),  "test"))
+        TEST_CASE(test method return type, TEST_ASSERT_EQUALS(test->returnType()->code(), "int32"))
+        TEST_CASE(test method variables size, TEST_ASSERT_EQUALS(test->variables().size(), 0))
     )
 )

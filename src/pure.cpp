@@ -21,12 +21,12 @@ int main(int argc, char **argv)
     if (!p.success()) {
         mpc_err_print(res->error);
         mpc_err_delete(res->error);
-        exit(1);
+        return 1;
     }
 
     nolang::Compiler c;
 
-#if 1
+#if 0
     std::cout << "/*\n";
     mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
     std::cout << "*/\n";
@@ -42,9 +42,11 @@ int main(int argc, char **argv)
     }
     catch (char const *m) {
         std::cout << "== ERROR: Code gen: " << m << "\n";
+        return 1;
     }
     catch (std::string m) {
         std::cout << "== ERROR: Code gen: " << m << "\n";
+        return 1;
     }
 
     //c.dump();

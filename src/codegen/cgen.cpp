@@ -362,6 +362,10 @@ std::string Cgen::generateMethod(const PureMethod *m)
         }
     }
 
+    std::string param_str;
+    for (auto param : m->params()) {
+    }
+
     if (!lines.empty() && ret != "void") {
         std::string last = lines.back();
 
@@ -378,7 +382,8 @@ std::string Cgen::generateMethod(const PureMethod *m)
         //body += l + "\n";
     }
 
-    res += ret + " " + m->name() + "() {\n";
+
+    res += ret + " " + m->name() + "(" + param_str +  ") {\n";
     res += body + "\n";
     res += "}\n";
 

@@ -34,6 +34,11 @@ public:
         return &m_return;
     }
 
+    void setReturnType(TypeDef ret)
+    {
+        m_return = ret;
+    }
+
     const std::vector<std::vector<std::vector<Statement*>>> blocks() const
     {
         return m_blocks;
@@ -61,6 +66,15 @@ public:
     const std::vector<TypeIdent*> variables() const
     {
         return m_variables;
+    }
+
+    const std::vector<Variable> params() const
+    {
+        return m_params;
+    }
+
+    void setPure() {
+        m_pure = true;
     }
 
 protected:

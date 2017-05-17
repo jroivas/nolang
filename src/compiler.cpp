@@ -84,17 +84,13 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
         if (wait_ns && tag.find("namespacedef") != std::string::npos) {
             mcall->setNamespace(parseNamespaceDef(tree->children[c]));
             wait_ns = false;
-        }
-        else if (!wait_call_end && tag.find("char") != std::string::npos && cnts == "(") {
+        } else if (!wait_call_end && tag.find("char") != std::string::npos && cnts == "(") {
             wait_call_end = true;
-        }
-        else if (wait_call_end && tag.find("char") != std::string::npos && cnts == ")") {
+        } else if (wait_call_end && tag.find("char") != std::string::npos && cnts == ")") {
             wait_call_end = false;
-        }
-        else if (wait_call_end) {
+        } else if (wait_call_end) {
             mcall->addParameter(codegen(tree->children[c]));
-        }
-        else {
+        } else {
             std::cerr << "** ERROR: Unknown node in method call: " << tag << ": '" << cnts << "'\n";
         }
     }
@@ -176,6 +172,9 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
 
     if (tag == ">") {
         //std::cout << "ROOT\n";
+    } else if (tag.find("comment") != std::string::npos) {
+        // Ignore comments
+        recurse = false;
     } else if (tag.find("methoddef") != std::string::npos) {
         // New method
         parseMethod(tree, level);
@@ -274,9 +273,24 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
         // TODO parameters
-        if (waitName && tag.find("identifier") != std::string::npos) {
+        if (waitName && tag.find("pure") != std::string::npos) {
+            m->setPure();
+        } else if (waitName && tag.find("identifier") != std::string::npos) {
             m->setName(cnts);
             waitName = false;
+        } else if (!waitName && expect(tree->children[c], "methodret")) {
+            auto r = codegen(tree->children[c], m, level);
+
+            if (r.size() > 1) {
+                throw std::string("Expected one return type, got " + std::to_string(r.size()) + " for '" + m->name() + "'");
+            }
+
+            if (r.size() == 1) {
+                if (r[0]->type() != "Identifier") {
+                    throw std::string("Expected identifier as return type, got " + r[0]->type() + " for '" + m->name() + "'");
+                }
+                m->setReturnType(TypeDef(r[0]->code()));
+            }
         } else if (tag.find("ows") != std::string::npos) {
             // Optional whitespace
         } else if (!waitBody && tag.find("string") != std::string::npos && cnts == "=>") {
@@ -289,7 +303,7 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
                 //m_blocks = std::vector<std::string>();
                 m_blocks = std::vector<std::vector<Statement*>>();
             }
-        } else if (tag.find("newline") != std::string::npos) {
+        } else if (tag.find("newline") != std::string::npos || tag.find("ws") != std::string::npos) {
         //} else if (cnts.length() == 0) {
             // SKIP
         } else {

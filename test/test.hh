@@ -4,6 +4,7 @@
 #include <sstream>
 
 static long __success = 0;
+static long __suite_success = 0;
 
 #define TEST_MAIN(X) \
 int main(int argc, char**argv) {\
@@ -20,9 +21,11 @@ int main(int argc, char**argv) {\
 }
 #define TEST_SUITE(X, Y) \
     std::cout << "== SUITE: " << #X << "\n";\
+    __suite_success = __success;\
     {\
         Y;\
-    }
+    }\
+    std::cout << "== " << (__success - __suite_success) << " tests PASSED in suite\n";
 #define TEST_CASE(X, Y) {\
     std::cout << "   TEST " << #X << "\n"; \
     Y;\
