@@ -371,9 +371,6 @@ std::string Cgen::solveReturnType(const Statement *t, const PureMethod *m) const
 
 std::string Cgen::generateMethodPrototype(const PureMethod *m)
 {
-    // FIXME combine with below
-    std::string res;
-
     std::string ret = solveReturnType(m->returnType(), m);
 
     std::string param_str;
@@ -421,8 +418,6 @@ std::string Cgen::generateMethod(const PureMethod *m)
         body += l;
     }
 
-
-    //res += ret + " " + m->name() + "(" + param_str +  ") {\n";
     res += proto + " {\n";
     res += body + "\n";
     res += "}\n";
@@ -434,15 +429,20 @@ std::string Cgen::generateUnit(const Compiler *c)
 {
     std::string code;
     code += "#include <stdint.h>\n";
+
+    code += "\n/***** Imports **/\n";
     for (auto m : c->imports()) {
         code += generateImport(m);
     }
+
+    code += "\n/***** Globals **/\n";
+
     code += "\n/***** Prototypes **/\n";
     for (auto m : c->methods()) {
         code += generateMethodPrototype(m.second) + ";\n";
     }
+    code += "\n/***** Methods **/\n";
     for (auto m : c->methods()) {
-        code += "\n/***** Method " + m.second->name() + " **/\n";
         code += generateMethod(m.second);
     }
     return code;
