@@ -15,7 +15,7 @@ pure generatePerson(name:String, birthDay:Date) : Map =>
     mapSet(mapSet([], "name", name), "birthDate", birthDay)
 
 pure timeInYearToDay(startDate:Date) : Double =>
-    toYears(Date() - startDate)
+    toYears(currentDate() - startDate)
 
 pure personWithNewName(person:Map, newName:String) : Map =>
     // Explicit copy, updating person is error
@@ -165,7 +165,7 @@ side writeNum(f:File, n:Number) =>
     write(f, "Num: " + n :: String + "\n")
 
 side main() =>
-    person = generatePerson("Eric Example", Date(1990, 10, 5))
+    person = generatePerson("Eric Example", generateDate(1990, 10, 5))
     age = timeInYearsToDay(person.birthDay)
     x, y = multiReturn(42, 5)
 

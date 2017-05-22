@@ -17,6 +17,51 @@
  - No other variables allowed in namescape (global) scope
 
 
+## Types
+
+ - boolean
+ - int
+    * int8
+    * int16
+    * int32
+    * int64
+ - uint
+    * Same sizes as int
+ - Double / Float
+ - Number
+    * Any int, uint or floating point type
+ - String
+ - List
+ - Map
+ - Closure
+
+One can define own types with `struct`
+
+    struct Date {
+        milliSecondsSinceEpoch : int64
+        negative : boolean
+    }
+
+Since Nolang does not support objects, or object methods, structs are as well pure data only.
+
+To generate new instances of structures one can call it's default initializer,
+where one passes values to initialize in same order as in definition.
+Since default value is zero, one can omit some parameters:
+
+    Date(100000000000, false)
+    Date(100000000000)
+    Date()
+
+Or one can initialize them in custom methods like:
+
+    pure generateDate(year, month, day : int32) =>
+        d : Date
+        d.negative = false
+        d.milliSecondsSinceEpoch = year * millisecondsInYear
+        d.milliSecondsSinceEpoch += month * millisecondsInMonth
+        d.milliSecondsSinceEpoch += day * millisecondsInDay
+        return d
+
 ## Example
 
 Work in progress example, for more accurate examples, see [examples](examples)
@@ -34,13 +79,13 @@ Work in progress example, for more accurate examples, see [examples](examples)
         mapSet(mapSet([], "name", name), "birthDate", birthDay)
 
     pure timeInYearToDay(startDate:Date) : Double =>
-        toYears(Date() - startDate)
+        toYears(currentDate() - startDate)
 
     pure personWithNewName(person:Map, newName:String) : Map =>
         // Explicit copy, updating person is error
         newPerson = copy(person)
         newPerson.name = newName
-        newPerson
+        return newPerson
 
         // Same as:
         mapSet(copy(person), "name", newName)
@@ -126,21 +171,21 @@ Work in progress example, for more accurate examples, see [examples](examples)
         // Bind result of call to method
         bind(Promise(parallelSum, [1, 2, 3, 4]), printResult)
 
-        Promise prom = Promise(parallelSum, [1, 2, 3, 4])
+        prom : Promise = Promise(parallelSum, [1, 2, 3, 4])
         handlePromise(prom)
 
     pure lambdaCurryExample() =>
-        Lambda l1 = (val => val + 2)
-        Lambda l2 = (val, add => val + add + 1)
+        l1 : Lambda = (val => val + 2)
+        l2 : Lambda = (val, add => val + add + 1)
         // Currying l2
-        Lambda l3 = l2(2)
+        l3 : Lambda = l2(2)
         l1(5) == 7
         l1(4) == 6
         l2(4, 2) == 7
         l2(3, 2) == 6
         l3(2) == 5
         // Currying second parameter
-        Lambda l4 = l2(_, 5)
+        l4 : Lambda = l2(_, 5)
         l4(2) == 8
         bind(Promise((a, b => a + b), [1, 2, 3, 4]), printResult)
 
@@ -183,7 +228,7 @@ Work in progress example, for more accurate examples, see [examples](examples)
         write(f, "Num: " + n :: String + "\n")
 
     side main() =>
-        person = generatePerson("Eric Example", Date(1990, 10, 5))
+        person = generatePerson("Eric Example", generateDate(1990, 10, 5))
         age = timeInYearsToDay(person.birthDay)
         x, y = multiReturn(42, 5)
 
