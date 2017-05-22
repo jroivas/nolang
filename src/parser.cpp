@@ -34,6 +34,7 @@ void Parser::init()
     Identifier = mpc_new("identifier");
     TypeIdent = mpc_new("typeident");
     Import = mpc_new("import");
+    Struct = mpc_new("struct");
     MethodRet = mpc_new("methodret");
     MethodDef = mpc_new("methoddef");
     ParamDef = mpc_new("paramdef");
@@ -104,6 +105,7 @@ bool Parser::generateLang()
         "           | '-';"
         "import     : \"import\" <ws> <namespacedef> (<ws> \"as\" <ws> <identifier>)?  <newline>;"
         "const      : \"const\" <ws> <assignment> <newline>;"
+        "struct     : \"struct\" <ws> <identifier> <ows> '{' (<ows> <typeident> <owsn>) * '}' <newline> ;"
         "methodret  : <ows> ':' <ows> <identifier> ;"
         "methoddef  : (<pure> <ws>)? <identifier> <ows> <args>? <methodret>? <ows> \"=>\" (<newline>|<ws>) <body> ;"
         "paramdef   : <typeident>? <ows> (',' <ows> <typeident>)*; "
@@ -145,6 +147,7 @@ bool Parser::generateLang()
         "           | <if>"
         "           | <return>"
         "           | <assignment>"
+        "           | <typeident>"
         "           | <expr>"
         "           | <methodcall>"
         "           | <namespacedef>"
@@ -155,6 +158,7 @@ bool Parser::generateLang()
         "return     : \"return\" <ws> <stmt> (<ows> ',' <ows> <stmt>)*;"
         "toplevel   : <import>"
         "           | <const>"
+        "           | <struct>"
         "           | <comment>"
         "           | <methoddef>"
         "           | <newline>;"
@@ -165,7 +169,7 @@ bool Parser::generateLang()
         Identifier, TypeIdent,
         Number, String,
         Comparator, BinaryOp, FactorOperator, TermOperator,
-        Import, Const,
+        Import, Const, Struct,
         MethodRet, MethodDef, ParamDef, LambdaParamDef, Args,
         Factor, Term, Lexp,
         Expr, Lambda, MethodCall,
@@ -196,7 +200,7 @@ void Parser::deinit()
         Identifier, TypeIdent,
         Number, String,
         Comparator, BinaryOp, FactorOperator, TermOperator,
-        Import, Const,
+        Import, Const, Struct,
         MethodRet, MethodDef, ParamDef, LambdaParamDef, Args,
         Factor, Term, Lexp,
         Expr, Lambda, MethodCall,

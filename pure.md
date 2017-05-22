@@ -35,6 +35,8 @@
  - Map
  - Closure
 
+## Structures
+
 One can define own types with `struct`
 
     struct Date {
@@ -46,7 +48,7 @@ Since Nolang does not support objects, or object methods, structs are as well pu
 
 To generate new instances of structures one can call it's default initializer,
 where one passes values to initialize in same order as in definition.
-Since default value is zero, one can omit some parameters:
+All values in struct are by default initialized as zero, so one can omit some parameters:
 
     Date(100000000000, false)
     Date(100000000000)
@@ -56,8 +58,8 @@ Or one can initialize them in custom methods like:
 
     pure generateDate(year, month, day : int32) =>
         d : Date
-        d.negative = false
-        d.milliSecondsSinceEpoch = year * millisecondsInYear
+        d.negative = year < 1970
+        d.milliSecondsSinceEpoch = (year - 1970) * millisecondsInYear
         d.milliSecondsSinceEpoch += month * millisecondsInMonth
         d.milliSecondsSinceEpoch += day * millisecondsInDay
         return d

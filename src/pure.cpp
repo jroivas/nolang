@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <cstdlib>
 
 #include <3pp/mpc/mpc.h>
 #include "parser.hh"
@@ -26,15 +27,32 @@ int main(int argc, char **argv)
 
     nolang::Compiler c;
 
-#if 0
-    std::cout << "/*\n";
-    mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
-    std::cout << "*/\n";
-#endif
+    bool debug = false;
+    if(const char *env_debug = std::getenv("DEBUG")) {
+        std::string do_debug = env_debug;
+        if (do_debug == "TRUE" ||
+            do_debug == "1") {
+            debug = true;
+        }
+    }
+    if (debug) {
+        std::cout << "/*\n";
+        mpc_ast_print(static_cast<mpc_ast_t*>(res->output));
+        std::cout << "*/\n";
+    }
 
-    std::vector<nolang::Statement*> r = c.codegen(static_cast<mpc_ast_t*>(res->output));
-    //std::cout << c.codegen(static_cast<mpc_ast_t*>(res->output)) << "\n";
-    mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
+    try {
+        c.codegen(static_cast<mpc_ast_t*>(res->output));
+        mpc_ast_delete(static_cast<mpc_ast_t*>(res->output));
+    }
+    catch (char const *m) {
+        std::cout << "== ERROR: Compile: " << m << "\n";
+        return 1;
+    }
+    catch (std::string m) {
+        std::cout << "== ERROR: Compile: " << m << "\n";
+        return 1;
+    }
 
     try {
         nolang::Cgen cgen;

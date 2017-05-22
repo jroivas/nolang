@@ -189,7 +189,7 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
             ass = new Assignment(m_last_indent);
         } else if (wait_for_assign && expect(tree->children[c], "char", "=")) {
             wait_for_assign = false;
-        } else if (!wait_for_assign && !wait_for_assign) {
+        } else if (!wait_for_ident && !wait_for_assign) {
             // Now need to parse statements/expr...
             std::vector<Statement*> stmt = codegen(tree->children[c], m, level + 1);
             ass->addStatements(stmt);
@@ -252,14 +252,13 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     } else if (tag.find("string") != std::string::npos) {
         rdata.push_back(new StringValue(cnts));
     } else if (tag.find("typeident") != std::string::npos) {
-        if (!m) {
-            throw "Invalid typeident: " + tag;
-        }
         TypeIdent *ident = parseTypeIdent(tree, m, level + 1);
         if (m_parameters) {
             rdata.push_back(ident);
-        } else {
+        } else if (m != nullptr) {
             m->addVariable(ident);
+        } else {
+            rdata.push_back(ident);
         }
         recurse = false;
     } else if (tag.find("identifier") != std::string::npos) {

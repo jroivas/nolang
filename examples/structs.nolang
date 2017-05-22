@@ -1,0 +1,22 @@
+struct Date {
+    milliSecondsSinceEpoch : int64
+    negative : boolean
+}
+
+const millisecondsInYear : int64 = 31536000000
+const millisecondsInMonth : int64 = 2629746000
+const millisecondsInDay : int64 = 86400000
+
+pure generateDate(year : int32, month : int32, day : int32) =>
+    d : Date
+    d.negative = year < 1970
+    d.milliSecondsSinceEpoch = (year - 1970) * millisecondsInYear
+    d.milliSecondsSinceEpoch = d.milliSecondsSinceEpoch + month * millisecondsInMonth
+    d.milliSecondsSinceEpoch = d.milliSecondsSinceEpoch + day * millisecondsInDay
+    return d
+
+main =>
+    testDate1 : Date = generateDate(2017, 10, 5)
+    testDate2 : Date = Date(100000000000, false)
+    testDate3 : Date = Date(100000000000)
+    testDate4 : Date = Date()

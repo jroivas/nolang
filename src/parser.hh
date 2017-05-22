@@ -45,6 +45,7 @@ protected:
     mpc_parser_t* Identifier;
     mpc_parser_t* TypeIdent;
     mpc_parser_t* Import;
+    mpc_parser_t* Struct;
     mpc_parser_t* MethodRet;
     mpc_parser_t* MethodDef;
     mpc_parser_t* ParamDef;
