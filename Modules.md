@@ -292,7 +292,7 @@ Separate wrapper library `curl_wrappers` written in C:
         return res;
     }
 
-    uint32_t form_curlcode(CURLcode c) {
+    uint32_t from_curlcode(CURLcode c) {
         return (uint32_t)c;
     }
 
@@ -349,7 +349,8 @@ And module definition:
                         'to': [
                             'to_curl',
                             '-'
-                        ]
+                        ],
+                        'from': 'from_curlcode'
                     }
                 }
             },
@@ -359,7 +360,8 @@ And module definition:
                     'nolang_CURL': {
                         'name': 'curl_easy_perform',
                         'return': 'uint32',
-                        'to': 'to_curl'
+                        'to': 'to_curl',
+                        'from': 'from_curlcode'
                     }
                 }
             },
