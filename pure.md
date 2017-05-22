@@ -20,6 +20,7 @@
 ## Types
 
  - boolean
+ - byte
  - int
     * int8
     * int16
@@ -63,6 +64,71 @@ Or one can initialize them in custom methods like:
         d.milliSecondsSinceEpoch += month * millisecondsInMonth
         d.milliSecondsSinceEpoch += day * millisecondsInDay
         return d
+
+## Enums
+
+Enums are strictly typed:
+
+    enum Colors {
+        black,
+        red,
+        blue
+    }
+
+    enum Bits {
+        first = 1,
+        second = 2,
+        third = 4,
+        fourth = 8,
+        fifth = 16,
+        sixth = 32,
+        seventh = 64,
+        eight = 128
+    }
+
+## Method overloading
+
+Nolang supports method overloading, but with certain limitations.
+
+First of all, Nolang does not have C++ kind of name mangling,
+but still supports limited mangling.
+All exported symbols are C compatible, and human readable.
+
+Nolang prefers postfixes, and simple cases type is just added as postfix.
+Let's see these definitions:
+
+    print(p : int32) => //..
+    print(p : int8) => //..
+    print(p : Double) => //..
+    print(p : String) => //..
+    print(p : List) => //..
+    print(a : int8, b : Double, c : List) => //..
+
+Nolang would mangle these to (C style):
+
+    print_int32(int32 p)
+    print_int8(int8 p)
+    print_double(double p)
+    print_string(string *p)
+    print_list(list *p)
+    print_int8_double_list(int8 a, double b, list *c)
+    print(list *p)
+
+The last export is the default export in case of method overloading.
+This way we can still call for example (pseudocode):
+
+    list args;
+    args.addString("Hello ";
+    args.addInt32(42);
+    args.addString(" and ");
+    args.addDouble(3.14159);
+    print(&args)
+
+On method overloading case default implementation is to iterate list parameters
+and call corresponding type method.
+
+If there's no overloading, the exposed name is the name itself without any postfixes.
+
 
 ## Example
 
