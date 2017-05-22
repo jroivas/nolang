@@ -129,14 +129,20 @@ std::string Cgen::generateConst(const Statement *)
     return "";
 }
 
-std::string Cgen::generateImport(const std::string &imp)
+std::string Cgen::generateImport(const Import *imp)
 {
     std::string res;
     // FIXME Built-in import
-    if (imp == "IO") {
-       res += "#include <stdio.h>\n";
+    std::string val = imp->val();
+    if (val == "IO") {
+        res += "#include <stdio.h>\n";
     } else {
-        std::cerr << "** ERROR: Unhandled import " << imp << "\n";
+        res += "// FIXME: #include <" + val + ">";
+        if (!imp->as().empty()) {
+            res += " as " + imp->as();
+        }
+        res += "\n";
+        std::cerr << "** ERROR: Unhandled import " << val << "\n";
     }
     return res;
 }

@@ -64,7 +64,7 @@ TEST_MAIN(
         nolang::PureMethod *main = compiler.methods()["main"];
 
         TEST_CASE(basic_compile_imports, TEST_ASSERT_EQUALS(compiler.imports().size(), 1))
-        TEST_CASE(basic_compile_import1_name, TEST_ASSERT_EQUALS(compiler.imports()[0], "IO"))
+        TEST_CASE(basic_compile_import1_name, TEST_ASSERT_EQUALS(compiler.imports()[0]->code(), "IO"))
         TEST_CASE(basic_compile_methods, TEST_ASSERT_EQUALS(compiler.methods().size(), 1))
         TEST_CASE(basic_compile_main_name, TEST_ASSERT_EQUALS(main->name(),  "main"))
         TEST_CASE(basic_compile_main_return_type, TEST_ASSERT_EQUALS(main->returnType()->code(), "void"))

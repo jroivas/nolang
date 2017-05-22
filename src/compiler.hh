@@ -28,7 +28,7 @@ public:
     void dump() const;
     void dumpStatement(Statement *s, int level=0) const;
 
-    std::vector<std::string> imports() const
+    std::vector<Import*> imports() const
     {
         return m_imports;
     }
@@ -45,11 +45,13 @@ public:
 
 protected:
     bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;
+    Import *addImportAs(mpc_ast_t *);
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
     //std::vector<std::string> m_blocks;
-    std::vector<std::string> m_imports;
+    //std::vector<std::string> m_imports;
+    std::vector<Import*> m_imports;
     std::vector<std::string> m_consts;
 
     std::string m_last_indent;

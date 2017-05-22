@@ -16,7 +16,7 @@ public:
     Cgen();
 
     std::string generateConst(const Statement *);
-    std::string generateImport(const std::string &);
+    std::string generateImport(const Import *);
     std::string generateMethod(const PureMethod *);
     std::string generateMethodPrototype(const PureMethod *);
 

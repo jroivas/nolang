@@ -33,14 +33,46 @@ Compiler::Compiler() :
 {
 }
 
-void Compiler::addImport(mpc_ast_t *tree)
+Import *Compiler::addImportAs(mpc_ast_t *tree)
 {
+    Import *imp = nullptr;
+
     for (int c = 0; c < tree->children_num; ++c) {
         std::string tag = tree->children[c]->tag;
-        if (tag.find("namespacedef") != std::string::npos) {
-            std::string cnts = tree->children[c]->contents;
-            m_imports.push_back(cnts);
+        std::string cnts = tree->children[c]->contents;
+        if (tag.find("identifier") != std::string::npos) {
+            if (imp == nullptr) {
+                imp = new Import(cnts);
+            } else {
+                imp->addSub(cnts);
+            }
         }
+    }
+
+    return imp;
+}
+
+void Compiler::addImport(mpc_ast_t *tree)
+{
+    std::cout << "/*\n";
+    mpc_ast_print(tree);
+    std::cout << "*/\n";
+    Import *imp = nullptr;
+    for (int c = 0; c < tree->children_num; ++c) {
+        std::string tag = tree->children[c]->tag;
+        std::string cnts = tree->children[c]->contents;
+        if (tag.find("identifier") != std::string::npos) {
+            if (imp != nullptr) {
+                imp->addAs(cnts);
+            } else {
+                imp = new Import(cnts);
+            }
+        } else if (tag.find("namespacedef") != std::string::npos) {
+            imp = addImportAs(tree->children[c]);
+        }
+    }
+    if (imp) {
+        m_imports.push_back(imp);
     }
 }
 
@@ -409,7 +441,7 @@ void Compiler::dump() const
 {
     std::cout << "== Imports\n";
     for (auto i : m_imports) {
-        std::cout << "  " << i << "\n";
+        std::cout << "  " << i->code() << "\n";
     }
 
     std::cout << "== Methods\n";
