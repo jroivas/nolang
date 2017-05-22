@@ -75,6 +75,9 @@ Subparts may be mixed of libraries or sources.
                 'name': 'nolang_adaptations',
                 'link': 'static'
             }
+        ],
+        'includes': [
+            'stdio.h'
         ]
     }
 
@@ -262,7 +265,7 @@ Special types:
  - `CURL *`
  - `CURLcode`
 
-Simple wrapper in Nolang, `curl_def.nolang`:
+Simple type definition written in Nolang, `curl_def.nolang`:
 
     struct nolang_CURL {
         data : unsafe
@@ -270,7 +273,7 @@ Simple wrapper in Nolang, `curl_def.nolang`:
 
 This is most probably converted to C code:
 
-    struct nolang_Curl {
+    struct nolang_CURL {
         void *data;
     }
 
@@ -322,6 +325,9 @@ And module definition:
                 'name': 'curl_wrappers',
                 'link': 'shared'
             }
+        ],
+        'includes': [
+            'curl/curl.h'
         ],
         'exports': [
             {
