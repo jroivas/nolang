@@ -1,6 +1,10 @@
 #pragma once
 
+#include <map>
+#include <vector>
+
 #include "codegen.hh"
+#include "moduledef.hh"
 #include "statement.hh"
 
 namespace nolang
@@ -8,7 +12,7 @@ namespace nolang
 
 /**
  * Code generator for C
- * Generates code that can be transpiled.
+ * Generates transpiled C code from parsed/compiled Nolang.
  */
 class Cgen : public CodeGen
 {
@@ -39,6 +43,7 @@ protected:
 private:
     unsigned int m_autogen_index;
     std::string m_autogen_prefix;
+    std::map<std::string, ModuleDef*> m_modules;
 };
 
 }

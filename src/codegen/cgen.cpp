@@ -135,14 +135,20 @@ std::string Cgen::generateImport(const Import *imp)
     // FIXME Built-in import
     std::string val = imp->val();
     if (val == "IO") {
+        // FIXME
         res += "#include <stdio.h>\n";
     } else {
-        res += "// FIXME: #include <" + val + ">";
-        if (!imp->as().empty()) {
-            res += " as " + imp->as();
+        ModuleDef *def = new ModuleDef(val);
+        if (def->ok()) {
+            res += def->initCode();
+        } else {
+            res += "// FIXME: #include <" + val + ">";
+            if (!imp->as().empty()) {
+                res += " as " + imp->as();
+            }
+            res += "\n";
+            std::cerr << "** ERROR: Unhandled import " << val << "\n";
         }
-        res += "\n";
-        std::cerr << "** ERROR: Unhandled import " << val << "\n";
     }
     return res;
 }
@@ -380,10 +386,14 @@ std::string Cgen::generateMethodPrototype(const PureMethod *m)
     std::string ret = solveReturnType(m->returnType(), m);
 
     std::string param_str;
-    for (auto param : m->params()) {
-        std::string t = solveNativeType(param->varType());
-        if (!param_str.empty()) param_str += ", ";
-        param_str += t + " " + param->code();
+    if (m->name() == "main") {
+        param_str = "int argc, char **argv";
+    } else {
+        for (auto param : m->params()) {
+            std::string t = solveNativeType(param->varType());
+            if (!param_str.empty()) param_str += ", ";
+            param_str += t + " " + param->code();
+        }
     }
 
     return ret + " " + m->name() + "(" + param_str +  ")";
@@ -425,6 +435,11 @@ std::string Cgen::generateMethod(const PureMethod *m)
     }
 
     res += proto + " {\n";
+    if (m->name() == "main") {
+        // Take arguments into safe
+        res += "__argc = argc;\n";
+        res += "__argv = argv;\n";
+    }
     res += body + "\n";
     res += "}\n";
 
@@ -434,7 +449,10 @@ std::string Cgen::generateMethod(const PureMethod *m)
 std::string Cgen::generateUnit(const Compiler *c)
 {
     std::string code;
+    code += "#include <stddef.h>\n";
     code += "#include <stdint.h>\n";
+    code += "static int __argc = 0;\n";
+    code += "static char **__argv = NULL;\n";
 
     code += "\n/***** Imports **/\n";
     for (auto m : c->imports()) {
