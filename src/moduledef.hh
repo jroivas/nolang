@@ -34,6 +34,7 @@ public:
     {
         return m_ok;
     }
+    static const std::string mangleName(const std::string &name, const std::vector<std::string> &params);
 
     ModuleMethodDef *getMethod(std::string name, std::vector<std::string> params);
 
@@ -71,7 +72,7 @@ public:
         return m_name;
     }
 
-    const std::string mangled_name() const;
+    const std::string mangledName() const;
 
     const std::vector<std::string> params() const
     {

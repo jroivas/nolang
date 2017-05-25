@@ -278,7 +278,7 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
         std::vector<std::string> tmp = generateStatements(ass->statements(), m);
         res.insert(res.end(), tmp.begin(), tmp.end());
     } else if (s->type() == "NamespaceDef") {
-        std::cerr << " NSD " << s->code() << "\n";
+        //std::cerr << " NSD " << s->code() << "\n";
         ModuleDef *mod = getModule(s->code());
         if (mod != nullptr) {
             std::cerr << "MODULE " << s->code() << "\n";
@@ -288,15 +288,6 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
         }
     } else if (s->type() == "Identifier") {
         res.push_back(s->code() + " ");
-        /*
-        ModuleDef *mod = getModule(s->code());
-        if (mod != nullptr) {
-            std::cerr << "MODULE " << s->code() << "\n";
-            m_current_module = mod;
-        } else {
-            res.push_back(s->code() + " ");
-        }
-        */
     } else if (s->type() == "EOS") {
         res.push_back("<EOS>");
     } else {

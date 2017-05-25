@@ -3,6 +3,17 @@
 using nolang::ModuleDef;
 using nolang::ModuleMethodDef;
 
+const std::string ModuleDef::mangleName(const std::string &name, const std::vector<std::string> &params)
+{
+    std::string res = name;
+
+    for (const std::string &p : params) {
+        res += "_" + p;
+    }
+
+    return res;
+}
+
 ModuleDef::ModuleDef(std::string name) :
     m_name(name)
 {
@@ -11,6 +22,11 @@ ModuleDef::ModuleDef(std::string name) :
 
 ModuleMethodDef *ModuleDef::getMethod(std::string name, std::vector<std::string> params)
 {
+    std::string mangled = mangleName(name, params);
+    for (auto m : m_methods) {
+        if (m->name() == name) {
+        }
+    }
     return nullptr;
 }
 
@@ -46,13 +62,7 @@ bool ModuleDef::sysLoad()
     return true;
 }
 
-const std::string ModuleMethodDef::mangled_name() const
+const std::string ModuleMethodDef::mangledName() const
 {
-    std::string res = m_name;
-
-    for (const std::string &p : m_params) {
-        res += "_" + p;
-    }
-
-    return res;
+    return ModuleDef::mangleName(m_name, m_params);
 }
