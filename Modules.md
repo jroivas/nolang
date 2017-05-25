@@ -121,6 +121,7 @@ Thus we combine these two, to get easily understandable exports.
                     'double': { 'name': 'print_float' },
                     'string': { 'name': 'print_string' },
                     'list': { 'name': 'print_list' },
+                    'void': { 'name': 'println' },
                     '*': { 'name': 'print_any' },
                 }
             }
@@ -131,6 +132,7 @@ This demonstrates simple mapping for `IO.print` command.
 Depending the type of parameter, separate method is called.
 It's possible to define just `int` or `uint` to match any sized integer or unsigned interger.
 `typemap` tells how to map certain types. This case all floats are first converted to double values.
+Special type `void` means method didn't get any parameters, on that case this implementation is called.
 There's also wildcard `*` which means that any other type should be mapped to this method.
 Practically `void *` typed pointer is passed in that case.
 
@@ -161,13 +163,13 @@ The real mapping is defined under `mapping` key:
 
     {
         'type1': {
-            'name': 'libray_symbol_name_for_type1'
+            'name': 'library_symbol_name_for_type1'
         },
         'type2': {
-            'name': 'libray_symbol_name_for_type2'
+            'name': 'library_symbol_name_for_type2'
         },
         'type3': {
-            'name': 'libray_symbol_name_for_type3',
+            'name': 'library_symbol_name_for_type3',
             'return': 'return_type',
             'to': 'wrapper_script_to_call_before_passing',
             'from': 'wrapper_script_to_call_before_returning_value',
@@ -177,6 +179,7 @@ The real mapping is defined under `mapping` key:
 We could have these C methods:
 
     uint32_t doubleValue_uint32(uint32_t val) { return val * 2; }
+    uint64_t doubleValue_uint64(uint64_t val) { return val * 2; }
     double doubleValue_double(double val) { return val * 2; }
     char *doubleValue_string(const char *val) {
         char *res = malloc(strlen(val)*2+1);
@@ -214,6 +217,10 @@ Mapping these to Nolang is easy:
                 'name': 'doubleValue_uint32',
                 'return': 'uint32',
             },
+            'uint64': {
+                'name': 'doubleValue_uint64',
+                'return': 'uint64',
+            },
             'double': {
                 'name': 'doubleValue_double',
                 'return': 'double',
@@ -231,23 +238,22 @@ Mapping these to Nolang is easy:
         }
     }
 
-Thus for example in Nolang this call:
+Thus for example in Nolang these function calls:
 
     res : String = doubleValue("Hello")
     date : Date = doubleValue(oldDate)
 
-Would become:
+Would become C wise:
 
     char *res = doubleValue_string("Hello");
     Date *date = date_from_uint(doubleValue_Date(date_to_uint(old_date)));
 
-See how converters work on the `Date` case.
+See how converters are applied on the `Date` case.
 
 ### Wrapping pointers
 
-Since C and C++ expose and work heavily on pointers,
-it might be needed to expose raw pointer for Nolang.
-
+Since C and C++ expose, and work, heavily on pointers,
+it might be needed to expose raw pointer to Nolang.
 It should be done with structs and `unsafe` type.
 This way Nolang compiler knows it should not touch that value.
 
@@ -255,13 +261,15 @@ Let's say we want to build bindings for example [libcurl](https://curl.haxx.se/l
 It has it's own objects and structures to store data.
 
 
-We need these methods:
+For simple example we need these methods from the library:
+
  - `CURL *curl_easy_init()`
  - `CURLcode curl_easy_setopt(CURL *, CURLoption, param)`
  - `CURLcode curl_easy_perform(CURL *)`
  - `void curl_easy_cleanup(CURL *)`
 
 Special types:
+
  - `CURL *`
  - `CURLcode`
 
@@ -283,11 +291,12 @@ since we have no idea what is it's real type.
 Separate wrapper library `curl_wrappers` written in C:
 
     CURL *to_curl(nolang_CURL* c) {
+        if (c == NULL) return NULL;
         return (CURL*)c->data;
     }
 
     nolang_CURL *from_curl(CURL* c) {
-        nolang_CURL *res = nolang_CURL_new();
+        nolang_CURL *res = (nolang_CURL*)malloc(sizeof(nolang_CURL));
         res->data = c;
         return res;
     }
@@ -313,7 +322,7 @@ And module definition:
                 'sources': [
                     'curl_def.nolang'
                 ],
-                'link': 'shared'
+                'link': 'static'
             },
             {
                 'type': 'library',
@@ -327,7 +336,8 @@ And module definition:
             }
         ],
         'includes': [
-            'curl/curl.h'
+            'curl/curl.h',
+            'curl_wrappers.h'
         ],
         'exports': [
             {

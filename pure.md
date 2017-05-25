@@ -35,6 +35,7 @@
  - List
  - Map
  - Closure
+ - unsafe
 
 ## Structures
 
