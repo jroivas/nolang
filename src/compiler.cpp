@@ -130,7 +130,10 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
         } else if (wait_call_end && tag.find("char") != std::string::npos && cnts == ")") {
             wait_call_end = false;
         } else if (wait_call_end) {
-            mcall->addParameter(codegen(tree->children[c]));
+            std::vector<Statement*> stmt = codegen(tree->children[c]);
+            if (!stmt.empty()) {
+                mcall->addParameter(stmt);
+            }
         } else {
             std::cerr << "** ERROR: Unknown node in method call: " << tag << ": '" << cnts << "'\n";
         }
@@ -262,11 +265,15 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         }
         recurse = false;
     } else if (tag.find("namespacedef") != std::string::npos) {
-        rdata.push_back(new NamespaceDef(parseNamespaceDef(tree)));
+        std::vector<std::string> def = parseNamespaceDef(tree);
+        if (!def.empty()) {
+            rdata.push_back(new NamespaceDef(def));
+        } else if (!cnts.empty()) {
+            rdata.push_back(new Identifier(cnts));
+        }
         recurse = false;
     } else if (tag.find("identifier") != std::string::npos) {
         // FIXME Some idenfiers are special/reserved words
-        std::cerr << " ID " << cnts << "\n";
         rdata.push_back(new Identifier(cnts));
     } else if (tag.find("import") != std::string::npos) {
         addImport(tree);

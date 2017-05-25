@@ -309,7 +309,6 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
 std::vector<std::string> Cgen::generateStatements(const std::vector<Statement *> stmts, const PureMethod *m)
 {
     std::vector<std::string> lines;
-    ModuleDef *mdef = nullptr;
     for (auto stmt : stmts) {
         for (auto l : generateStatement(stmt, m)) {
             //l = trim(l);
