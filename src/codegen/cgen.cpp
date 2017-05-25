@@ -10,7 +10,8 @@ using namespace nolang;
 
 Cgen::Cgen()
     : m_autogen_index(0),
-      m_autogen_prefix("__autogen_")
+      m_autogen_prefix("__autogen_"),
+      m_current_module(nullptr)
 {
 }
 
@@ -71,12 +72,12 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
         // FIXME
     } else if (s->type() == "TypeIdent") {
         const TypeIdent *i = static_cast<const TypeIdent *>(s);
-        std::string native = solveNativeType(i->m_var_type);
+        std::string native = solveNativeType(i->varType());
         std::cout << "aSTT " << native << "\n";
     } else if (s->type() == "Identifier") {
         TypeIdent *var = solveVariable(s->code(), m);
         if (var) {
-            return solveNativeType(var->m_var_type);
+            return solveNativeType(var->varType());
             //std::cout << "STT " << native << "\n";
         }
         return "invalid";
@@ -129,19 +130,34 @@ std::string Cgen::generateConst(const Statement *)
     return "";
 }
 
+ModuleDef *Cgen::getModule(std::string name)
+{
+    auto mod = m_modules.find(name);
+    if (mod != m_modules.end()) {
+        return mod->second;
+    }
+
+    return nullptr;
+}
+
 std::string Cgen::generateImport(const Import *imp)
 {
     std::string res;
     // FIXME Built-in import
     std::string val = imp->val();
+    ModuleDef *mod = getModule(val);
     if (val == "IO") {
         // FIXME
         res += "#include <stdio.h>\n";
+    } else if (mod != nullptr) {
+        // FIXME
     } else {
         ModuleDef *def = new ModuleDef(val);
         if (def->ok()) {
             res += def->initCode();
+            m_modules[val] = def;
         } else {
+            delete def;
             res += "// FIXME: #include <" + val + ">";
             if (!imp->as().empty()) {
                 res += " as " + imp->as();
@@ -172,12 +188,8 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
         //tmp = t + " " + pname + ";\n";
         //tmp = t + " " + pname + " = ";
         res.push_back(t + " " + pname + " = ");
-        for (auto v : parm) {
-            for (auto l : generateStatement(v, m)) {
-                res.push_back(l);
-            }
-            //tmp += generateStatement(v);
-        }
+        std::vector<std::string> tmp = generateStatements(parm, m);
+        res.insert(res.end(), tmp.begin(), tmp.end());
         //tmp += ";\n";
         //res.push_back(";\n");
         res.push_back("<EOS>");
@@ -245,7 +257,7 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
 std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureMethod *m)
 {
     std::vector<std::string> res;
-    
+
     if (s->type() == "String" ||
         s->type() == "Number") {
         res.push_back(s->code() + " ");
@@ -263,15 +275,28 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
     } else if (s->type() == "Assignment") {
         res.push_back(s->code() + " = ");
         const Assignment *ass = static_cast<const Assignment*>(s);
-        for (auto s : ass->m_statements) {
-            for (auto l : generateStatement(s, m)) {
-                res.push_back(l);
-            }
+        std::vector<std::string> tmp = generateStatements(ass->statements(), m);
+        res.insert(res.end(), tmp.begin(), tmp.end());
+    } else if (s->type() == "NamespaceDef") {
+        std::cerr << " NSD " << s->code() << "\n";
+        ModuleDef *mod = getModule(s->code());
+        if (mod != nullptr) {
+            std::cerr << "MODULE " << s->code() << "\n";
+            m_current_module = mod;
+        } else {
+            res.push_back(s->code() + " ");
         }
-        //
     } else if (s->type() == "Identifier") {
-        // Fixme typeconv
         res.push_back(s->code() + " ");
+        /*
+        ModuleDef *mod = getModule(s->code());
+        if (mod != nullptr) {
+            std::cerr << "MODULE " << s->code() << "\n";
+            m_current_module = mod;
+        } else {
+            res.push_back(s->code() + " ");
+        }
+        */
     } else if (s->type() == "EOS") {
         res.push_back("<EOS>");
     } else {
@@ -281,34 +306,29 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
     return res;
 }
 
+std::vector<std::string> Cgen::generateStatements(const std::vector<Statement *> stmts, const PureMethod *m)
+{
+    std::vector<std::string> lines;
+    ModuleDef *mdef = nullptr;
+    for (auto stmt : stmts) {
+        for (auto l : generateStatement(stmt, m)) {
+            //l = trim(l);
+            if (!l.empty()) {
+                lines.push_back(l);
+            }
+        }
+    }
+    return lines;
+}
+
 std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret, const PureMethod *m)
 {
     std::vector<std::string> lines;
     for (auto line : block) {
-        std::vector<std::string> tmp;
-        //std::cout << "BB\n";
-        for (auto stmt : line) {
-            //tmp += generateStatement(stmt);
-            for (auto l : generateStatement(stmt, m)) {
-                //tmp += l;
-                //res.push_back(l);
-                //l = trim(l);
-                if (!l.empty()) {
-                    tmp.push_back(l);
-                }
-            }
-            /*
-            std::cout << "LLLL ";
-            for (auto l : ltmp) {
-                std::cout << l;
-            }
-            std::cout << "\n";
-            */
-        }
+        std::vector<std::string> tmp = generateStatements(line, m);
         //tmp = trim(tmp);
         if (!tmp.empty()) {
             std::string resline;
-            //tmp += ";\n";
             for (auto ll : tmp) {
                 if (ll == "<EOS>") {
                     resline = trim(resline);
@@ -321,18 +341,12 @@ std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<State
                     //lines.push_back(ll);
                 }
             }
-            //lines.push_back(";");
             if (!resline.empty()) {
                 lines.push_back(resline + ";\n");
             }
         }
     }
 
-    /*
-    if (lines.empty()) {
-        return "";
-    }
-    */
     // FIXME multiline block does not work with this
 #if 0
     if (!lines.empty() && ret != "void") {
@@ -361,7 +375,7 @@ std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
 {
     std::vector<std::string> res;
 
-    std::string native = solveNativeType(i->m_var_type);
+    std::string native = solveNativeType(i->varType());
 
     res.push_back(native + " " + i->code() +  ";\n");
 

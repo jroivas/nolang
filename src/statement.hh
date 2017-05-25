@@ -29,8 +29,6 @@ public:
         //copy(other);
     }
 
-    //virtual ~Statement() {}
-
     bool primitive() const
     {
         if (m_type == "String") return true;
@@ -39,11 +37,10 @@ public:
         return false;
     }
 
-    std::string type() const { return m_type; }
-    std::string code() const { return m_code; }
+    const std::string type() const { return m_type; }
+    const std::string code() const { return m_code; }
 
 protected:
-    //virtual void copy(const Statement &other) {}
     std::string m_type;
     std::string m_code;
 };
@@ -52,6 +49,21 @@ class Identifier : public Statement
 {
 public:
     Identifier(std::string val) : Statement("Identifier", val) {}
+};
+
+class NamespaceDef : public Statement
+{
+public:
+    NamespaceDef(std::vector<std::string> val) :
+        Statement("NamespaceDef", val.front()),
+        m_values(val) {}
+
+    const std::vector<std::string> values() const {
+        return m_values;
+    }
+
+protected:
+    std::vector<std::string> m_values;
 };
 
 class StringValue : public Statement
@@ -80,6 +92,8 @@ public:
     {
         return m_var_type;
     }
+
+protected:
     std::string m_var_type;
 };
 
@@ -112,11 +126,12 @@ public:
         }
     }
 
-    std::vector<Statement*> statements() const
+    const std::vector<Statement*> statements() const
     {
         return m_statements;
     }
 
+protected:
     std::vector<Statement*> m_statements;
 };
 
@@ -135,12 +150,12 @@ public:
         m_as = as;
     }
 
-    std::string as() const
+    const std::string as() const
     {
         return m_as;
     }
 
-    std::string val() const
+    const std::string val() const
     {
         std::string res;
         res += code();
@@ -151,6 +166,7 @@ public:
         return res;
     }
 
+protected:
     std::vector<std::string> m_tree;
 
     std::string m_as;

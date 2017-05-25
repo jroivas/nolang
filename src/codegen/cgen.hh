@@ -31,6 +31,7 @@ protected:
     std::string solveNativeType(const std::string & s) const;
     std::string solveReturnType(const Statement *t, const PureMethod *m) const;
     std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
+    std::vector<std::string> generateStatements(const std::vector<Statement *> stmts, const PureMethod *m);
     std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret, const PureMethod *m);
     std::vector<std::string> generateVariable(const TypeIdent *i);
     TypeIdent *solveVariable(const std::string &name, const PureMethod *m) const;
@@ -40,10 +41,13 @@ protected:
 
     std::string autogen();
 
+    ModuleDef *getModule(std::string name);
+
 private:
     unsigned int m_autogen_index;
     std::string m_autogen_prefix;
     std::map<std::string, ModuleDef*> m_modules;
+    ModuleDef *m_current_module;
 };
 
 }

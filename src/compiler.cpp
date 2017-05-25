@@ -261,8 +261,12 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
             rdata.push_back(ident);
         }
         recurse = false;
+    } else if (tag.find("namespacedef") != std::string::npos) {
+        rdata.push_back(new NamespaceDef(parseNamespaceDef(tree)));
+        recurse = false;
     } else if (tag.find("identifier") != std::string::npos) {
         // FIXME Some idenfiers are special/reserved words
+        std::cerr << " ID " << cnts << "\n";
         rdata.push_back(new Identifier(cnts));
     } else if (tag.find("import") != std::string::npos) {
         addImport(tree);
