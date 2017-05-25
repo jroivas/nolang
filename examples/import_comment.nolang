@@ -16,4 +16,4 @@ import math.sqrt as Sq
  * example */
 
 main =>
-    val : int = sys.args[1]
+    val : int = sys.args(1)

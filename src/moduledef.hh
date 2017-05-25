@@ -39,6 +39,7 @@ public:
     ModuleMethodDef *getMethod(std::string name, std::vector<std::string> params);
 
 private:
+    std::vector<std::string> replaceParams(ModuleMethodDef *def, const std::vector<std::string> &params);
     bool sysLoad();
     bool m_ok;
 
@@ -78,6 +79,8 @@ public:
     {
         return m_params;
     }
+
+    const std::string getCast(const std::string &) const;
 
 private:
     std::string m_name;

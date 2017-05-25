@@ -20,11 +20,22 @@ ModuleDef::ModuleDef(std::string name) :
     m_ok = reload();
 }
 
+std::vector<std::string> ModuleDef::replaceParams(ModuleMethodDef *def, const std::vector<std::string> &params)
+{
+    std::vector<std::string> res;
+    for (auto p : params) {
+        res.push_back(def->getCast(p));
+    }
+    return res;
+}
+
 ModuleMethodDef *ModuleDef::getMethod(std::string name, std::vector<std::string> params)
 {
-    std::string mangled = mangleName(name, params);
     for (auto m : m_methods) {
         if (m->name() == name) {
+            std::vector<std::string> mparams = replaceParams(m, params);
+            std::string mangled = mangleName(name, params);
+            if (mangled == m->mangledName()) return m;
         }
     }
     return nullptr;
@@ -60,6 +71,36 @@ bool ModuleDef::sysLoad()
     addMethod(args);
 
     return true;
+}
+
+const std::string ModuleMethodDef::getCast(const std::string &param) const
+{
+    auto p = m_cast.find(param);
+    if (p != m_cast.end()) { return p->second; }
+
+    if (param == "uint8" ||
+        param == "uint16" ||
+        param == "uint32" ||
+        param == "uint64") {
+        auto p = m_cast.find("uint");
+        if (p != m_cast.end()) { return p->second; }
+    }
+    if (param == "int8" ||
+        param == "int16" ||
+        param == "int32" ||
+        param == "int64") {
+        auto p = m_cast.find("int");
+        if (p != m_cast.end()) { return p->second; }
+    }
+    if (param == "Number") {
+        auto p = m_cast.find("int");
+        if (p != m_cast.end()) { return p->second; }
+        p = m_cast.find("uint");
+        if (p != m_cast.end()) { return p->second; }
+        // FIXME rest
+    }
+
+    return param;
 }
 
 const std::string ModuleMethodDef::mangledName() const
