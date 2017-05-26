@@ -17,3 +17,4 @@ import math.sqrt as Sq
 
 main =>
     val : int = sys.args(1)
+    IO.println(val)

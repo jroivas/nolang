@@ -68,7 +68,7 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
         if (s->code() == "void") {
             return "void";
         }
-        return s->code();
+        return solveNativeType(s->code());
         // FIXME
     } else if (s->type() == "TypeIdent") {
         const TypeIdent *i = static_cast<const TypeIdent *>(s);
@@ -111,7 +111,7 @@ std::string Cgen::solveNolangType(const Statement *s, const PureMethod *m) const
         if (s->code() == "void") {
             return "void";
         }
-        return solveNativeType(s->code());
+        return s->code();
         // FIXME
     } else if (s->type() == "TypeIdent") {
         const TypeIdent *i = static_cast<const TypeIdent *>(s);
