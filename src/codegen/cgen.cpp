@@ -68,7 +68,7 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
         if (s->code() == "void") {
             return "void";
         }
-        return solveNativeType(s->code());
+        return s->code();
         // FIXME
     } else if (s->type() == "TypeIdent") {
         const TypeIdent *i = static_cast<const TypeIdent *>(s);
@@ -105,11 +105,58 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
     //return "void *";
 }
 
+std::string Cgen::solveNolangType(const Statement *s, const PureMethod *m) const
+{
+    if (s->type() == "TypeDef") {
+        if (s->code() == "void") {
+            return "void";
+        }
+        return solveNativeType(s->code());
+        // FIXME
+    } else if (s->type() == "TypeIdent") {
+        const TypeIdent *i = static_cast<const TypeIdent *>(s);
+        return i->varType();
+    } else if (s->type() == "Identifier") {
+        TypeIdent *var = solveVariable(s->code(), m);
+        if (var) {
+            var->varType();
+        }
+        return "invalid";
+    } else if (s->type() == "String") {
+        return "String";
+    } else if (s->type() == "Number") {
+        // FIXME type and size, floats
+        return "int32";
+    } else {
+        throw std::string("Unknown type: " + s->type());
+    }
+    return "";
+}
+
 std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
 {
     std::string res;
     for (auto c : chain) {
         std::string t = solveNativeType(c, m);
+        if (!t.empty()) {
+            if (res.empty()) {
+                res = t;
+            } else if (res == t) {
+                // OK
+            } else {
+                // Need to solve
+                std::cerr << "*** ERROR: Can't solve type of chain, conflicting types: " << res << ", " << t << "\n";
+            }
+        }
+    }
+    return res;
+}
+
+std::string Cgen::solveNolangeTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
+{
+    std::string res;
+    for (auto c : chain) {
+        std::string t = solveNolangType(c, m);
         if (!t.empty()) {
             if (res.empty()) {
                 res = t;
@@ -173,6 +220,7 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
 {
     // Strategy is to parse params first, and store result to temporary variables.
     std::vector<std::string> ptypes;
+    std::vector<std::string> nolang_ptypes;
     std::vector<std::string> pnames;
     std::vector<std::string> res;
     for (auto parm : mc->params()) {
@@ -182,7 +230,9 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
             // FIXME
             t = "void *";
         }
+        std::string nt = solveNolangeTypeOfChain(parm, m);
         ptypes.push_back(t);
+        nolang_ptypes.push_back(nt);
         pnames.push_back(pname);
 
         res.push_back(t + " " + pname + " = ");
@@ -207,14 +257,26 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
             mod = sub;
             ++idx;
         }
-        // Got module
-
-        std::cerr << " GOTMOD " << mod << "\n";
-        std::vector<std::string> params;
-        // FIXME
-        params.push_back("uint32");
-        ModuleMethodDef *meth = mod->getMethod(def->values()[idx], params);
-        std::cerr << " GOTMET " << meth << "\n";
+        // Got module, find method
+        ModuleMethodDef *meth = mod->getMethod(def->values()[idx], nolang_ptypes);
+        if (!meth) {
+            throw std::string("Can't find method from modules:" + def->name());
+        }
+        // FIXME Combine with below, create method
+        std::string tmp;
+        tmp += meth->fullName();
+        tmp += "(";
+        bool first = true;
+        for (auto v : pnames) {
+            if (!first) {
+                tmp += ", ";
+            }
+            tmp += v;
+            first = false;
+        }
+        tmp += ")";
+        res.push_back(tmp);
+        res.push_back("<EOS>");
     } else
     // FIXME Hardcoding
     if (mc->namespaces()->values().size() == 2 &&

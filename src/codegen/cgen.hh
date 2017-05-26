@@ -28,6 +28,7 @@ public:
 
 protected:
     std::string solveNativeType(const Statement *t, const PureMethod *m) const;
+    std::string solveNolangType(const Statement *t, const PureMethod *m) const;
     std::string solveNativeType(const std::string & s) const;
     std::string solveReturnType(const Statement *t, const PureMethod *m) const;
     std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
@@ -38,6 +39,7 @@ protected:
 
     std::vector<std::string> generateMethodCall(const MethodCall *mc, const PureMethod *m);
     std::string solveTypeOfChain(std::vector<Statement*>, const PureMethod *m) const;
+    std::string solveNolangeTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const;
 
     std::string autogen();
 

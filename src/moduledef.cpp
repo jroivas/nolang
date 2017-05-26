@@ -1,7 +1,15 @@
 #include "moduledef.hh"
+#include <iostream>
 
 using nolang::ModuleDef;
 using nolang::ModuleMethodDef;
+
+ModuleDef::ModuleDef(std::string name) :
+    m_name(name),
+    m_parent(nullptr)
+{
+    m_ok = reload();
+}
 
 const std::string ModuleDef::mangleName(const std::string &name, const std::vector<std::string> &params)
 {
@@ -14,17 +22,27 @@ const std::string ModuleDef::mangleName(const std::string &name, const std::vect
     return res;
 }
 
-ModuleDef::ModuleDef(std::string name) :
-    m_name(name)
+void ModuleDef::addMethod(ModuleMethodDef *m)
 {
-    m_ok = reload();
+    m->setModule(this);
+    m_methods.push_back(m);
+}
+
+const std::string ModuleDef::fullName() const
+{
+    std::string res;
+    if (m_parent) res += m_parent->fullName();
+    if (!res.empty()) res += '_';
+    res += m_name;
+    return res;
 }
 
 std::vector<std::string> ModuleDef::replaceParams(ModuleMethodDef *def, const std::vector<std::string> &params) const
 {
     std::vector<std::string> res;
     for (auto p : params) {
-        res.push_back(def->getCast(p));
+        auto r = def->getCast(p);
+        res.push_back(r);
     }
     return res;
 }
@@ -34,7 +52,8 @@ ModuleMethodDef *ModuleDef::getMethod(std::string name, std::vector<std::string>
     for (auto m : m_methods) {
         if (m->name() == name) {
             std::vector<std::string> mparams = replaceParams(m, params);
-            std::string mangled = mangleName(name, params);
+            std::string mangled = mangleName(name, mparams);
+            std::cerr << "RR " << mangled << " == " << m->mangledName() << "\n";
             if (mangled == m->mangledName()) return m;
         }
     }
@@ -73,7 +92,7 @@ bool ModuleDef::sysLoad()
     return true;
 }
 
-const std::string ModuleMethodDef::getCast(const std::string &param) const
+const std::string ModuleMethodDef::getCastOnce(const std::string &param) const
 {
     auto p = m_cast.find(param);
     if (p != m_cast.end()) { return p->second; }
@@ -83,7 +102,7 @@ const std::string ModuleMethodDef::getCast(const std::string &param) const
         param == "uint32" ||
         param == "uint64") {
         auto p = m_cast.find("uint");
-        if (p != m_cast.end()) { return p->second; }
+        if (p != m_cast.end()) { return getCast(p->second); }
     }
     if (param == "int8" ||
         param == "int16" ||
@@ -103,7 +122,29 @@ const std::string ModuleMethodDef::getCast(const std::string &param) const
     return param;
 }
 
+const std::string ModuleMethodDef::getCast(const std::string &param) const
+{
+    std::string r = getCastOnce(param);
+    int32_t cnt = m_cast.size();
+    while (true) {
+        std::string r2 = getCastOnce(r);
+        --cnt;
+        if (r == r2 || cnt <= 0) return r2;
+    }
+}
+
 const std::string ModuleMethodDef::mangledName() const
 {
     return ModuleDef::mangleName(m_name, m_params);
 }
+
+const std::string ModuleMethodDef::fullName() const
+{
+    std::string base;
+    if (m_module) {
+        base = m_module->fullName();
+        if (!base.empty()) base += '_';
+    }
+    return ModuleDef::mangleName(base + m_name, m_params);
+}
+
