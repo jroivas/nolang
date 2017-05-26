@@ -54,9 +54,6 @@ Import *Compiler::addImportAs(mpc_ast_t *tree)
 
 void Compiler::addImport(mpc_ast_t *tree)
 {
-    std::cout << "/*\n";
-    mpc_ast_print(tree);
-    std::cout << "*/\n";
     Import *imp = nullptr;
     for (int c = 0; c < tree->children_num; ++c) {
         std::string tag = tree->children[c]->tag;
@@ -92,25 +89,29 @@ void Compiler::addConst(mpc_ast_t *tree)
     }
 }
 
-std::vector<std::string> Compiler::parseNamespaceDef(mpc_ast_t *tree)
+NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
 {
-    std::vector<std::string> res;
+    std::vector<std::string> def;
     for (int c = 0; c < tree->children_num; ++c) {
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
         if (tag.find("identifier") != std::string::npos) {
-            res.push_back(cnts);
+            def.push_back(cnts);
         }
         else {
             std::cerr << "** ERROR: Unknown node in namespace defination: " << tag << ": '" << cnts << "'\n";
         }
     }
-    return res;
+    if (def.empty()) return nullptr;
+    return new NamespaceDef(def);
 }
 
 MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
 {
     MethodCall *mcall = new MethodCall();
+    std::cout << "/*\n";
+    mpc_ast_print(tree);
+    std::cout << "*/\n";
 
     bool wait_ns = true;
     bool wait_call_end = false;
@@ -119,9 +120,11 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
         if (wait_ns && tag.find("identifier") != std::string::npos) {
-            std::vector<std::string> res;
+            /*std::vector<std::string> res;
             res.push_back(cnts);
             mcall->setNamespace(res);
+            */
+            mcall->setNamespace(new NamespaceDef(cnts));
         } else if (wait_ns && tag.find("namespacedef") != std::string::npos) {
             mcall->setNamespace(parseNamespaceDef(tree->children[c]));
             wait_ns = false;
@@ -265,9 +268,9 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         }
         recurse = false;
     } else if (tag.find("namespacedef") != std::string::npos) {
-        std::vector<std::string> def = parseNamespaceDef(tree);
-        if (!def.empty()) {
-            rdata.push_back(new NamespaceDef(def));
+        NamespaceDef *def = parseNamespaceDef(tree);
+        if (def != nullptr) {
+            rdata.push_back(def);
         } else if (!cnts.empty()) {
             rdata.push_back(new Identifier(cnts));
         }
@@ -426,7 +429,7 @@ void Compiler::dumpStatement(Statement *s, int l) const
     std::cout << lvl(l) << s->type() << ": ";
     if (s->type() == "MethodCall") {
         MethodCall *mc = static_cast<MethodCall*>(s);
-        for (auto d : mc->namespaces()) {
+        for (auto d : mc->namespaces()->values()) {
             std::cout << d << " ";
         }
         std::cout << "\n";

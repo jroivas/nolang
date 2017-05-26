@@ -54,9 +54,24 @@ public:
 class NamespaceDef : public Statement
 {
 public:
+    NamespaceDef(std::string val) :
+        Statement("NamespaceDef", val)
+    {
+        m_values.push_back(val);
+    }
     NamespaceDef(std::vector<std::string> val) :
         Statement("NamespaceDef", val.front()),
         m_values(val) {}
+
+    const std::string name() const
+    {
+        std::string res;
+        for (auto p : m_values) {
+            if (!res.empty()) res += '.';
+            res += p;
+        }
+        return res;
+    }
 
     const std::vector<std::string> values() const {
         return m_values;

@@ -20,7 +20,7 @@ ModuleDef::ModuleDef(std::string name) :
     m_ok = reload();
 }
 
-std::vector<std::string> ModuleDef::replaceParams(ModuleMethodDef *def, const std::vector<std::string> &params)
+std::vector<std::string> ModuleDef::replaceParams(ModuleMethodDef *def, const std::vector<std::string> &params) const
 {
     std::vector<std::string> res;
     for (auto p : params) {
@@ -29,7 +29,7 @@ std::vector<std::string> ModuleDef::replaceParams(ModuleMethodDef *def, const st
     return res;
 }
 
-ModuleMethodDef *ModuleDef::getMethod(std::string name, std::vector<std::string> params)
+ModuleMethodDef *ModuleDef::getMethod(std::string name, std::vector<std::string> params) const
 {
     for (auto m : m_methods) {
         if (m->name() == name) {

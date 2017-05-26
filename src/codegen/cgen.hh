@@ -41,7 +41,7 @@ protected:
 
     std::string autogen();
 
-    ModuleDef *getModule(std::string name);
+    const ModuleDef *getModule(std::string name) const;
 
 private:
     unsigned int m_autogen_index;

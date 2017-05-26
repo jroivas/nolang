@@ -130,7 +130,7 @@ std::string Cgen::generateConst(const Statement *)
     return "";
 }
 
-ModuleDef *Cgen::getModule(std::string name)
+const ModuleDef *Cgen::getModule(std::string name) const
 {
     auto mod = m_modules.find(name);
     if (mod != m_modules.end()) {
@@ -145,7 +145,7 @@ std::string Cgen::generateImport(const Import *imp)
     std::string res;
     // FIXME Built-in import
     std::string val = imp->val();
-    ModuleDef *mod = getModule(val);
+    const ModuleDef *mod = getModule(val);
     if (val == "IO") {
         // FIXME
         res += "#include <stdio.h>\n";
@@ -176,7 +176,6 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
     std::vector<std::string> pnames;
     std::vector<std::string> res;
     for (auto parm : mc->params()) {
-        //std::string tmp;
         std::string pname = autogen();
         std::string t = solveTypeOfChain(parm, m);
         if (t.empty()) {
@@ -185,21 +184,43 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
         }
         ptypes.push_back(t);
         pnames.push_back(pname);
-        //tmp = t + " " + pname + ";\n";
-        //tmp = t + " " + pname + " = ";
+
         res.push_back(t + " " + pname + " = ");
         std::vector<std::string> tmp = generateStatements(parm, m);
         res.insert(res.end(), tmp.begin(), tmp.end());
-        //tmp += ";\n";
-        //res.push_back(";\n");
+
         res.push_back("<EOS>");
-        //ptypes.push_back(tmp);
     }
+    const NamespaceDef *def = mc->namespaces();
+    if (def == nullptr || def->values().empty()) {
+        throw std::string("Got empty namespace in method call");
+    }
+    const ModuleDef *mod = getModule(def->values()[0]);
+    if (mod) {
+        uint32_t idx = 1;
+        // Next need to check namespace depth
+        while (idx < def->values().size() - 1) {
+            const ModuleDef *sub = mod->getModule(def->values()[idx]);
+            if (sub == nullptr) {
+                throw std::string("Can't find from modules:" + def->name());
+            }
+            mod = sub;
+            ++idx;
+        }
+        // Got module
+
+        std::cerr << " GOTMOD " << mod << "\n";
+        std::vector<std::string> params;
+        // FIXME
+        params.push_back("uint32");
+        ModuleMethodDef *meth = mod->getMethod(def->values()[idx], params);
+        std::cerr << " GOTMET " << meth << "\n";
+    } else
     // FIXME Hardcoding
-    if (mc->namespaces().size() == 2 &&
-        mc->namespaces()[0] == "IO" &&
-        (mc->namespaces()[1] == "print" ||
-         mc->namespaces()[1] == "println")) {
+    if (mc->namespaces()->values().size() == 2 &&
+        mc->namespaces()->values()[0] == "IO" &&
+        (mc->namespaces()->values()[1] == "print" ||
+         mc->namespaces()->values()[1] == "println")) {
         std::string tmp;
         tmp += "printf(\"";
         for (auto v : ptypes) {
@@ -216,7 +237,7 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
             // FIXME
             //else tmp += "\%d";
         }
-        if (mc->namespaces()[1] == "println") {
+        if (mc->namespaces()->values()[1] == "println") {
             tmp += "\\n";
         }
         tmp += "\", ";
@@ -233,7 +254,7 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
         res.push_back("<EOS>");
     } else {
         std::string mname;
-        for (std::string n : mc->namespaces()) {
+        for (std::string n : mc->namespaces()->values()) {
             if (!mname.empty()) mname += '.';
             mname += n;
         }
@@ -278,11 +299,10 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
         std::vector<std::string> tmp = generateStatements(ass->statements(), m);
         res.insert(res.end(), tmp.begin(), tmp.end());
     } else if (s->type() == "NamespaceDef") {
-        //std::cerr << " NSD " << s->code() << "\n";
-        ModuleDef *mod = getModule(s->code());
+        const ModuleDef *mod = getModule(s->code());
         if (mod != nullptr) {
             std::cerr << "MODULE " << s->code() << "\n";
-            m_current_module = mod;
+            //m_current_module = mod;
         } else {
             res.push_back(s->code() + " ");
         }

@@ -21,7 +21,7 @@ public:
     void parseMethod(mpc_ast_t *tree, int level=0);
 
     MethodCall *parseMethodCall(mpc_ast_t *);
-    std::vector<std::string> parseNamespaceDef(mpc_ast_t *);
+    NamespaceDef *parseNamespaceDef(mpc_ast_t *);
     void addImport(mpc_ast_t *);
     void addConst(mpc_ast_t *);
 

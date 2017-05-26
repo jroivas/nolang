@@ -92,9 +92,9 @@ TEST_MAIN(
         TEST_CASE(basic_compile_main_block1_item1_type, TEST_ASSERT_EQUALS(main->blocks()[1][0][0]->type(), "MethodCall"))
         nolang::MethodCall *mcall = static_cast<nolang::MethodCall*>(main->blocks()[1][0][0]);
 
-        TEST_CASE(method call namespaces size, TEST_ASSERT_EQUALS(mcall->namespaces().size(), 2))
-        TEST_CASE(method call namespaces 1, TEST_ASSERT_EQUALS(mcall->namespaces()[0], "IO"))
-        TEST_CASE(method call namespaces 2, TEST_ASSERT_EQUALS(mcall->namespaces()[1], "println"))
+        TEST_CASE(method call namespaces size, TEST_ASSERT_EQUALS(mcall->namespaces()->values().size(), 2))
+        TEST_CASE(method call namespaces 1, TEST_ASSERT_EQUALS(mcall->namespaces()->values()[0], "IO"))
+        TEST_CASE(method call namespaces 2, TEST_ASSERT_EQUALS(mcall->namespaces()->values()[1], "println"))
 
 
         TEST_CASE(method call params size, TEST_ASSERT_EQUALS(mcall->params().size(), 1))

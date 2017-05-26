@@ -26,20 +26,35 @@ public:
         m_methods.push_back(m);
     }
 
+    void addSubModule(ModuleDef *m)
+    {
+        m_modules.push_back(m);
+    }
+
+    const ModuleDef *getModule(std::string mod) const
+    {
+        for (auto m : m_modules) {
+            if (m->name() == mod) return m;
+        }
+        return nullptr;
+    }
+
     const std::string initCode() const
     {
         return m_init_code;
     }
+
     bool ok() const
     {
         return m_ok;
     }
+
     static const std::string mangleName(const std::string &name, const std::vector<std::string> &params);
 
-    ModuleMethodDef *getMethod(std::string name, std::vector<std::string> params);
+    ModuleMethodDef *getMethod(std::string name, std::vector<std::string> params) const;
 
 private:
-    std::vector<std::string> replaceParams(ModuleMethodDef *def, const std::vector<std::string> &params);
+    std::vector<std::string> replaceParams(ModuleMethodDef *def, const std::vector<std::string> &params) const;
     bool sysLoad();
     bool m_ok;
 
@@ -50,6 +65,7 @@ private:
     std::vector<std::string> m_libraries;
     std::vector<std::string> m_sources;
     std::vector<std::string> m_consts;
+    std::vector<ModuleDef*> m_modules;
     std::vector<ModuleMethodDef*> m_methods;
 };
 
