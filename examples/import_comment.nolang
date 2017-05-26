@@ -18,3 +18,4 @@ import math.sqrt as Sq
 main =>
     val : String = sys.args(1)
     ival : int = val :: int
+    IO.println(ival)

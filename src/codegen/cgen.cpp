@@ -88,7 +88,7 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
         return "char *";
     } else if (s->type() == "Number") {
         // FIXME type and size, floats
-        return "long";
+        return "uint32_t";
     } else {
         throw std::string("Unknown type: " + s->type());
     }
@@ -402,6 +402,10 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             const NamespaceDef *def = static_cast<const NamespaceDef *>(s);
             if (!def->cast().empty()) {
                 TypeIdent *st = solveVariable(def->code(), m);
+                if (!m_postponed_assignment.empty()) {
+                    res.push_back(m_postponed_assignment);
+                    m_postponed_assignment = "";
+                }
                 res.push_back(castCode(def->code(), st->varType(), def->cast()));
             } else {
                 res.push_back(s->code() + " ");
