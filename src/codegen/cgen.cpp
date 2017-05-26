@@ -344,6 +344,29 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
     return res;
 }
 
+std::string Cgen::castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const
+{
+    std::string res;
+    if (src_type == "String") {
+        if (to_type == "int" || to_type == "int32" || to_type == "int16" || to_type == "int8") {
+            res += src_var + " == NULL ? 0 : strtol(" + src_var + ", NULL, 10)";
+            return res;
+        } else if (to_type == "int64") {
+            res += src_var + " == NULL ? 0 : strtoll(" + src_var + ", NULL, 10)";
+            return res;
+        } else if (to_type == "uint" || to_type == "uint32" || to_type == "uint16" || to_type == "uint8") {
+            res += src_var + " == NULL ? 0 : strtoul(" + src_var + ", NULL, 10)";
+            return res;
+        } else if (to_type == "int64") {
+            res += src_var + " == NULL ? 0 : strtoull(" + src_var + ", NULL, 10)";
+            return res;
+        }
+    }
+    std::cerr << "** ERROR: Unhandled CAST " << src_var << " " << src_type << " -> " << to_type << "\n";
+    // FIXME
+    return res;
+}
+
 std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureMethod *m)
 {
     std::vector<std::string> res;
@@ -376,8 +399,13 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             std::cerr << "MODULE " << s->code() << "\n";
             m_current_module = mod;
         } else {
-            //std::cerr << " VV " << m_postponed_identifier  << "\n";
-            res.push_back(s->code() + " ");
+            const NamespaceDef *def = static_cast<const NamespaceDef *>(s);
+            if (!def->cast().empty()) {
+                TypeIdent *st = solveVariable(def->code(), m);
+                res.push_back(castCode(def->code(), st->varType(), def->cast()));
+            } else {
+                res.push_back(s->code() + " ");
+            }
         }
     } else if (s->type() == "Identifier") {
         res.push_back(s->code() + " ");
@@ -551,6 +579,7 @@ std::string Cgen::generateUnit(const Compiler *c)
 {
     std::string code;
     code += "#include <stddef.h>\n";
+    code += "#include <stdlib.h>\n";
     code += "#include <stdint.h>\n";
     code += "static int __argc = 0;\n";
     code += "static char **__argv = NULL;\n";

@@ -43,6 +43,7 @@ protected:
     mpc_parser_t* Expr;
     mpc_parser_t* Body;
     mpc_parser_t* Identifier;
+    mpc_parser_t* Identcast;
     mpc_parser_t* TypeIdent;
     mpc_parser_t* Import;
     mpc_parser_t* Struct;

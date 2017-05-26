@@ -77,8 +77,19 @@ public:
         return m_values;
     }
 
+    void setCast(std::string to)
+    {
+        m_cast_to = to;
+    }
+
+    const std::string cast() const
+    {
+        return m_cast_to;
+    }
+
 protected:
     std::vector<std::string> m_values;
+    std::string m_cast_to;
 };
 
 class StringValue : public Statement

@@ -40,6 +40,7 @@ protected:
     std::vector<std::string> generateMethodCall(const MethodCall *mc, const PureMethod *m);
     std::string solveTypeOfChain(std::vector<Statement*>, const PureMethod *m) const;
     std::string solveNolangeTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const;
+    std::string castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const;
 
     std::string autogen();
 

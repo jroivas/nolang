@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 #include <cstdlib>
+#include <algorithm>
+#include <utility>
 
 #include <3pp/mpc/mpc.h>
 #include "parser.hh"
@@ -30,6 +32,7 @@ int main(int argc, char **argv)
     bool debug = false;
     if(const char *env_debug = std::getenv("DEBUG")) {
         std::string do_debug = env_debug;
+        std::transform(do_debug.begin(), do_debug.end(), do_debug.begin(), ::toupper);
         if (do_debug == "TRUE" ||
             do_debug == "1") {
             debug = true;

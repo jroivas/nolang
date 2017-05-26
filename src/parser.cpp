@@ -32,6 +32,7 @@ void Parser::init()
     Expr     = mpc_new("expr");
     Body     = mpc_new("body");
     Identifier = mpc_new("identifier");
+    Identcast = mpc_new("identcast");
     TypeIdent = mpc_new("typeident");
     Import = mpc_new("import");
     Struct = mpc_new("struct");
@@ -82,7 +83,8 @@ bool Parser::generateLang()
         "ws         : /[\\s]+/ ;"
         "ows        : /[\\s\\t]*/ ;"
         "owsn       : /[\\s\\t\\n]*/ ;"
-        "identifier : /[A-Za-z_][A-Za-z0-9_-]*/ (<ows> \"::\" <ows> <identifier>)?;"
+        "identifier : /[A-Za-z_][A-Za-z0-9_-]*/;"
+        "identcast  : <identifier> (<ows> \"::\" <ows> <identifier>)?;"
         "typeident  : <identifier> <ows> ':' <ows> <identifier> ;"
         "number     : '-'? /[0-9]+/ ('.' /[0-9]+/)? ;"
         "string     : /\"(\\\\.|[^\"])*\"/ "
@@ -117,7 +119,7 @@ bool Parser::generateLang()
         "           | '(' <lexp> ')'"
         "           | <number>"
         "           | <string>"
-        "           | <identifier>; "
+        "           | <identcast>; "
         "term       : <factor> (<ows> <factorop> <ows> <factor>)*;"
         "lexp       : <term> (<ows> (<termop> | <comparator>) <ows> <term>)* ; "
         "expr       : <list>"
@@ -132,8 +134,8 @@ bool Parser::generateLang()
         "mapitems   : (<tuplemap> | <mapitem>) <owsn> (',' <owsn> (<tuplemap> | <mapitem>)) *;"
         "listitems  : <listitem> (<owsn> ',' <owsn> <listitem>) *;"
         "list       : '[' <owsn> (<mapitems> | <listitems>)? <owsn> ']' ;"
-        "namespacedef : <identifier> ('.' <identifier>)* (<mapindex>)?;"
-        "primitive  : <identifier> | <number> | <string> ;"
+        "namespacedef : <identcast> ('.' <identcast>)* (<mapindex>)?;"
+        "primitive  : <identcast> | <number> | <string> ;"
         "range      : <primitive> \"..\" <primitive>?;"
         "assignment : (<typeident>|<namespacedef> (<ows> ',' <ows> <namespacedef>)*) <ws> '=' <ws> <expr>;"
         "matchcond  : <range> | ((<comparator> <ows>)? <primitive>) | '?';"
@@ -166,7 +168,7 @@ bool Parser::generateLang()
       ,
         Comment, Indent, Newline,
         WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
-        Identifier, TypeIdent,
+        Identifier, Identcast, TypeIdent,
         Number, String,
         Comparator, BinaryOp, FactorOperator, TermOperator,
         Import, Const, Struct,
@@ -197,7 +199,7 @@ void Parser::deinit()
     mpc_cleanup(39,
         Comment, Indent, Newline,
         WhiteSpace, OptionalWhiteSpace, OptionalWhiteSpaceNewline,
-        Identifier, TypeIdent,
+        Identifier, Identcast, TypeIdent,
         Number, String,
         Comparator, BinaryOp, FactorOperator, TermOperator,
         Import, Const, Struct,

@@ -92,26 +92,39 @@ void Compiler::addConst(mpc_ast_t *tree)
 NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
 {
     std::vector<std::string> def;
+    bool cast = false;
+    std::string cast_type;
     for (int c = 0; c < tree->children_num; ++c) {
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
         if (tag.find("identifier") != std::string::npos) {
-            def.push_back(cnts);
-        }
-        else {
+            if (cast) {
+                cast_type = cnts;
+            } else {
+                def.push_back(cnts);
+            }
+        } else if (cnts == "::") {
+            cast = true;
+        } else {
             std::cerr << "** ERROR: Unknown node in namespace defination: " << tag << ": '" << cnts << "'\n";
         }
     }
-    if (def.empty()) return nullptr;
-    return new NamespaceDef(def);
+    if (def.empty()) {
+        return nullptr;
+    }
+    NamespaceDef *res = new NamespaceDef(def);
+    if (!cast_type.empty()) res->setCast(cast_type);
+    return res;
 }
 
 MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
 {
     MethodCall *mcall = new MethodCall();
+#if 0
     std::cout << "/*\n";
     mpc_ast_print(tree);
     std::cout << "*/\n";
+#endif
 
     bool wait_ns = true;
     bool wait_call_end = false;
@@ -120,10 +133,6 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
         if (wait_ns && tag.find("identifier") != std::string::npos) {
-            /*std::vector<std::string> res;
-            res.push_back(cnts);
-            mcall->setNamespace(res);
-            */
             mcall->setNamespace(new NamespaceDef(cnts));
         } else if (wait_ns && tag.find("namespacedef") != std::string::npos) {
             mcall->setNamespace(parseNamespaceDef(tree->children[c]));
