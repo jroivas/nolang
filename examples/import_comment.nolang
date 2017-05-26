@@ -16,5 +16,5 @@ import math.sqrt as Sq
  * example */
 
 main =>
-    val : int = sys.args(1)
-    IO.println(val)
+    val : String = sys.args(1)
+    ival : int = val :: int

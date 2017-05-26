@@ -47,6 +47,8 @@ std::string Cgen::solveNativeType(const std::string & s) const
         return "double";
     } else if (s == "f32") {
         return "float";
+    } else if (s == "string" || s == "String") {
+        return "const char *";
     }
     throw "Unknown native type: " + s;
 }
@@ -81,7 +83,7 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
             //std::cout << "STT " << native << "\n";
         }
         return "invalid";
-    } else if (s->type() == "String") {
+    } else if (s->type() == "String" || s->type() == "string") {
         // FIXME "const char*" or "char*"
         return "char *";
     } else if (s->type() == "Number") {
@@ -245,6 +247,10 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
     if (def == nullptr || def->values().empty()) {
         throw std::string("Got empty namespace in method call");
     }
+    if (!m_postponed_assignment.empty()) {
+        res.push_back(m_postponed_assignment);
+        m_postponed_assignment = "";
+    }
     const ModuleDef *mod = getModule(def->values()[0]);
     if (mod) {
         uint32_t idx = 1;
@@ -287,6 +293,7 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
         tmp += "printf(\"";
         for (auto v : ptypes) {
             if (v == "char *") tmp += "\%s";
+            else if (v == "const char *") tmp += "\%s";
             else if (v == "int") tmp += "\%d";
             else if (v == "uint8_t") tmp += "\%u";
             else if (v == "uint16_t") tmp += "\%u";
@@ -356,16 +363,20 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             res.push_back(l);
         }
     } else if (s->type() == "Assignment") {
-        res.push_back(s->code() + " = ");
+        //res.push_back(s->code() + " = ");
         const Assignment *ass = static_cast<const Assignment*>(s);
+
+        m_postponed_assignment = s->code() + " = ";
         std::vector<std::string> tmp = generateStatements(ass->statements(), m);
         res.insert(res.end(), tmp.begin(), tmp.end());
+
     } else if (s->type() == "NamespaceDef") {
         const ModuleDef *mod = getModule(s->code());
         if (mod != nullptr) {
             std::cerr << "MODULE " << s->code() << "\n";
-            //m_current_module = mod;
+            m_current_module = mod;
         } else {
+            //std::cerr << " VV " << m_postponed_identifier  << "\n";
             res.push_back(s->code() + " ");
         }
     } else if (s->type() == "Identifier") {
@@ -510,7 +521,11 @@ std::string Cgen::generateMethod(const PureMethod *m)
 
         if (last.substr(0, 7) != "return ") {
             lines.pop_back();
-            last = "   return " + last;
+            // No on assignment
+            if (last.find("==") != std::string::npos ||
+                last.find('=') == std::string::npos) {
+                last = "   return " + last;
+            }
             lines.push_back(last);
         }
     }

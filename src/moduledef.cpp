@@ -53,7 +53,6 @@ ModuleMethodDef *ModuleDef::getMethod(std::string name, std::vector<std::string>
         if (m->name() == name) {
             std::vector<std::string> mparams = replaceParams(m, params);
             std::string mangled = mangleName(name, mparams);
-            std::cerr << "RR " << mangled << " == " << m->mangledName() << "\n";
             if (mangled == m->mangledName()) return m;
         }
     }

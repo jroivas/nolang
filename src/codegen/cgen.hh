@@ -46,10 +46,12 @@ protected:
     const ModuleDef *getModule(std::string name) const;
 
 private:
+    void evaluatePendingAssignment();
     unsigned int m_autogen_index;
     std::string m_autogen_prefix;
     std::map<std::string, ModuleDef*> m_modules;
-    ModuleDef *m_current_module;
+    const ModuleDef *m_current_module;
+    std::string m_postponed_assignment;
 };
 
 }

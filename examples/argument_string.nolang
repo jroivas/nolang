@@ -1,0 +1,6 @@
+import sys
+import IO
+
+main =>
+    val : String = sys.args(1)
+    IO.println(val)
