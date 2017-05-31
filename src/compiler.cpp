@@ -475,11 +475,8 @@ void Compiler::dump() const
         for (auto v : i.second->blocks()) {
             std::cout << " BLOCK \n";
             for (auto w : v) {
-                //std::cout << "  WW\n";
                 for (auto z : w) {
-                    //std::cout << "   ZZ\n";
                     dumpStatement(z, 4);
-                    //std::cout << "  " << z->type() << ": " << z->code() << ":\n";
                 }
             }
         }

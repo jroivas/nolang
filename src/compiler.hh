@@ -16,7 +16,6 @@ class Compiler
 public:
     Compiler();
 
-    //std::string codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0);
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0);
     void parseMethod(mpc_ast_t *tree, int level=0);
 
@@ -49,8 +48,6 @@ protected:
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
-    //std::vector<std::string> m_blocks;
-    //std::vector<std::string> m_imports;
     std::vector<Import*> m_imports;
     std::vector<std::string> m_consts;
 
