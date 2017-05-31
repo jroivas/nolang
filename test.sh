@@ -19,7 +19,7 @@ ls "${MYDIR}/examples/"*.nolang | while read p; do
         failed "PARSING" "$p"
     elif ! gcc tst.c -o tst.out 2> /dev/null ; then
         if ! gcc tst.c -c -o tst.out 2> /dev/null ; then
-            failed "COPMILE" "$p"
+            failed "COMPILE" "$p"
         else
             success $p
         fi
