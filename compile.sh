@@ -5,7 +5,7 @@ base=$(basename "$1" .nolang)
 ./nolang-pure $1 > "${base}_output.c"
 extra=
 lib=0
-if ! grep main "${base}_output.c"; then
+if ! grep main "${base}_output.c" > /dev/null ; then
     extra="-c -fPIC"
     lib=1
 fi

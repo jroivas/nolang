@@ -86,6 +86,8 @@ void Compiler::addConst(mpc_ast_t *tree, int level)
             Assignment *assignment = parseAssignment(tree->children[c], &tmp, level + 1);
             if (assignment && tmp.variables().size() == 1) {
                 m_consts.push_back(new Const(tmp.variables()[0], assignment));
+            } else {
+                std::cerr << "** ERROR: Invalid const: " << tag << ": '" << cnts << "'\n";
             }
         } else {
             std::cerr << "** ERROR: Unknown node in const defination: " << tag << ": '" << cnts << "'\n";
