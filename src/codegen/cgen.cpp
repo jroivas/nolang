@@ -173,12 +173,6 @@ std::string Cgen::solveNolangeTypeOfChain(std::vector<Statement*> chain, const P
     return res;
 }
 
-std::string Cgen::generateConst(const Statement *)
-{
-    // FIXME
-    return "";
-}
-
 const ModuleDef *Cgen::getModule(std::string name) const
 {
     auto mod = m_modules.find(name);
@@ -579,6 +573,21 @@ std::string Cgen::generateMethod(const PureMethod *m)
     return res;
 }
 
+std::string Cgen::generateConst(const Const *c)
+{
+    std::string res;
+    std::string t = solveNativeType(c->ident()->varType());
+    res += t + " " + c->ident()->code();
+    res += " = ";
+    const Assignment *ass = c->assignment();
+    std::vector<std::string> tmp = generateStatements(ass->statements(), nullptr);
+    for (auto i : tmp) {
+        res += i;
+    }
+    res += ";\n";
+    return res;
+}
+
 std::string Cgen::generateUnit(const Compiler *c)
 {
     std::string code;
@@ -593,7 +602,10 @@ std::string Cgen::generateUnit(const Compiler *c)
         code += generateImport(m);
     }
 
-    code += "\n/***** Globals **/\n";
+    code += "\n/***** Consts **/\n";
+    for (auto m : c->consts()) {
+        code += generateConst(m);
+    }
 
     code += "\n/***** Prototypes **/\n";
     for (auto m : c->methods()) {

@@ -73,19 +73,23 @@ void Compiler::addImport(mpc_ast_t *tree)
     }
 }
 
-void Compiler::addConst(mpc_ast_t *tree)
+void Compiler::addConst(mpc_ast_t *tree, int level)
 {
+    bool wait_const = true;
     for (int c = 0; c < tree->children_num; ++c) {
-        /*
         std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
-        std::cout << " CCC " << tag << " = " << cnts << "\n";
-        std::string tag = tree->children[c]->tag;
-        if (tag.find("namespacedef") != std::string::npos) {
-            std::string cnts = tree->children[c]->contents;
-            m_imports.push_back(cnts);
+        if (expect(tree->children[c], "string", "const")) {
+            wait_const = false;
+        } else if (!wait_const & expect(tree->children[c], "assignment")) {
+            PureMethod tmp;
+            Assignment *assignment = parseAssignment(tree->children[c], &tmp, level + 1);
+            if (assignment && tmp.variables().size() == 1) {
+                m_consts.push_back(new Const(tmp.variables()[0], assignment));
+            }
+        } else {
+            std::cerr << "** ERROR: Unknown node in const defination: " << tag << ": '" << cnts << "'\n";
         }
-        */
     }
 }
 
@@ -193,7 +197,10 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
     Assignment *ass = nullptr;
     for (int c = 0; c < tree->children_num; ++c) {
         if (wait_for_ident && expect(tree->children[c], "typeident")) {
-            m->addVariable(parseTypeIdent(tree->children[c], m, level + 1));
+            TypeIdent *ident = parseTypeIdent(tree->children[c], m, level + 1);
+            if (m) {
+                m->addVariable(ident);
+            }
             wait_for_ident = false;
             wait_for_assign = true;
             ass = new Assignment(m_last_indent);
@@ -291,7 +298,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         addImport(tree);
         recurse = false;
     } else if (tag.find("const") != std::string::npos) {
-        addConst(tree);
+        addConst(tree, level + 1);
         recurse = false;
     } else if (tag.find("newline") != std::string::npos) {
         // Commit?

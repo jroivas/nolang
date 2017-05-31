@@ -19,10 +19,10 @@ class Cgen : public CodeGen
 public:
     Cgen();
 
-    std::string generateConst(const Statement *);
     std::string generateImport(const Import *);
     std::string generateMethod(const PureMethod *);
     std::string generateMethodPrototype(const PureMethod *);
+    std::string generateConst(const Const *c);
 
     std::string generateUnit(const Compiler *c);
 

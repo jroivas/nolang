@@ -22,12 +22,12 @@ public:
     MethodCall *parseMethodCall(mpc_ast_t *);
     NamespaceDef *parseNamespaceDef(mpc_ast_t *);
     void addImport(mpc_ast_t *);
-    void addConst(mpc_ast_t *);
+    void addConst(mpc_ast_t *, int level=0);
 
     void dump() const;
     void dumpStatement(Statement *s, int level=0) const;
 
-    std::vector<Import*> imports() const
+    const std::vector<Import*> imports() const
     {
         return m_imports;
     }
@@ -35,6 +35,11 @@ public:
     {
         return m_methods;
     }
+    const std::vector<Const*> consts() const
+    {
+        return m_consts;
+    }
+
     TypeIdent *parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level=0);
     Assignment *parseAssignment(mpc_ast_t *tree, PureMethod *m, int level=0);
 
@@ -49,7 +54,7 @@ protected:
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
     std::vector<Import*> m_imports;
-    std::vector<std::string> m_consts;
+    std::vector<Const*> m_consts;
 
     std::string m_last_indent;
     bool m_parameters;

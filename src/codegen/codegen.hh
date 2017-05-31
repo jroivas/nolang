@@ -18,7 +18,7 @@ public:
     CodeGen() {}
     virtual ~CodeGen() {}
 
-    virtual std::string generateConst(const Statement *) = 0;
+    virtual std::string generateConst(const Const *) = 0;
     virtual std::string generateImport(const Import *) = 0;
     virtual std::string generateMethod(const PureMethod *) = 0;
 

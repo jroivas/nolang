@@ -22,7 +22,7 @@ TEST_MAIN(
         TEST_CASE(basic_compile_imports, TEST_ASSERT_EQUALS(compiler.imports().size(), 0))
         TEST_CASE(basic_compile_methods, TEST_ASSERT_EQUALS(compiler.methods().size(), 1))
 
-        nolang::PureMethod *main = compiler.methods()["main"];
+        const nolang::PureMethod *main = compiler.methods()["main"];
 
         TEST_CASE(basic_compile_main_method, TEST_ASSERT_TRUE(main != nullptr))
         TEST_CASE(basic_compile_main_name, TEST_ASSERT_EQUALS(main->name(),  "main"))
