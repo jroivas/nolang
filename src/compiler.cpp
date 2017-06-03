@@ -126,11 +126,6 @@ NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
 MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
 {
     MethodCall *mcall = new MethodCall();
-#if 0
-    std::cout << "/*\n";
-    mpc_ast_print(tree);
-    std::cout << "*/\n";
-#endif
 
     bool wait_ns = true;
     bool wait_call_end = false;
@@ -227,6 +222,15 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
     return ass;
 }
 
+void Compiler::parseStruct(mpc_ast_t *tree)
+{
+#if 1
+    std::cout << "/*\n";
+    mpc_ast_print(tree);
+    std::cout << "*/\n";
+#endif
+}
+
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
@@ -245,21 +249,17 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         parseMethod(tree, level);
         recurse = false;
         level = 0;
+    } else if (expect(tree, "struct")) {
+        parseStruct(tree);
+        recurse = false;
     } else if (tag.find("indent") != std::string::npos) {
         int new_level = cnts.length();
         if (new_level != level) {
             if (m && !m_blocks.empty()) {
                 m->addBlock(m_blocks);
-                //m_blocks = std::vector<std::string>();
                 m_blocks = std::vector<std::vector<Statement*>>();
             }
         }
-        // FIME Blocks does not work this way
-        //ensureBlockLevel(blocks, level);
-        //std::cout << "LVL " << level << " '" << cnts << "'\n";
-    /*} else if ((tag.find("regex") != std::string::npos && cnts.length() == 0) ||
-               (tag.find("body") != std::string::npos && cnts.length() == 0)) {
-        */
         // SKIP and recurse
     } else if (tag.find("methodcall") != std::string::npos) {
         rdata.push_back(parseMethodCall(tree));

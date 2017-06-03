@@ -26,7 +26,6 @@ public:
      : m_type(other.m_type),
        m_code(other.m_code)
     {
-        //copy(other);
     }
 
     bool primitive() const
@@ -221,6 +220,25 @@ protected:
     std::vector<std::string> m_tree;
 
     std::string m_as;
+};
+
+class Struct : public Statement
+{
+public:
+    Struct(std::string val) : Statement("Struct", val) {}
+
+    void addData(TypeDef *def)
+    {
+        m_datas.push_back(def);
+    }
+
+    const std::vector<TypeDef*> datas() const
+    {
+        return m_datas;
+    }
+
+protected:
+    std::vector<TypeDef*> m_datas;
 };
 
 }

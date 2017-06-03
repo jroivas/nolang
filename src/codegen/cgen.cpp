@@ -49,6 +49,8 @@ std::string Cgen::solveNativeType(const std::string & s) const
         return "float";
     } else if (s == "string" || s == "String") {
         return "const char *";
+    } else {
+        return "void *";
     }
     throw "Unknown native type: " + s;
 }
@@ -365,9 +367,10 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
 {
     std::vector<std::string> res;
 
-    if (s->type() == "String" ||
-        s->type() == "Number") {
+    if (s->type() == "String") {
         res.push_back(s->code() + " ");
+    } else if (s->type() == "Number") {
+        res.push_back(s->code());
     } else if (s->type() == "Op") {
         std::string pp = s->code();
         if (pp == "div") pp = "/";

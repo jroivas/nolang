@@ -39,6 +39,10 @@ public:
     {
         return m_consts;
     }
+    const std::vector<Struct*> structs() const
+    {
+        return m_structs;
+    }
 
     TypeIdent *parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level=0);
     Assignment *parseAssignment(mpc_ast_t *tree, PureMethod *m, int level=0);
@@ -46,6 +50,7 @@ public:
     void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseMethodRet(mpc_ast_t *tree, PureMethod *m, int level=0);
+    void parseStruct(mpc_ast_t *tree);
 
 protected:
     bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;
@@ -55,6 +60,7 @@ protected:
     std::vector<std::vector<Statement*>> m_blocks;
     std::vector<Import*> m_imports;
     std::vector<Const*> m_consts;
+    std::vector<Struct*> m_structs;
 
     std::string m_last_indent;
     bool m_parameters;
