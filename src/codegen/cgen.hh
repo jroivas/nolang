@@ -22,7 +22,8 @@ public:
     std::string generateImport(const Import *);
     std::string generateMethod(const PureMethod *);
     std::string generateMethodPrototype(const PureMethod *);
-    std::string generateConst(const Const *c);
+    std::string generateConst(const Const *);
+    std::string generateStruct(const Struct *);
 
     std::string generateUnit(const Compiler *c);
 
@@ -45,6 +46,7 @@ protected:
     std::string autogen();
 
     const ModuleDef *getModule(std::string name) const;
+    std::vector<std::string> applyPostponed(std::vector<std::string> &);
 
 private:
     void evaluatePendingAssignment();

@@ -50,7 +50,7 @@ std::string Cgen::solveNativeType(const std::string & s) const
     } else if (s == "string" || s == "String") {
         return "const char *";
     } else {
-        return "void *";
+        return s + " *";
     }
     throw "Unknown native type: " + s;
 }
@@ -243,10 +243,8 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
     if (def == nullptr || def->values().empty()) {
         throw std::string("Got empty namespace in method call");
     }
-    if (!m_postponed_assignment.empty()) {
-        res.push_back(m_postponed_assignment);
-        m_postponed_assignment = "";
-    }
+
+    res = applyPostponed(res);
     const ModuleDef *mod = getModule(def->values()[0]);
     if (mod) {
         uint32_t idx = 1;
@@ -363,30 +361,54 @@ std::string Cgen::castCode(const std::string &src_var, const std::string &src_ty
     return res;
 }
 
+std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
+{
+    if (!m_postponed_assignment.empty()) {
+        res.push_back(m_postponed_assignment);
+        m_postponed_assignment = "";
+    }
+    return res;
+}
+
 std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureMethod *m)
 {
     std::vector<std::string> res;
 
     if (s->type() == "String") {
+        res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "Number") {
+        res = applyPostponed(res);
         res.push_back(s->code());
+    } else if (s->type() == "Braces") {
+        res = applyPostponed(res);
+        res.push_back(s->code() + " ");
+    } else if (s->type() == "Comparator") {
+        res = applyPostponed(res);
+        res.push_back(s->code() + " ");
     } else if (s->type() == "Op") {
+        res = applyPostponed(res);
         std::string pp = s->code();
         if (pp == "div") pp = "/";
         res.push_back(pp + " ");
-        //res.push_back(s->code() + " ");
-        //res += s->code() + " ";
     } else if (s->type() == "MethodCall") {
         const MethodCall *mc = static_cast<const MethodCall*>(s);
         for (auto l : generateMethodCall(mc, m)) {
             res.push_back(l);
         }
     } else if (s->type() == "Assignment") {
-        //res.push_back(s->code() + " = ");
         const Assignment *ass = static_cast<const Assignment*>(s);
 
-        m_postponed_assignment = s->code() + " = ";
+        if (ass->def() != nullptr) {
+            m_postponed_assignment = "";
+            for (auto s : generateStatement(ass->def(), m)) {
+                if (!m_postponed_assignment.empty()) m_postponed_assignment += "->";
+                m_postponed_assignment += s;
+            }
+            m_postponed_assignment += "= ";
+        } else {
+            m_postponed_assignment = s->code() + " = ";
+        }
         std::vector<std::string> tmp = generateStatements(ass->statements(), m);
         res.insert(res.end(), tmp.begin(), tmp.end());
 
@@ -397,18 +419,25 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             m_current_module = mod;
         } else {
             const NamespaceDef *def = static_cast<const NamespaceDef *>(s);
+            res = applyPostponed(res);
             if (!def->cast().empty()) {
                 TypeIdent *st = solveVariable(def->code(), m);
-                if (!m_postponed_assignment.empty()) {
-                    res.push_back(m_postponed_assignment);
-                    m_postponed_assignment = "";
-                }
                 res.push_back(castCode(def->code(), st->varType(), def->cast()));
+            } else if (!def->values().empty()) {
+                TypeIdent *st = solveVariable(def->code(), m);
+                std::string tmp;
+                for (auto v : def->values()) {
+                    if (!tmp.empty()) tmp += "->";
+                    tmp += v;
+                }
+                tmp += " ";
+                res.push_back(tmp);
             } else {
                 res.push_back(s->code() + " ");
             }
         }
     } else if (s->type() == "Identifier") {
+        res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "EOS") {
         res.push_back("<EOS>");
@@ -576,6 +605,19 @@ std::string Cgen::generateMethod(const PureMethod *m)
     return res;
 }
 
+std::string Cgen::generateStruct(const Struct *c)
+{
+    std::string res;
+    res += "typedef struct _" + c->code() + " {\n";
+    for (auto var : c->datas()) {
+        for (auto l : generateVariable(var)) {
+            res += l;
+        }
+    }
+    res += "} " + c->code() + ";\n";
+    return res;
+}
+
 std::string Cgen::generateConst(const Const *c)
 {
     std::string res;
@@ -597,12 +639,18 @@ std::string Cgen::generateUnit(const Compiler *c)
     code += "#include <stddef.h>\n";
     code += "#include <stdlib.h>\n";
     code += "#include <stdint.h>\n";
+    code += "typedef enum { false, true } boolean;\n";
     code += "static int __argc = 0;\n";
     code += "static char **__argv = NULL;\n";
 
     code += "\n/***** Imports **/\n";
     for (auto m : c->imports()) {
         code += generateImport(m);
+    }
+
+    code += "\n/***** Structs **/\n";
+    for (auto m : c->structs()) {
+        code += generateStruct(m);
     }
 
     code += "\n/***** Consts **/\n";

@@ -21,8 +21,9 @@ public:
     virtual std::string generateConst(const Const *) = 0;
     virtual std::string generateImport(const Import *) = 0;
     virtual std::string generateMethod(const PureMethod *) = 0;
+    virtual std::string generateStruct(const Struct *) = 0;
 
-    virtual std::string generateUnit(const Compiler *c) = 0;
+    virtual std::string generateUnit(const Compiler *) = 0;
 };
 
 }

@@ -111,6 +111,8 @@ NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
             }
         } else if (cnts == "::") {
             cast = true;
+        } else if (cnts == ".") {
+            //std::cerr << "DOT " << cnts <<  "\n";
         } else {
             std::cerr << "** ERROR: Unknown node in namespace defination: " << tag << ": '" << cnts << "'\n";
         }
@@ -191,6 +193,11 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
 {
     bool wait_for_ident = true;
     bool wait_for_assign = false;
+#if 0
+    std::cout << "/*\n";
+    mpc_ast_print(tree);
+    std::cout << "*/\n";
+#endif
     Assignment *ass = nullptr;
     for (int c = 0; c < tree->children_num; ++c) {
         if (wait_for_ident && expect(tree->children[c], "typeident")) {
@@ -202,10 +209,13 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
             wait_for_assign = true;
             ass = new Assignment(m_last_indent);
         } else if (wait_for_ident && expect(tree->children[c], "namespacedef")) {
-            m_last_indent = tree->children[c]->contents;
+            NamespaceDef *def = parseNamespaceDef(tree->children[c]);
+            if (def == nullptr) {
+                throw std::string("Invalid NamespaceDef in assignment");
+            }
             wait_for_ident = false;
             wait_for_assign = true;
-            ass = new Assignment(m_last_indent);
+            ass = new Assignment(def);
         } else if (wait_for_assign && expect(tree->children[c], "char", "=")) {
             wait_for_assign = false;
         } else if (!wait_for_ident && !wait_for_assign) {
@@ -224,11 +234,22 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m, int level)
 
 void Compiler::parseStruct(mpc_ast_t *tree)
 {
-#if 1
-    std::cout << "/*\n";
-    mpc_ast_print(tree);
-    std::cout << "*/\n";
-#endif
+    Struct *s = nullptr;
+
+
+    for (int c = 0; c < tree->children_num; ++c) {
+        if (!s && expect(tree->children[c], "identifier")) {
+            s = new Struct(tree->children[c]->contents);
+        } else if (s && expect(tree->children[c], "typeident")) {
+            TypeIdent *ident = parseTypeIdent(tree->children[c], nullptr, 0);
+            s->addData(ident);
+        } else {
+            std::string tag = tree->children[c]->tag;
+            std::string cnts = tree->children[c]->contents;
+            std::cerr << "** ERROR: Unknown node in struct: " << tag << ": '" << cnts << "'\n";
+        }
+    }
+    m_structs.push_back(s);
 }
 
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
@@ -316,6 +337,10 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata = std::vector<Statement*>();
         */
         rdata.push_back(new EOS());
+    } else if (expect(tree, "comparator")) {
+        rdata.push_back(new Comparator(cnts));
+    } else if (expect(tree, "char", "(") || expect(tree, "char", ")")) {
+        rdata.push_back(new Braces(cnts));
     } else if (tag.find("ows") != std::string::npos ||
                tag.find("ws") != std::string::npos) {
     } else {

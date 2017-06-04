@@ -50,6 +50,18 @@ public:
     Identifier(std::string val) : Statement("Identifier", val) {}
 };
 
+class Comparator : public Statement
+{
+public:
+    Comparator(std::string val) : Statement("Comparator", val) {}
+};
+
+class Braces : public Statement
+{
+public:
+    Braces(std::string val) : Statement("Braces", val) {}
+};
+
 class NamespaceDef : public Statement
 {
 public:
@@ -143,7 +155,8 @@ public:
 class Assignment : public Statement
 {
 public:
-    Assignment(std::string var) : Statement("Assignment", var) {}
+    Assignment(std::string var) : Statement("Assignment", var), m_def(nullptr) {}
+    Assignment(NamespaceDef *var) : Statement("Assignment", var->name()), m_def(var)  {}
 
     void addStatements(std::vector<Statement*> stmt) {
         for (auto s : stmt) {
@@ -156,8 +169,14 @@ public:
         return m_statements;
     }
 
+    const NamespaceDef *def() const
+    {
+        return m_def;
+    }
+
 protected:
     std::vector<Statement*> m_statements;
+    NamespaceDef *m_def;
 };
 
 
@@ -227,18 +246,18 @@ class Struct : public Statement
 public:
     Struct(std::string val) : Statement("Struct", val) {}
 
-    void addData(TypeDef *def)
+    void addData(TypeIdent *def)
     {
         m_datas.push_back(def);
     }
 
-    const std::vector<TypeDef*> datas() const
+    const std::vector<TypeIdent *> datas() const
     {
         return m_datas;
     }
 
 protected:
-    std::vector<TypeDef*> m_datas;
+    std::vector<TypeIdent *> m_datas;
 };
 
 }
