@@ -3,6 +3,11 @@ struct Date {
     negative : boolean
 }
 
+struct StartEnd {
+    start : Date
+    end : Date
+}
+
 const millisecondsInYear : int64 = 31536000000
 const millisecondsInMonth : int64 = 2629746000
 const millisecondsInDay : int64 = 86400000

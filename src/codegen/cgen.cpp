@@ -535,15 +535,19 @@ std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
 
     std::string varType = i->varType();
     std::string native = solveNativeType(varType);
-    std::string tmp = native + " " + i->code();
 
-    if (!isNativeType(varType)) {
-        tmp += " = new_" + varType + "()";
-    }
-    res.push_back(tmp + ";\n");
-
+    res.push_back(native + " " + i->code() + ";\n");
 
     return res;
+}
+
+std::string Cgen::generateVariableInit(const TypeIdent *i)
+{
+    std::string varType = i->varType();
+    if (!isNativeType(varType)) {
+        return i->code() + " = new_" + varType + "();\n";
+    }
+    return "";
 }
 
 std::string Cgen::solveReturnType(const Statement *t, const PureMethod *m) const
@@ -589,6 +593,9 @@ std::string Cgen::generateMethod(const PureMethod *m)
         for (auto l : generateVariable(var)) {
             lines.push_back(l);
         }
+    }
+    for (auto var : m->variables()) {
+        lines.push_back(generateVariableInit(var));
     }
 
     for (auto block : m->blocks()) {
@@ -650,7 +657,6 @@ std::string Cgen::generateStruct(const Struct *c)
         }
     }
     res += "} " + c->code() + ";\n";
-    res += generateStructInitializer(c);
     return res;
 }
 
@@ -687,6 +693,11 @@ std::string Cgen::generateUnit(const Compiler *c)
     code += "\n/***** Structs **/\n";
     for (auto m : c->structs()) {
         code += generateStruct(m);
+    }
+
+    code += "\n/***** Struct Initializers **/\n";
+    for (auto m : c->structs()) {
+        code += generateStructInitializer(m);
     }
 
     code += "\n/***** Consts **/\n";

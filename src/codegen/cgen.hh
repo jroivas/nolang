@@ -29,6 +29,7 @@ public:
 
 protected:
     std::string generateStructInitializer(const Struct *c);
+    std::string generateVariableInit(const TypeIdent *i);
     std::string solveNativeType(const Statement *t, const PureMethod *m) const;
     std::string solveNolangType(const Statement *t, const PureMethod *m) const;
     std::string solveNativeType(const std::string & s) const;
