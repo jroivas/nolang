@@ -47,12 +47,29 @@ std::string Cgen::solveNativeType(const std::string & s) const
         return "double";
     } else if (s == "f32") {
         return "float";
+    } else if (s == "boolean") {
+        return "boolean";
     } else if (s == "string" || s == "String") {
         return "const char *";
     } else {
         return s + " *";
     }
     throw "Unknown native type: " + s;
+}
+
+bool Cgen::isNativeType(const std::string & s) const
+{
+    if (s.substr(0, 3) == "int" ||
+        s.substr(0, 3) == "uint" ||
+        s == "Double" ||
+        s == "f64" ||
+        s == "f32" ||
+        s == "boolean" ||
+        s == "string" ||
+        s == "String") {
+        return true;
+    }
+    return false;
 }
 
 TypeIdent *Cgen::solveVariable(const std::string &name, const PureMethod *m) const
@@ -516,9 +533,15 @@ std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
 {
     std::vector<std::string> res;
 
-    std::string native = solveNativeType(i->varType());
+    std::string varType = i->varType();
+    std::string native = solveNativeType(varType);
+    std::string tmp = native + " " + i->code();
 
-    res.push_back(native + " " + i->code() +  ";\n");
+    if (!isNativeType(varType)) {
+        tmp += " = new_" + varType + "()";
+    }
+    res.push_back(tmp + ";\n");
+
 
     return res;
 }
@@ -605,6 +628,18 @@ std::string Cgen::generateMethod(const PureMethod *m)
     return res;
 }
 
+std::string Cgen::generateStructInitializer(const Struct *c)
+{
+    std::string res;
+    res += c->code() + "* new_" + c->code() + "()\n";
+    res += "{\n";
+    // TODO Change to jemalloc or something else
+    res += "    " + c->code() + "* tmp = calloc(1, sizeof(" + c->code() + "));\n";
+    res += "    return tmp;\n";
+    res += "}\n";
+    return res;
+}
+
 std::string Cgen::generateStruct(const Struct *c)
 {
     std::string res;
@@ -615,6 +650,7 @@ std::string Cgen::generateStruct(const Struct *c)
         }
     }
     res += "} " + c->code() + ";\n";
+    res += generateStructInitializer(c);
     return res;
 }
 

@@ -28,10 +28,12 @@ public:
     std::string generateUnit(const Compiler *c);
 
 protected:
+    std::string generateStructInitializer(const Struct *c);
     std::string solveNativeType(const Statement *t, const PureMethod *m) const;
     std::string solveNolangType(const Statement *t, const PureMethod *m) const;
     std::string solveNativeType(const std::string & s) const;
     std::string solveReturnType(const Statement *t, const PureMethod *m) const;
+    bool isNativeType(const std::string & s) const;
     std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
     std::vector<std::string> generateStatements(const std::vector<Statement *> stmts, const PureMethod *m);
     std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret, const PureMethod *m);
