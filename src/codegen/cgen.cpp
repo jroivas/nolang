@@ -641,7 +641,12 @@ std::string Cgen::generateStructInitializer(const Struct *c)
     res += c->code() + "* new_" + c->code() + "()\n";
     res += "{\n";
     // TODO Change to jemalloc or something else
-    res += "    " + c->code() + "* tmp = calloc(1, sizeof(" + c->code() + "));\n";
+    res += "    " + c->code() + " *tmp = calloc(1, sizeof(" + c->code() + "));\n";
+    for (auto i : c->datas()) {
+        if (!isNativeType(i->varType())) {
+            res += "    tmp->" + i->code() + " = new_" + i->varType() + "();\n";
+        }
+    }
     res += "    return tmp;\n";
     res += "}\n";
     return res;
