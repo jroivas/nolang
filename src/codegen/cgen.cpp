@@ -108,8 +108,10 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
     } else if (s->type() == "Number") {
         // FIXME type and size, floats
         return "uint32_t";
+    } else if (s->type() == "Boolean") {
+        return "boolean";
     } else {
-        throw std::string("Unknown type: " + s->type());
+        throw std::string("Unknown native type: " + s->type());
     }
     #if 0
     //if (TypeDef *tdef = dynamic_cast<TypeDef*>(s)) {
@@ -148,6 +150,8 @@ std::string Cgen::solveNolangType(const Statement *s, const PureMethod *m) const
     } else if (s->type() == "Number") {
         // FIXME type and size, floats
         return "int32";
+    } else if (s->type() == "Boolean") {
+        return "boolean";
     } else {
         throw std::string("Unknown type: " + s->type());
     }
@@ -392,19 +396,22 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
     std::vector<std::string> res;
 
     if (s->type() == "String") {
-        res = applyPostponed(res);
+        //res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "Number") {
-        res = applyPostponed(res);
+        //res = applyPostponed(res);
+        res.push_back(s->code());
+    } else if (s->type() == "Boolean") {
+        //res = applyPostponed(res);
         res.push_back(s->code());
     } else if (s->type() == "Braces") {
         res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "Comparator") {
-        res = applyPostponed(res);
+        //res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "Op") {
-        res = applyPostponed(res);
+        //res = applyPostponed(res);
         std::string pp = s->code();
         if (pp == "div") pp = "/";
         res.push_back(pp + " ");
@@ -441,6 +448,7 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
                 TypeIdent *st = solveVariable(def->code(), m);
                 res.push_back(castCode(def->code(), st->varType(), def->cast()));
             } else if (!def->values().empty()) {
+                // FIXME
                 TypeIdent *st = solveVariable(def->code(), m);
                 std::string tmp;
                 for (auto v : def->values()) {
@@ -553,6 +561,7 @@ std::string Cgen::generateVariableInit(const TypeIdent *i)
 std::string Cgen::solveReturnType(const Statement *t, const PureMethod *m) const
 {
     std::string ret = solveNativeType(m->returnType(), m);
+    // FIXME Return type if not defined?
 #if 1
     // FIXME Forcing main to be "int"
     if (m->name() == "main") {

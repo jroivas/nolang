@@ -12,7 +12,7 @@ const millisecondsInYear : int64 = 31536000000
 const millisecondsInMonth : int64 = 2629746000
 const millisecondsInDay : int64 = 86400000
 
-pure generateDate(year : int32, month : int32, day : int32) =>
+pure generateDate(year : int32, month : int32, day : int32) : Date =>
     d : Date
     d.negative = year < 1970
     d.milliSecondsSinceEpoch = (year - 1970) * millisecondsInYear

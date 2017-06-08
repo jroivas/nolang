@@ -260,4 +260,10 @@ protected:
     std::vector<TypeIdent *> m_datas;
 };
 
+class Boolean : public Statement
+{
+public:
+    Boolean(std::string val) : Statement("Boolean", val) {}
+};
+
 }

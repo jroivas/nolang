@@ -137,6 +137,7 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
         std::string cnts = tree->children[c]->contents;
         if (wait_ns && tag.find("identifier") != std::string::npos) {
             mcall->setNamespace(new NamespaceDef(cnts));
+            wait_ns = false;
         } else if (wait_ns && tag.find("namespacedef") != std::string::npos) {
             mcall->setNamespace(parseNamespaceDef(tree->children[c]));
             wait_ns = false;
@@ -307,16 +308,24 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         }
         recurse = false;
     } else if (tag.find("namespacedef") != std::string::npos) {
-        NamespaceDef *def = parseNamespaceDef(tree);
-        if (def != nullptr) {
-            rdata.push_back(def);
-        } else if (!cnts.empty()) {
-            rdata.push_back(new Identifier(cnts));
+        if (cnts == "false" || cnts == "true") {
+            rdata.push_back(new Boolean(cnts));
+        } else {
+            NamespaceDef *def = parseNamespaceDef(tree);
+            if (def != nullptr) {
+                rdata.push_back(def);
+            } else if (!cnts.empty()) {
+                rdata.push_back(new Identifier(cnts));
+            }
         }
         recurse = false;
     } else if (tag.find("identifier") != std::string::npos) {
         // FIXME Some idenfiers are special/reserved words
-        rdata.push_back(new Identifier(cnts));
+        if (cnts == "false" || cnts == "true") {
+            rdata.push_back(new Boolean(cnts));
+        } else {
+            rdata.push_back(new Identifier(cnts));
+        }
     } else if (tag.find("import") != std::string::npos) {
         addImport(tree);
         recurse = false;
