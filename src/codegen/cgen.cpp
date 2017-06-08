@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <cmath>
+#include <limits>
 
 #include "trim.hh"
 
@@ -107,7 +109,26 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
         return "char *";
     } else if (s->type() == "Number") {
         // FIXME type and size, floats
-        return "uint32_t";
+        std::string num = s->code();
+        num = trim(num);
+        std::cerr << s->code() <<"\n";
+        /* TODO FIXME
+        if (num.substr(0,2) == "0b") {
+            // TODO Convert binary to hex
+        }
+        */
+        double value = std::stod(num, nullptr);
+        if (num[0] == '-') {
+            if (fabs(value) >= std::numeric_limits<int32_t>::max()) {
+                return "int64_t";
+            }
+            return "int32_t";
+        } else {
+            if (value >= std::numeric_limits<int32_t>::max()) {
+                return "uint64_t";
+            }
+            return "uint32_t";
+        }
     } else if (s->type() == "Boolean") {
         return "boolean";
     } else {
