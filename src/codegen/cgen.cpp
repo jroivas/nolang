@@ -111,7 +111,6 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
         // FIXME type and size, floats
         std::string num = s->code();
         num = trim(num);
-        std::cerr << s->code() <<"\n";
         /* TODO FIXME
         if (num.substr(0,2) == "0b") {
             // TODO Convert binary to hex
@@ -736,7 +735,7 @@ std::string Cgen::generateConst(const Const *c)
 {
     std::string res;
     std::string t = solveNativeType(c->ident()->varType());
-    res += t + " " + c->ident()->code();
+    res += "const " + t + " " + c->ident()->code();
     res += " = ";
     const Assignment *ass = c->assignment();
     std::vector<std::string> tmp = generateStatements(ass->statements(), nullptr);
