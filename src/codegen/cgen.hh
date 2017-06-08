@@ -51,6 +51,9 @@ protected:
     const ModuleDef *getModule(std::string name) const;
     std::vector<std::string> applyPostponed(std::vector<std::string> &);
 
+    Struct *getStruct(const std::string &name) const;
+    bool isStruct(const std::string &name) const;
+
 private:
     void evaluatePendingAssignment();
     unsigned int m_autogen_index;
@@ -58,6 +61,7 @@ private:
     std::map<std::string, ModuleDef*> m_modules;
     const ModuleDef *m_current_module;
     std::string m_postponed_assignment;
+    std::vector<Struct*> m_structs;
 };
 
 }

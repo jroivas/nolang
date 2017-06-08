@@ -235,6 +235,23 @@ std::string Cgen::generateImport(const Import *imp)
     return res;
 }
 
+Struct *Cgen::getStruct(const std::string &name) const
+{
+    for (auto s : m_structs) {
+        if (s->code() == name) return s;
+    }
+    return nullptr;
+}
+
+bool Cgen::isStruct(const std::string &name) const
+{
+    for (auto s : m_structs) {
+        if (s->code() == name) return true;
+    }
+
+    return false;
+}
+
 std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
 {
     // Strategy is to parse params first, and store result to temporary variables.
@@ -265,6 +282,25 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
         throw std::string("Got empty namespace in method call");
     }
 
+    if (isStruct(def->values()[0])) {
+        // FIXME refactor
+        if (def->values().size() != 1) {
+            throw std::string("Struct initializer with extra: " + def->name());
+        }
+        Struct *s = getStruct(def->values()[0]);
+        uint32_t m = s->datas().size();
+        if (m > pnames.size()) m = pnames.size();
+        for (uint32_t i = 0; i < m; ++i) {
+            std::string tmp = m_postponed_assignment + "->";
+            tmp += s->datas()[i]->code();
+            tmp += " = ";
+            tmp += pnames[i++];
+            tmp += ";\n";
+            res.push_back(tmp);
+        }
+        m_postponed_assignment = "";
+        return res;
+    }
     res = applyPostponed(res);
     const ModuleDef *mod = getModule(def->values()[0]);
     if (mod) {
@@ -385,7 +421,7 @@ std::string Cgen::castCode(const std::string &src_var, const std::string &src_ty
 std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
 {
     if (!m_postponed_assignment.empty()) {
-        res.push_back(m_postponed_assignment);
+        res.push_back(m_postponed_assignment + " = ");
         m_postponed_assignment = "";
     }
     return res;
@@ -429,9 +465,10 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
                 if (!m_postponed_assignment.empty()) m_postponed_assignment += "->";
                 m_postponed_assignment += s;
             }
-            m_postponed_assignment += "= ";
+            //m_postponed_assignment += "= ";
         } else {
-            m_postponed_assignment = s->code() + " = ";
+            m_postponed_assignment = s->code();
+            //m_postponed_assignment = s->code() + " = ";
         }
         std::vector<std::string> tmp = generateStatements(ass->statements(), m);
         res.insert(res.end(), tmp.begin(), tmp.end());
@@ -707,6 +744,7 @@ std::string Cgen::generateUnit(const Compiler *c)
     code += "\n/***** Structs **/\n";
     for (auto m : c->structs()) {
         code += generateStruct(m);
+        m_structs.push_back(m);
     }
 
     code += "\n/***** Struct Initializers **/\n";
