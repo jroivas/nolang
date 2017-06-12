@@ -345,6 +345,53 @@ std::vector<std::string> Cgen::generateParameterStatements(const MethodCall *mc,
     return res;
 }
 
+const ModuleMethodDef *Cgen::getModuleMethodDef(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes) const
+{
+    uint32_t idx = 1;
+    // Next need to check namespace depth
+    while (idx < def->values().size() - 1) {
+        const ModuleDef *sub = mod->getModule(def->values()[idx]);
+        if (sub == nullptr) {
+            throw std::string("Can't find from modules:" + def->name());
+        }
+        mod = sub;
+        ++idx;
+    }
+    // Got module, find method
+    return mod->getMethod(def->values()[idx], nolang_ptypes);
+}
+
+std::vector<std::string> Cgen::generateModuleMethodCallWithMethod(const ModuleMethodDef *meth, const std::vector<std::string> &pnames) const
+{
+    std::vector<std::string> res;
+    // FIXME Combine with below, create method
+    std::string tmp;
+    tmp += meth->fullName();
+    tmp += "(";
+    bool first = true;
+    for (auto v : pnames) {
+        if (!first) {
+            tmp += ", ";
+        }
+        tmp += v;
+        first = false;
+    }
+    tmp += ")";
+    res.push_back(tmp);
+    res.push_back("<EOS>");
+
+    return res;
+}
+
+std::vector<std::string> Cgen::generateModuleMethodCall(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes, const std::vector<std::string> &pnames)
+{
+    const ModuleMethodDef *meth = getModuleMethodDef(mod, def, nolang_ptypes);
+    if (!meth) {
+        throw std::string("Can't find method from modules:" + def->name());
+    }
+    return generateModuleMethodCallWithMethod(meth, pnames);
+}
+
 std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
 {
     // Strategy is to parse params first, and store result to temporary variables.
@@ -364,36 +411,8 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
     res = applyPostponed(res);
     const ModuleDef *mod = getModule(def->values()[0]);
     if (mod) {
-        uint32_t idx = 1;
-        // Next need to check namespace depth
-        while (idx < def->values().size() - 1) {
-            const ModuleDef *sub = mod->getModule(def->values()[idx]);
-            if (sub == nullptr) {
-                throw std::string("Can't find from modules:" + def->name());
-            }
-            mod = sub;
-            ++idx;
-        }
-        // Got module, find method
-        ModuleMethodDef *meth = mod->getMethod(def->values()[idx], nolang_ptypes);
-        if (!meth) {
-            throw std::string("Can't find method from modules:" + def->name());
-        }
-        // FIXME Combine with below, create method
-        std::string tmp;
-        tmp += meth->fullName();
-        tmp += "(";
-        bool first = true;
-        for (auto v : pnames) {
-            if (!first) {
-                tmp += ", ";
-            }
-            tmp += v;
-            first = false;
-        }
-        tmp += ")";
-        res.push_back(tmp);
-        res.push_back("<EOS>");
+        std::vector<std::string> tmp = generateModuleMethodCall(mod, def, nolang_ptypes, pnames);
+        res.insert(res.end(), tmp.begin(), tmp.end());
     } else
     // FIXME Hardcoding
     if (mc->namespaces()->values().size() == 2 &&

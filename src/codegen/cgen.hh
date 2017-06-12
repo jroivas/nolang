@@ -60,6 +60,10 @@ protected:
     std::vector<std::string> solveParameterNolangTypes(const MethodCall *mc, const PureMethod *m);
     std::vector<std::string> generateParameterStatements(const MethodCall *mc, const PureMethod *m, std::vector<std::string> ptypes, std::vector<std::string> pnames);
 
+    const ModuleMethodDef *getModuleMethodDef(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes) const;
+    std::vector<std::string> generateModuleMethodCall(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes, const std::vector<std::string> &pnames);
+    std::vector<std::string> generateModuleMethodCallWithMethod(const ModuleMethodDef *meth, const std::vector<std::string> &pnames) const;
+
 private:
     void evaluatePendingAssignment();
     unsigned int m_autogen_index;
