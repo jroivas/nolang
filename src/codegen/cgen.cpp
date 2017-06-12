@@ -1,4 +1,5 @@
 #include "cgen.hh"
+#include "tools.hh"
 
 #include <iostream>
 #include <sstream>
@@ -9,18 +10,18 @@
 #include "trim.hh"
 
 using namespace nolang;
+static const std::string __autogen_prefix = "__autogen_";
+static unsigned int __autogen_index = 0;
 
 Cgen::Cgen()
-    : m_autogen_index(0),
-      m_autogen_prefix("__autogen_"),
-      m_current_module(nullptr)
+    : m_current_module(nullptr)
 {
 }
 
 std::string Cgen::autogen()
 {
     std::stringstream ss;
-    ss << m_autogen_prefix << ++m_autogen_index;
+    ss << __autogen_prefix << ++__autogen_index;
     return ss.str();
 }
 
@@ -85,7 +86,7 @@ TypeIdent *Cgen::solveVariable(const std::string &name, const PureMethod *m) con
     return nullptr;
 }
 
-std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
+std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m)
 {
     if (s->type() == "TypeDef") {
         if (s->code() == "void") {
@@ -96,12 +97,10 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
     } else if (s->type() == "TypeIdent") {
         const TypeIdent *i = static_cast<const TypeIdent *>(s);
         std::string native = solveNativeType(i->varType());
-        std::cout << "aSTT " << native << "\n";
     } else if (s->type() == "Identifier") {
         TypeIdent *var = solveVariable(s->code(), m);
         if (var) {
             return solveNativeType(var->varType());
-            //std::cout << "STT " << native << "\n";
         }
         return "invalid";
     } else if (s->type() == "String" || s->type() == "string") {
@@ -145,7 +144,6 @@ std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
     }
     #endif
     return "";
-    //return "void *";
 }
 
 std::string Cgen::solveNolangType(const Statement *s, const PureMethod *m) const
@@ -178,7 +176,8 @@ std::string Cgen::solveNolangType(const Statement *s, const PureMethod *m) const
     return "";
 }
 
-std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
+// FIXME Combine with below
+std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMethod *m)
 {
     std::string res;
     for (auto c : chain) {
@@ -197,7 +196,7 @@ std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMeth
     return res;
 }
 
-std::string Cgen::solveNolangeTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
+std::string Cgen::solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m)
 {
     std::string res;
     for (auto c : chain) {
@@ -219,11 +218,9 @@ std::string Cgen::solveNolangeTypeOfChain(std::vector<Statement*> chain, const P
 const ModuleDef *Cgen::getModule(std::string name) const
 {
     auto mod = m_modules.find(name);
-    if (mod != m_modules.end()) {
-        return mod->second;
-    }
+    if (mod == m_modules.end()) return nullptr;
 
-    return nullptr;
+    return mod->second;
 }
 
 std::string Cgen::generateImport(const Import *imp)
@@ -272,219 +269,6 @@ bool Cgen::isStruct(const std::string &name) const
     return false;
 }
 
-std::vector<std::string> Cgen::generateStructInitializerCall(const NamespaceDef *def, const std::vector<std::string> &parameterNames, std::vector<std::string> &res)
-{
-    if (def->values().size() != 1) {
-        throw std::string("Struct initializer with extra: " + def->name());
-    }
-
-    Struct *s = getStruct(def->values()[0]);
-    uint32_t m = s->datas().size();
-    if (m > parameterNames.size()) m = parameterNames.size();
-    for (uint32_t i = 0; i < m; ++i) {
-        std::string tmp = m_postponed_assignment + "->";
-        tmp += s->datas()[i]->code();
-        tmp += " = ";
-        tmp += parameterNames[i++];
-        tmp += ";\n";
-        res.push_back(tmp);
-    }
-    m_postponed_assignment = "";
-    return res;
-}
-
-std::vector<std::string> Cgen::solveParameterNames(const MethodCall *mc)
-{
-    std::vector<std::string> pnames;
-    for (auto parm : mc->params()) {
-        std::string pname = autogen();
-        pnames.push_back(pname);
-    }
-    return pnames;
-}
-
-std::vector<std::string> Cgen::solveParameterTypes(const MethodCall *mc, const PureMethod *m)
-{
-    std::vector<std::string> ptypes;
-    for (auto parm : mc->params()) {
-        std::string t = solveTypeOfChain(parm, m);
-        if (t.empty()) {
-            // FIXME
-            t = "void *";
-        }
-        ptypes.push_back(t);
-    }
-    return ptypes;
-}
-
-std::vector<std::string> Cgen::solveParameterNolangTypes(const MethodCall *mc, const PureMethod *m)
-{
-    std::vector<std::string> ptypes;
-    for (auto parm : mc->params()) {
-        std::string nt = solveNolangeTypeOfChain(parm, m);
-        ptypes.push_back(nt);
-    }
-    return ptypes;
-}
-
-std::vector<std::string> Cgen::generateParameterStatements(const MethodCall *mc, const PureMethod *m, std::vector<std::string> ptypes, std::vector<std::string> pnames)
-{
-    std::vector<std::string> res;
-
-    uint32_t i = 0;
-    for (auto parm : mc->params()) {
-        res.push_back(ptypes[i] + " " + pnames[i] + " = ");
-
-        std::vector<std::string> tmp = generateStatements(parm, m);
-        res.insert(res.end(), tmp.begin(), tmp.end());
-
-        res.push_back("<EOS>");
-        ++i;
-    }
-
-    return res;
-}
-
-const ModuleMethodDef *Cgen::getModuleMethodDef(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes) const
-{
-    uint32_t idx = 1;
-    // Next need to check namespace depth
-    while (idx < def->values().size() - 1) {
-        const ModuleDef *sub = mod->getModule(def->values()[idx]);
-        if (sub == nullptr) {
-            throw std::string("Can't find from modules:" + def->name());
-        }
-        mod = sub;
-        ++idx;
-    }
-    // Got module, find method
-    return mod->getMethod(def->values()[idx], nolang_ptypes);
-}
-
-std::vector<std::string> Cgen::generateModuleMethodCallWithMethod(const ModuleMethodDef *meth, const std::vector<std::string> &pnames) const
-{
-    std::vector<std::string> res;
-    // FIXME Combine with below, create method
-    std::string tmp;
-    tmp += meth->fullName();
-    tmp += "(";
-    bool first = true;
-    for (auto v : pnames) {
-        if (!first) {
-            tmp += ", ";
-        }
-        tmp += v;
-        first = false;
-    }
-    tmp += ")";
-    res.push_back(tmp);
-    res.push_back("<EOS>");
-
-    return res;
-}
-
-std::vector<std::string> Cgen::generateModuleMethodCall(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes, const std::vector<std::string> &pnames)
-{
-    const ModuleMethodDef *meth = getModuleMethodDef(mod, def, nolang_ptypes);
-    if (!meth) {
-        throw std::string("Can't find method from modules:" + def->name());
-    }
-    return generateModuleMethodCallWithMethod(meth, pnames);
-}
-
-std::string Cgen::generateBuiltInIOPrint(const MethodCall *mc, const std::vector<std::string> &ptypes,const std::vector<std::string> &pnames)
-{
-    std::string tmp;
-    tmp += "printf(\"";
-    for (auto v : ptypes) {
-        if (v == "char *") tmp += "\\%s";
-        else if (v == "const char *") tmp += "\\%s";
-        else if (v == "int") tmp += "\\%d";
-        else if (v == "uint8_t") tmp += "\\%u";
-        else if (v == "uint16_t") tmp += "\\%u";
-        else if (v == "uint32_t") tmp += "\\%lu";
-        else if (v == "uint64_t") tmp += "\\%llu";
-        else if (v == "int8_t") tmp += "\\%d";
-        else if (v == "int16_t") tmp += "\\%d";
-        else if (v == "int32_t") tmp += "\\%ld";
-        else if (v == "int64_t") tmp += "\\%lld";
-        // FIXME
-        //else tmp += "\%d";
-    }
-    if (mc->namespaces()->values()[1] == "println") {
-        tmp += "\\n";
-    }
-    tmp += "\", ";
-    bool first = true;
-    for (auto v : pnames) {
-        if (!first) {
-            tmp += ", ";
-        }
-        tmp += v;
-        first = false;
-    }
-    tmp += ");";
-    return tmp;
-}
-
-std::string Cgen::generateLocalMethodCall(const MethodCall *mc, const std::vector<std::string> &pnames)
-{
-    std::string mname;
-    for (std::string n : mc->namespaces()->values()) {
-        if (!mname.empty()) mname += '.';
-        mname += n;
-    }
-    std::string params = "(";
-    bool first = true;
-    for (auto v : pnames) {
-        if (!first) {
-            params += ", ";
-        }
-        params += v;
-        first = false;
-    }
-    params += ")";
-    return mname + params;
-}
-
-std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
-{
-    // Strategy is to parse params first, and store result to temporary variables.
-    std::vector<std::string> pnames = solveParameterNames(mc);
-    std::vector<std::string> ptypes = solveParameterTypes(mc, m);
-    std::vector<std::string> nolang_ptypes = solveParameterNolangTypes(mc, m);;
-    std::vector<std::string> res = Cgen::generateParameterStatements(mc, m, ptypes, pnames);
-
-    const NamespaceDef *def = mc->namespaces();
-    if (def == nullptr || def->values().empty()) {
-        throw std::string("Got empty namespace in method call");
-    }
-
-    if (isStruct(def->values()[0])) {
-        return generateStructInitializerCall(def, pnames, res);
-    }
-    res = applyPostponed(res);
-    const ModuleDef *mod = getModule(def->values()[0]);
-    if (mod) {
-        std::vector<std::string> tmp = generateModuleMethodCall(mod, def, nolang_ptypes, pnames);
-        res.insert(res.end(), tmp.begin(), tmp.end());
-    } else
-    // FIXME Hardcoding
-    if (mc->namespaces()->values().size() == 2 &&
-        mc->namespaces()->values()[0] == "IO" &&
-        (mc->namespaces()->values()[1] == "print" ||
-         mc->namespaces()->values()[1] == "println")) {
-
-        res.push_back(generateBuiltInIOPrint(mc, ptypes, pnames));
-        res.push_back("<EOS>");
-    } else {
-        res.push_back(generateLocalMethodCall(mc, pnames));
-        res.push_back("<EOS>");
-    }
-
-    return res;
-}
-
 std::string Cgen::castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const
 {
     std::string res;
@@ -514,6 +298,20 @@ std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
         res.push_back(m_postponed_assignment + " = ");
         m_postponed_assignment = "";
     }
+    return res;
+}
+
+std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
+{
+    MethodCallGenerator gen(mc, m);
+    std::vector<std::string> res;
+    if (gen.isStruct()) {
+        res = gen.generateStructInitCall(m_postponed_assignment);
+    } else {
+        const ModuleDef *mod = getModule(gen.getModuleName());
+        res = gen.generateMethodCall(mod, m_postponed_assignment)
+    }
+    m_postponed_assignment = "";
     return res;
 }
 
@@ -561,7 +359,7 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             //m_postponed_assignment = s->code() + " = ";
         }
         std::vector<std::string> tmp = generateStatements(ass->statements(), m);
-        res.insert(res.end(), tmp.begin(), tmp.end());
+        applyToVector(res, tmp);
 
     } else if (s->type() == "NamespaceDef") {
         const ModuleDef *mod = getModule(s->code());
