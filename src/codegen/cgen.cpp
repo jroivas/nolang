@@ -397,17 +397,17 @@ std::string Cgen::generateBuiltInIOPrint(const MethodCall *mc, const std::vector
     std::string tmp;
     tmp += "printf(\"";
     for (auto v : ptypes) {
-        if (v == "char *") tmp += "\%s";
-        else if (v == "const char *") tmp += "\%s";
-        else if (v == "int") tmp += "\%d";
-        else if (v == "uint8_t") tmp += "\%u";
-        else if (v == "uint16_t") tmp += "\%u";
-        else if (v == "uint32_t") tmp += "\%lu";
-        else if (v == "uint64_t") tmp += "\%llu";
-        else if (v == "int8_t") tmp += "\%d";
-        else if (v == "int16_t") tmp += "\%d";
-        else if (v == "int32_t") tmp += "\%ld";
-        else if (v == "int64_t") tmp += "\%lld";
+        if (v == "char *") tmp += "\\%s";
+        else if (v == "const char *") tmp += "\\%s";
+        else if (v == "int") tmp += "\\%d";
+        else if (v == "uint8_t") tmp += "\\%u";
+        else if (v == "uint16_t") tmp += "\\%u";
+        else if (v == "uint32_t") tmp += "\\%lu";
+        else if (v == "uint64_t") tmp += "\\%llu";
+        else if (v == "int8_t") tmp += "\\%d";
+        else if (v == "int16_t") tmp += "\\%d";
+        else if (v == "int32_t") tmp += "\\%ld";
+        else if (v == "int64_t") tmp += "\\%lld";
         // FIXME
         //else tmp += "\%d";
     }
