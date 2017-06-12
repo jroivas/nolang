@@ -272,54 +272,94 @@ bool Cgen::isStruct(const std::string &name) const
     return false;
 }
 
-std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
+std::vector<std::string> Cgen::generateStructInitializerCall(const NamespaceDef *def, const std::vector<std::string> &parameterNames, std::vector<std::string> &res)
 {
-    // Strategy is to parse params first, and store result to temporary variables.
-    std::vector<std::string> ptypes;
-    std::vector<std::string> nolang_ptypes;
+    if (def->values().size() != 1) {
+        throw std::string("Struct initializer with extra: " + def->name());
+    }
+
+    Struct *s = getStruct(def->values()[0]);
+    uint32_t m = s->datas().size();
+    if (m > parameterNames.size()) m = parameterNames.size();
+    for (uint32_t i = 0; i < m; ++i) {
+        std::string tmp = m_postponed_assignment + "->";
+        tmp += s->datas()[i]->code();
+        tmp += " = ";
+        tmp += parameterNames[i++];
+        tmp += ";\n";
+        res.push_back(tmp);
+    }
+    m_postponed_assignment = "";
+    return res;
+}
+
+std::vector<std::string> Cgen::solveParameterNames(const MethodCall *mc)
+{
     std::vector<std::string> pnames;
-    std::vector<std::string> res;
     for (auto parm : mc->params()) {
         std::string pname = autogen();
+        pnames.push_back(pname);
+    }
+    return pnames;
+}
+
+std::vector<std::string> Cgen::solveParameterTypes(const MethodCall *mc, const PureMethod *m)
+{
+    std::vector<std::string> ptypes;
+    for (auto parm : mc->params()) {
         std::string t = solveTypeOfChain(parm, m);
         if (t.empty()) {
             // FIXME
             t = "void *";
         }
-        std::string nt = solveNolangeTypeOfChain(parm, m);
         ptypes.push_back(t);
-        nolang_ptypes.push_back(nt);
-        pnames.push_back(pname);
+    }
+    return ptypes;
+}
 
-        res.push_back(t + " " + pname + " = ");
+std::vector<std::string> Cgen::solveParameterNolangTypes(const MethodCall *mc, const PureMethod *m)
+{
+    std::vector<std::string> ptypes;
+    for (auto parm : mc->params()) {
+        std::string nt = solveNolangeTypeOfChain(parm, m);
+        ptypes.push_back(nt);
+    }
+    return ptypes;
+}
+
+std::vector<std::string> Cgen::generateParameterStatements(const MethodCall *mc, const PureMethod *m, std::vector<std::string> ptypes, std::vector<std::string> pnames)
+{
+    std::vector<std::string> res;
+
+    uint32_t i = 0;
+    for (auto parm : mc->params()) {
+        res.push_back(ptypes[i] + " " + pnames[i] + " = ");
+
         std::vector<std::string> tmp = generateStatements(parm, m);
         res.insert(res.end(), tmp.begin(), tmp.end());
 
         res.push_back("<EOS>");
+        ++i;
     }
+
+    return res;
+}
+
+std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
+{
+    // Strategy is to parse params first, and store result to temporary variables.
+    std::vector<std::string> pnames = solveParameterNames(mc);
+    std::vector<std::string> ptypes = solveParameterTypes(mc, m);
+    std::vector<std::string> nolang_ptypes = solveParameterNolangTypes(mc, m);;
+    std::vector<std::string> res = Cgen::generateParameterStatements(mc, m, ptypes, pnames);
+
     const NamespaceDef *def = mc->namespaces();
     if (def == nullptr || def->values().empty()) {
         throw std::string("Got empty namespace in method call");
     }
 
     if (isStruct(def->values()[0])) {
-        // FIXME refactor
-        if (def->values().size() != 1) {
-            throw std::string("Struct initializer with extra: " + def->name());
-        }
-        Struct *s = getStruct(def->values()[0]);
-        uint32_t m = s->datas().size();
-        if (m > pnames.size()) m = pnames.size();
-        for (uint32_t i = 0; i < m; ++i) {
-            std::string tmp = m_postponed_assignment + "->";
-            tmp += s->datas()[i]->code();
-            tmp += " = ";
-            tmp += pnames[i++];
-            tmp += ";\n";
-            res.push_back(tmp);
-        }
-        m_postponed_assignment = "";
-        return res;
+        return generateStructInitializerCall(def, pnames, res);
     }
     res = applyPostponed(res);
     const ModuleDef *mod = getModule(def->values()[0]);

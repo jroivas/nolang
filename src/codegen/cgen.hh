@@ -42,6 +42,7 @@ protected:
     TypeIdent *solveVariable(const std::string &name, const PureMethod *m) const;
 
     std::vector<std::string> generateMethodCall(const MethodCall *mc, const PureMethod *m);
+    std::vector<std::string> generateStructInitializerCall(const NamespaceDef *def, const std::vector<std::string> &parameterNames, std::vector<std::string> &res);
     std::string solveTypeOfChain(std::vector<Statement*>, const PureMethod *m) const;
     std::string solveNolangeTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const;
     std::string castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const;
@@ -53,6 +54,11 @@ protected:
 
     Struct *getStruct(const std::string &name) const;
     bool isStruct(const std::string &name) const;
+
+    std::vector<std::string> solveParameterNames(const MethodCall *mc);
+    std::vector<std::string> solveParameterTypes(const MethodCall *mc, const PureMethod *m);
+    std::vector<std::string> solveParameterNolangTypes(const MethodCall *mc, const PureMethod *m);
+    std::vector<std::string> generateParameterStatements(const MethodCall *mc, const PureMethod *m, std::vector<std::string> ptypes, std::vector<std::string> pnames);
 
 private:
     void evaluatePendingAssignment();
