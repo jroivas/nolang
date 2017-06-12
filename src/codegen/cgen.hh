@@ -63,6 +63,8 @@ protected:
     const ModuleMethodDef *getModuleMethodDef(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes) const;
     std::vector<std::string> generateModuleMethodCall(const ModuleDef *mod, const NamespaceDef *def, const std::vector<std::string> &nolang_ptypes, const std::vector<std::string> &pnames);
     std::vector<std::string> generateModuleMethodCallWithMethod(const ModuleMethodDef *meth, const std::vector<std::string> &pnames) const;
+    std::string generateBuiltInIOPrint(const MethodCall *mc, const std::vector<std::string> &ptypes,const std::vector<std::string> &pnames);
+    std::string generateLocalMethodCall(const MethodCall *mc, const std::vector<std::string> &pnames);
 
 private:
     void evaluatePendingAssignment();

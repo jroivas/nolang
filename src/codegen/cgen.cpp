@@ -392,6 +392,61 @@ std::vector<std::string> Cgen::generateModuleMethodCall(const ModuleDef *mod, co
     return generateModuleMethodCallWithMethod(meth, pnames);
 }
 
+std::string Cgen::generateBuiltInIOPrint(const MethodCall *mc, const std::vector<std::string> &ptypes,const std::vector<std::string> &pnames)
+{
+    std::string tmp;
+    tmp += "printf(\"";
+    for (auto v : ptypes) {
+        if (v == "char *") tmp += "\%s";
+        else if (v == "const char *") tmp += "\%s";
+        else if (v == "int") tmp += "\%d";
+        else if (v == "uint8_t") tmp += "\%u";
+        else if (v == "uint16_t") tmp += "\%u";
+        else if (v == "uint32_t") tmp += "\%lu";
+        else if (v == "uint64_t") tmp += "\%llu";
+        else if (v == "int8_t") tmp += "\%d";
+        else if (v == "int16_t") tmp += "\%d";
+        else if (v == "int32_t") tmp += "\%ld";
+        else if (v == "int64_t") tmp += "\%lld";
+        // FIXME
+        //else tmp += "\%d";
+    }
+    if (mc->namespaces()->values()[1] == "println") {
+        tmp += "\\n";
+    }
+    tmp += "\", ";
+    bool first = true;
+    for (auto v : pnames) {
+        if (!first) {
+            tmp += ", ";
+        }
+        tmp += v;
+        first = false;
+    }
+    tmp += ");";
+    return tmp;
+}
+
+std::string Cgen::generateLocalMethodCall(const MethodCall *mc, const std::vector<std::string> &pnames)
+{
+    std::string mname;
+    for (std::string n : mc->namespaces()->values()) {
+        if (!mname.empty()) mname += '.';
+        mname += n;
+    }
+    std::string params = "(";
+    bool first = true;
+    for (auto v : pnames) {
+        if (!first) {
+            params += ", ";
+        }
+        params += v;
+        first = false;
+    }
+    params += ")";
+    return mname + params;
+}
+
 std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
 {
     // Strategy is to parse params first, and store result to temporary variables.
@@ -419,55 +474,11 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
         mc->namespaces()->values()[0] == "IO" &&
         (mc->namespaces()->values()[1] == "print" ||
          mc->namespaces()->values()[1] == "println")) {
-        std::string tmp;
-        tmp += "printf(\"";
-        for (auto v : ptypes) {
-            if (v == "char *") tmp += "\%s";
-            else if (v == "const char *") tmp += "\%s";
-            else if (v == "int") tmp += "\%d";
-            else if (v == "uint8_t") tmp += "\%u";
-            else if (v == "uint16_t") tmp += "\%u";
-            else if (v == "uint32_t") tmp += "\%lu";
-            else if (v == "uint64_t") tmp += "\%llu";
-            else if (v == "int8_t") tmp += "\%d";
-            else if (v == "int16_t") tmp += "\%d";
-            else if (v == "int32_t") tmp += "\%ld";
-            else if (v == "int64_t") tmp += "\%lld";
-            // FIXME
-            //else tmp += "\%d";
-        }
-        if (mc->namespaces()->values()[1] == "println") {
-            tmp += "\\n";
-        }
-        tmp += "\", ";
-        bool first = true;
-        for (auto v : pnames) {
-            if (!first) {
-                tmp += ", ";
-            }
-            tmp += v;
-            first = false;
-        }
-        tmp += ");";
-        res.push_back(tmp);
+
+        res.push_back(generateBuiltInIOPrint(mc, ptypes, pnames));
         res.push_back("<EOS>");
     } else {
-        std::string mname;
-        for (std::string n : mc->namespaces()->values()) {
-            if (!mname.empty()) mname += '.';
-            mname += n;
-        }
-        std::string params = "(";
-        bool first = true;
-        for (auto v : pnames) {
-            if (!first) {
-                params += ", ";
-            }
-            params += v;
-            first = false;
-        }
-        params += ")";
-        res.push_back(mname + params);
+        res.push_back(generateLocalMethodCall(mc, pnames));
         res.push_back("<EOS>");
     }
 
