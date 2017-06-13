@@ -17,13 +17,13 @@ src_inc = include_directories('src')
 
 nolang_lib = static_library('nolang',
     [
+        'src/tools.cpp',
         'src/pure.cpp',
         'src/parser.cpp',
         'src/compiler.cpp',
         'src/methodcall.cpp',
         'src/puremethod.cpp',
         'src/moduledef.cpp',
-        'src/tools.cpp',
         'src/codegen/cgen.cpp',
         'src/codegen/methodcallgenerator.cpp',
         '3pp/mpc/mpc.c'

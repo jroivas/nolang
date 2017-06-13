@@ -29,19 +29,26 @@ public:
 
     std::string generateUnit(const Compiler *c);
     static std::string autogen();
-    static std::string solveTypeOfChain(std::vector<Statement*>, const PureMethod *m);
-    static std::string solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m);
+    std::string solveTypeOfChain(std::vector<Statement*>, const PureMethod *m) const;
+    std::string solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const;
+    std::vector<std::string> generateStatements(const std::vector<Statement *> stmts, const PureMethod *m);
+    bool isStruct(const std::string &name) const;
+    Struct *getStruct(const std::string &name) const;
+    const ModuleDef *getModule(std::string name) const;
+
+    std::vector<std::string> applyPostponed(std::vector<std::string> &);
+
+    std::string usePostponed();
 
 protected:
     std::string generateStructInitializer(const Struct *c);
     std::string generateVariableInit(const TypeIdent *i);
-    static std::string solveNativeType(const Statement *t, const PureMethod *m);
+    std::string solveNativeType(const Statement *t, const PureMethod *m) const;
     std::string solveNolangType(const Statement *t, const PureMethod *m) const;
     std::string solveNativeType(const std::string & s) const;
     std::string solveReturnType(const Statement *t, const PureMethod *m) const;
     bool isNativeType(const std::string & s) const;
     std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
-    std::vector<std::string> generateStatements(const std::vector<Statement *> stmts, const PureMethod *m);
     std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret, const PureMethod *m);
     std::vector<std::string> generateVariable(const TypeIdent *i);
     TypeIdent *solveVariable(const std::string &name, const PureMethod *m) const;
@@ -50,11 +57,6 @@ protected:
     std::string castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const;
 
 
-    const ModuleDef *getModule(std::string name) const;
-    std::vector<std::string> applyPostponed(std::vector<std::string> &);
-
-    Struct *getStruct(const std::string &name) const;
-    bool isStruct(const std::string &name) const;
 
 private:
     void evaluatePendingAssignment();

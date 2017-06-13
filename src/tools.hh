@@ -6,6 +6,6 @@
 namespace nolang
 {
 
-std::vector<std::string> applyToVector(std::vector<std::string> &dst, const std::vector<std::string> &srt);
+std::vector<std::string> applyToVector(std::vector<std::string> &dst, const std::vector<std::string> &src);
     
 }

@@ -86,7 +86,7 @@ TypeIdent *Cgen::solveVariable(const std::string &name, const PureMethod *m) con
     return nullptr;
 }
 
-std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m)
+std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
 {
     if (s->type() == "TypeDef") {
         if (s->code() == "void") {
@@ -177,7 +177,7 @@ std::string Cgen::solveNolangType(const Statement *s, const PureMethod *m) const
 }
 
 // FIXME Combine with below
-std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMethod *m)
+std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
 {
     std::string res;
     for (auto c : chain) {
@@ -196,7 +196,7 @@ std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMeth
     return res;
 }
 
-std::string Cgen::solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m)
+std::string Cgen::solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
 {
     std::string res;
     for (auto c : chain) {
@@ -301,15 +301,21 @@ std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
     return res;
 }
 
+std::string Cgen::usePostponed()
+{
+    std::string tmp = m_postponed_assignment;
+    m_postponed_assignment = "";
+    return tmp;
+}
+
 std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
 {
-    MethodCallGenerator gen(mc, m);
+    MethodCallGenerator gen(this, mc, m);
     std::vector<std::string> res;
     if (gen.isStruct()) {
-        res = gen.generateStructInitCall(m_postponed_assignment);
+        res = gen.generateStructInitCall();
     } else {
-        const ModuleDef *mod = getModule(gen.getModuleName());
-        res = gen.generateMethodCall(mod, m_postponed_assignment)
+        res = gen.generateMethodCall();
     }
     m_postponed_assignment = "";
     return res;

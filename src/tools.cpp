@@ -1,8 +1,6 @@
 #include "tools.hh"
 
-using namespace nolang;
-
-std::vector<std::string> applyToVector(std::vector<std::string> &dst, const std::vector<std::string> &srt) {
+std::vector<std::string> nolang::applyToVector(std::vector<std::string> &dst, const std::vector<std::string> &src) {
     dst.insert(dst.end(), src.begin(), src.end());
     return dst;
 }

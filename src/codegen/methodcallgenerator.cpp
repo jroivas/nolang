@@ -4,7 +4,8 @@
 
 using namespace nolang;
 
-MethodCallGenerator::MethodCallGenerator(const MethodCall *pmc, const PureMethod *pm) :
+MethodCallGenerator::MethodCallGenerator(Cgen * pcgen, const MethodCall *pmc, const PureMethod *pm) :
+    cgen(pcgen),
     mc(pmc),
     m(pm)
 {
@@ -18,7 +19,7 @@ MethodCallGenerator::MethodCallGenerator(const MethodCall *pmc, const PureMethod
 void MethodCallGenerator::solveParameterNames()
 {
     for (auto parm : mc->params()) {
-        std::string pname = Cgen::autogen();
+        std::string pname = cgen->autogen();
         pnames.push_back(pname);
     }
 }
@@ -26,7 +27,7 @@ void MethodCallGenerator::solveParameterNames()
 void MethodCallGenerator::solveParameterTypes()
 {
     for (auto parm : mc->params()) {
-        std::string t = Cgen::solveTypeOfChain(parm, m);
+        std::string t = cgen->solveTypeOfChain(parm, m);
         if (t.empty()) t = "void *";
         ptypes.push_back(t);
     }
@@ -35,7 +36,7 @@ void MethodCallGenerator::solveParameterTypes()
 void MethodCallGenerator::solveParameterNolangTypes()
 {
     for (auto parm : mc->params()) {
-        std::string nt = Cgen::solveNolangTypeOfChain(parm, m);
+        std::string nt = cgen->solveNolangTypeOfChain(parm, m);
         nolang_ptypes.push_back(nt);
     }
 }
@@ -47,7 +48,7 @@ void MethodCallGenerator::generateParameterStatements()
     for (auto parm : mc->params()) {
         parameter_statements.push_back(ptypes[i] + " " + pnames[i] + " = ");
 
-        std::vector<std::string> tmp = generateStatements(parm, m);
+        std::vector<std::string> tmp = cgen->generateStatements(parm, m);
         applyToVector(parameter_statements, tmp);
 
         parameter_statements.push_back("<EOS>");
@@ -157,23 +158,25 @@ std::string MethodCallGenerator::generateLocalMethodCall() const
     return mname + params;
 }
 
-std::vector<std::string> MethodCallGenerator::generateStructInitStatements(std::string postponed)
+std::vector<std::string> MethodCallGenerator::generateStructInitStatements()
 {
     std::vector<std::string> res;
-    Struct *s = getStruct(def->values()[0]);
+    Struct *s = cgen->getStruct(def->values()[0]);
+    std::string postponed = cgen->usePostponed();
     uint32_t m = s->datas().size();
+    if (m > pnames.size()) m = pnames.size();
     for (uint32_t i = 0; i < m; ++i) {
         std::string tmp = postponed + "->";
         tmp += s->datas()[i]->code();
         tmp += " = ";
-        tmp += pnames[i++];
+        tmp += pnames[i];
         tmp += ";\n";
         res.push_back(tmp);
     }
     return res;
 }
 
-std::vector<std::string> MethodCallGenerator::generateStructInitCall(std::string postponed)
+std::vector<std::string> MethodCallGenerator::generateStructInitCall()
 {
     if (def->values().size() != 1) {
         throw std::string("Struct initializer with extra: " + def->name());
@@ -181,7 +184,7 @@ std::vector<std::string> MethodCallGenerator::generateStructInitCall(std::string
 
     std::vector<std::string> res;
     applyToVector(res, parameter_statements);
-    applyToVector(res, generateStructInitStatements(postponed));
+    applyToVector(res, generateStructInitStatements());
 
     return res;
 }
@@ -196,7 +199,7 @@ void MethodCallGenerator::getNamespaceDef()
 
 bool MethodCallGenerator::isStruct()
 {
-    return isStruct(def->values()[0]);
+    return cgen->isStruct(def->values()[0]);
 }
 
 std::string MethodCallGenerator::getModuleName() const
@@ -204,14 +207,14 @@ std::string MethodCallGenerator::getModuleName() const
     return def->values()[0];
 }
 
-std::vector<std::string> MethodCallGenerator::generateMethodCall(const ModuleDef *mod, std::string postponed)
+std::vector<std::string> MethodCallGenerator::generateMethodCall()
 {
     // Strategy is to parse params first, and store result to temporary variables.
     std::vector<std::string> res;
     applyToVector(res, parameter_statements);
 
-    res.push_back(postponed + " = ");
-    //const ModuleDef *mod = getModule(def->values()[0]);
+    res = cgen->applyPostponed(res);
+    const ModuleDef *mod = cgen->getModule(def->values()[0]);
     if (mod) {
         std::vector<std::string> tmp = generateModuleMethodCall(mod);
         applyToVector(res, tmp);
