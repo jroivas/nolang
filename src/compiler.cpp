@@ -9,19 +9,23 @@ Compiler::Compiler() :
 {
 }
 
+Import *Compiler::addImportAsIdentifier(Import *imp, std::string cnts)
+{
+    if (imp == nullptr) {
+        imp = new Import(cnts);
+    } else {
+        imp->addSub(cnts);
+    }
+    return imp;
+}
+
 Import *Compiler::addImportAs(mpc_ast_t *tree)
 {
     Import *imp = nullptr;
 
     for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
-        std::string cnts = tree->children[c]->contents;
-        if (tag.find("identifier") != std::string::npos) {
-            if (imp == nullptr) {
-                imp = new Import(cnts);
-            } else {
-                imp->addSub(cnts);
-            }
+        if (expect(tree->children[c], "identifier")) {
+            imp = addImportAsIdentifier(imp, tree->children[c]->contents);
         }
     }
 
@@ -32,15 +36,14 @@ void Compiler::addImport(mpc_ast_t *tree)
 {
     Import *imp = nullptr;
     for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
         std::string cnts = tree->children[c]->contents;
-        if (tag.find("identifier") != std::string::npos) {
+        if (expect(tree->children[c], "identifier")) {
             if (imp != nullptr) {
                 imp->addAs(cnts);
             } else {
                 imp = new Import(cnts);
             }
-        } else if (tag.find("namespacedef") != std::string::npos) {
+        } else if (expect(tree->children[c], "namespacedef")) {
             imp = addImportAs(tree->children[c]);
         }
     }

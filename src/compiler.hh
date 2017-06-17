@@ -52,6 +52,7 @@ public:
 protected:
     bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;
     Import *addImportAs(mpc_ast_t *);
+    Import *addImportAsIdentifier(Import *, std::string);
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
