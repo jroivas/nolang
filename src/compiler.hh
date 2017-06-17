@@ -24,9 +24,6 @@ public:
     void addImport(mpc_ast_t *);
     void addConst(mpc_ast_t *, int level=0);
 
-    void dump() const;
-    void dumpStatement(Statement *s, int level=0) const;
-
     const std::vector<Import*> imports() const
     {
         return m_imports;

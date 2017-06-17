@@ -4,30 +4,6 @@
 
 using namespace nolang;
 
-static std::string lvl(int l)
-{
-    std::string res = "";
-    for (int i = 0; i < l; ++i) {
-        res += " ";
-    }
-    return res;
-}
-
-static void walk(mpc_ast_t *res, int l=0)
-{
-    std::string tmp = res->contents;
-    if (tmp.length() > 0) {
-        tmp = ": '" + tmp + '\'';
-    }
-    std::cout
-        << "0x" << std::hex << long(res) << lvl(l)
-        << " " << res->tag
-        <<  tmp << "\n";
-    for (int c = 0; c < res->children_num; ++c) {
-        walk(res->children[c], l + 1);
-    }
-}
-
 Compiler::Compiler() :
     m_parameters(false)
 {
@@ -162,10 +138,9 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
 bool Compiler::expect(mpc_ast_t *tree, std::string key, std::string val) const
 {
     std::string tag = tree->tag;
-    std::string cnts = tree->contents;
 
     if (tag.find(key) == std::string::npos) return false;
-    if (!val.empty() && cnts != val) return false;
+    if (!val.empty() && tree->contents != val) return false;
 
     return true;
 }
@@ -474,54 +449,4 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
         }
     }
     m_methods[m->name()] = m;
-}
-
-void Compiler::dumpStatement(Statement *s, int l) const
-{
-    std::cout << lvl(l) << s->type() << ": ";
-    if (s->type() == "MethodCall") {
-        MethodCall *mc = static_cast<MethodCall*>(s);
-        for (auto d : mc->namespaces()->values()) {
-            std::cout << d << " ";
-        }
-        std::cout << "\n";
-        std::cout << lvl(l+1) << "Params:\n";
-        for (auto d : mc->params()) {
-            for (auto e : d) {
-                dumpStatement(e, l + 2);
-            }
-        }
-    } else if (s->type() == "String") {
-        std::cout << s->code() << "\n";
-    } else if (s->type() == "Number") {
-        std::cout << s->code() << "\n";
-    } else if (s->type() == "Op") {
-        std::cout << s->code() << "\n";
-    } else {
-        std::cout << "Unknown statement type: " << s->type() << "\n";
-    }
-}
-
-void Compiler::dump() const
-{
-    std::cout << "== Imports\n";
-    for (auto i : m_imports) {
-        std::cout << "  " << i->code() << "\n";
-    }
-
-    std::cout << "== Methods\n";
-    for (auto i : m_methods) {
-        std::cout << i.first << ":\n";
-        for (auto b : i.second->body()) {
-            dumpStatement(b, 2);
-        }
-        for (auto v : i.second->blocks()) {
-            std::cout << " BLOCK \n";
-            for (auto w : v) {
-                for (auto z : w) {
-                    dumpStatement(z, 4);
-                }
-            }
-        }
-    }
 }
