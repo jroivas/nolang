@@ -28,6 +28,16 @@ void Compiler::iterateTree(mpc_ast_t *tree, std::function<void(mpc_ast_t *)> clo
         closure(tree->children[c]);
 }
 
+bool Compiler::expect(mpc_ast_t *tree, std::string key, std::string val) const
+{
+    std::string tag = tree->tag;
+
+    if (tag.find(key) == std::string::npos) return false;
+    if (!val.empty() && tree->contents != val) return false;
+
+    return true;
+}
+
 Import *Compiler::addImportAs(mpc_ast_t *tree)
 {
     Import *imp = nullptr;
@@ -135,32 +145,19 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
     return mcall;
 }
 
-bool Compiler::expect(mpc_ast_t *tree, std::string key, std::string val) const
-{
-    std::string tag = tree->tag;
-
-    if (tag.find(key) == std::string::npos) return false;
-    if (!val.empty() && tree->contents != val) return false;
-
-    return true;
-}
-
 TypeIdent *Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::string name;
     std::string type;
     bool wait_colon = true;
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
-        std::string cnts = tree->children[c]->contents;
-        if (expect(tree->children[c], "identifier")) {
-            if (wait_colon) name += cnts;
-            else type += cnts;
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (expect(item, "identifier")) {
+            if (wait_colon) name += item->contents;
+            else type += item->contents;
         }
-        else if (wait_colon && expect(tree->children[c],"char", ":")) {
+        else if (wait_colon && expect(item, "char", ":"))
             wait_colon = false;
-        }
-    }
+    });
     m_last_indent = name;
     return new TypeIdent(name, type);
 }
