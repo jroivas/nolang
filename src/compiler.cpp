@@ -334,48 +334,39 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
 
 void Compiler::parseParamDef(mpc_ast_t *tree, PureMethod *m, int level)
 {
-    int numparams = 0;
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
-        std::string cnts = tree->children[c]->contents;
-        if (expect(tree->children[c], "typeident")) {
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        std::string cnts = item->contents;
+        if (expect(item, "typeident")) {
             m_parameters = true;
-            auto res = codegen(tree->children[c], m, level + 1);
+            auto res = codegen(item, m, level + 1);
             m_parameters = false;
-            for (auto r: res ){
-                if (r->type() == "TypeIdent") {
+            for (auto r : res){
+                if (r->type() == "TypeIdent")
                     m->addParameter(static_cast<TypeIdent*>(r));
-                } else {
+                else
                     throw std::string("Invalid parameter definition: " + r->code());
-                }
             }
-        } else if (expect(tree->children[c], "char") && cnts == ",") {
-            // FIXME?
-            numparams += 1;
-        } else {
-            std::cerr << "** ERROR: Unknown node in parameter: " << tag << ": '" << cnts << "'\n";
-        }
-    }
+        } else if (expect(item, "char") && cnts == ",") {
+            // FIXME Can ',' separate in params something else than next param?
+        } else printError("Unknown node in parameter", item);
+    });
 }
 
 void Compiler::parseArgs(mpc_ast_t *tree, PureMethod *m, int level)
 {
     int open = 0;
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string cnts = tree->children[c]->contents;
-        if (expect(tree->children[c], "char")) {
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (expect(item, "char")) {
+            std::string cnts = item->contents;
             if (cnts == "(") open++;
             else if (cnts == ")") open--;
             else {
                 throw std::string("Unexpected char: " + cnts);
             }
-        } else if (open > 0 && expect(tree->children[c], "paramdef")) {
-            parseParamDef(tree->children[c], m, level + 1);
-        } else {
-            std::string tag = tree->children[c]->tag;
-            std::cerr << "** ERROR: Unknown node in arguments: " << tag << ": '" << cnts << "'\n";
-        }
-    }
+        } else if (open > 0 && expect(item, "paramdef"))
+            parseParamDef(item, m, level + 1);
+        else printError("Unknown node in arguments", item);
+    });
 }
 
 void Compiler::parseMethodRet(mpc_ast_t *tree, PureMethod *m, int level)
