@@ -25,6 +25,7 @@ nolang_lib = static_library('nolang',
         'src/puremethod.cpp',
         'src/moduledef.cpp',
         'src/namespacedef.cpp',
+        'src/parsers/assignmentparser.cpp',
         'src/codegen/cgen.cpp',
         'src/codegen/methodcallgenerator.cpp',
         '3pp/mpc/mpc.c'

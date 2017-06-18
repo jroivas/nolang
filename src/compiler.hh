@@ -2,7 +2,6 @@
 
 #include <map>
 #include <string>
-#include <functional>
 #include <3pp/mpc/mpc.h>
 
 #include "statement.hh"
@@ -46,7 +45,6 @@ public:
     }
 
     TypeIdent *parseTypeIdent(mpc_ast_t *tree, PureMethod *m);
-    Assignment *parseAssignment(mpc_ast_t *tree, PureMethod *m);
 
     void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);
@@ -54,16 +52,12 @@ public:
     void parseStruct(mpc_ast_t *tree);
 
 protected:
-    void printError(std::string, mpc_ast_t *);
-    void iterateTree(mpc_ast_t *tree, std::function<void(mpc_ast_t *)>);
-    bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;
     Import *addImportAs(mpc_ast_t *);
     Import *addImportIdentifierSub(Import *, const std::string &);
     Import *addImportIdentifierAs(Import *, const std::string &);
 
     void addConstAssignment(mpc_ast_t *item);
     NamespaceDef *parseNamespaceDefStrings(mpc_ast_t *);
-    Assignment *parseAssignmentTypeIdent(mpc_ast_t *, PureMethod *);
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
 
     std::map<std::string, PureMethod*> m_methods;

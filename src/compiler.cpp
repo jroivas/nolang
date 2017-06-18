@@ -1,5 +1,6 @@
 #include "compiler.hh"
 #include "tools.hh"
+#include "parsers/assignmentparser.hh"
 
 #include <iostream>
 
@@ -22,21 +23,6 @@ Import *Compiler::addImportIdentifierAs(Import *imp, const std::string &cnts)
     if (imp == nullptr) imp = new Import(cnts);
     else imp->addAs(cnts);
     return imp;
-}
-
-void Compiler::iterateTree(mpc_ast_t *tree, std::function<void(mpc_ast_t *)> closure) {
-    for (int c = 0; c < tree->children_num; ++c)
-        closure(tree->children[c]);
-}
-
-bool Compiler::expect(mpc_ast_t *tree, std::string key, std::string val) const
-{
-    std::string tag = tree->tag;
-
-    if (tag.find(key) == std::string::npos) return false;
-    if (!val.empty() && tree->contents != val) return false;
-
-    return true;
 }
 
 Import *Compiler::addImportAs(mpc_ast_t *tree)
@@ -64,15 +50,12 @@ void Compiler::addImport(mpc_ast_t *tree)
     if (imp) m_imports.push_back(imp);
 }
 
-void Compiler::printError(std::string message, mpc_ast_t *item)
-{
-    std::cerr << "** ERROR: " << message << ": " << item->tag << ": '" << item->contents << "'\n";
-}
-
 void Compiler::addConstAssignment(mpc_ast_t *item)
 {
     PureMethod tmp;
-    Assignment *assignment = parseAssignment(item, &tmp);
+    //Assignment *assignment = parseAssignment(item, &tmp);
+    AssignmentParser p(this, item, &tmp);
+    Assignment *assignment = p.parse();
     if (assignment && tmp.variables().size() == 1)
         m_consts.push_back(new Const(tmp.variables()[0], assignment));
     else printError("Invalid const", item);
@@ -163,49 +146,6 @@ TypeIdent *Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m)
     return new TypeIdent(name, type);
 }
 
-Assignment *Compiler::parseAssignmentTypeIdent(mpc_ast_t *item, PureMethod *m)
-{
-    TypeIdent *ident = parseTypeIdent(item, m);
-    if (m) m->addVariable(ident);
-    else delete ident;
-    return new Assignment(m_last_indent);
-}
-
-Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m)
-{
-    bool wait_for_ident = true;
-    bool wait_for_assign = false;
-#if 0
-    std::cout << "/*\n";
-    mpc_ast_print(tree);
-    std::cout << "*/\n";
-#endif
-    Assignment *ass = nullptr;
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (wait_for_ident && expect(item, "typeident")) {
-            ass = parseAssignmentTypeIdent(item, m);
-            wait_for_ident = false;
-            wait_for_assign = true;
-        } else if (wait_for_ident && expect(item, "namespacedef")) {
-            NamespaceDef *def = parseNamespaceDef(item);
-            if (def == nullptr) {
-                throw std::string("Invalid NamespaceDef in assignment");
-            }
-            wait_for_ident = false;
-            wait_for_assign = true;
-            ass = new Assignment(def);
-        } else if (wait_for_assign && expect(item, "char", "=")) {
-            wait_for_assign = false;
-        } else if (!wait_for_ident && !wait_for_assign) {
-            // Now need to parse statements/expr...
-            std::vector<Statement*> stmt = codegen(item, m);
-            ass->addStatements(stmt);
-        } else printError("Unknown node in assignment", item);
-    });
-
-    return ass;
-}
-
 void Compiler::parseStruct(mpc_ast_t *tree)
 {
     Struct *s = nullptr;
@@ -272,7 +212,8 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata.push_back(parseMethodCall(tree));
         recurse = false;
     } else if (expect(tree, "assignment")) {
-        rdata.push_back(parseAssignment(tree, m));
+        AssignmentParser p(this, tree, m);
+        rdata.push_back(p.parse());
         recurse = false;
     } else if (expect(tree, "number")) {
         rdata.push_back(new NumberValue(cnts));
