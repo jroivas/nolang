@@ -28,6 +28,7 @@ nolang_lib = static_library('nolang',
         'src/codegen/methodcallgenerator.cpp',
         '3pp/mpc/mpc.c'
     ],
+    cpp_args : ['-std=c++11'],
     include_directories: [
         top_inc,
         src_inc,
@@ -42,6 +43,7 @@ nolang_pure = executable('nolang-pure',
         top_inc,
         src_inc,
     ],
+    cpp_args : ['-std=c++11'],
     link_with: [
         nolang_lib
     ]
@@ -55,6 +57,7 @@ test_parser = executable('test-parser',
         top_inc,
         src_inc,
     ],
+    cpp_args : ['-std=c++11'],
     link_with: [
         nolang_lib
     ]
@@ -68,6 +71,7 @@ test_compiler = executable('test-compiler',
         top_inc,
         src_inc,
     ],
+    cpp_args : ['-std=c++11'],
     link_with: [
         nolang_lib
     ]

@@ -9,25 +9,33 @@ Compiler::Compiler() :
 {
 }
 
-Import *Compiler::addImportAsIdentifier(Import *imp, std::string cnts)
+Import *Compiler::addImportIdentifierSub(Import *imp, const std::string &cnts)
 {
-    if (imp == nullptr) {
-        imp = new Import(cnts);
-    } else {
-        imp->addSub(cnts);
-    }
+    if (imp == nullptr) imp = new Import(cnts);
+    else imp->addSub(cnts);
     return imp;
+}
+
+Import *Compiler::addImportIdentifierAs(Import *imp, const std::string &cnts)
+{
+    if (imp == nullptr) imp = new Import(cnts);
+    else imp->addAs(cnts);
+    return imp;
+}
+
+void Compiler::iterateTree(mpc_ast_t *tree, std::function<void(mpc_ast_t *)> closure) {
+    for (int c = 0; c < tree->children_num; ++c)
+        closure(tree->children[c]);
 }
 
 Import *Compiler::addImportAs(mpc_ast_t *tree)
 {
     Import *imp = nullptr;
 
-    for (int c = 0; c < tree->children_num; ++c) {
-        if (expect(tree->children[c], "identifier")) {
-            imp = addImportAsIdentifier(imp, tree->children[c]->contents);
-        }
-    }
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (expect(item, "identifier"))
+            imp = addImportIdentifierSub(imp, item->contents);
+    });
 
     return imp;
 }
@@ -35,43 +43,40 @@ Import *Compiler::addImportAs(mpc_ast_t *tree)
 void Compiler::addImport(mpc_ast_t *tree)
 {
     Import *imp = nullptr;
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string cnts = tree->children[c]->contents;
-        if (expect(tree->children[c], "identifier")) {
-            if (imp != nullptr) {
-                imp->addAs(cnts);
-            } else {
-                imp = new Import(cnts);
-            }
-        } else if (expect(tree->children[c], "namespacedef")) {
-            imp = addImportAs(tree->children[c]);
-        }
-    }
-    if (imp) {
-        m_imports.push_back(imp);
-    }
+
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (expect(item, "identifier"))
+            imp = addImportIdentifierAs(imp, item->contents);
+        else if (expect(item, "namespacedef"))
+            imp = addImportAs(item);
+    });
+    if (imp) m_imports.push_back(imp);
 }
 
-void Compiler::addConst(mpc_ast_t *tree, int level)
+void Compiler::printError(std::string message, mpc_ast_t *item)
+{
+    std::cerr << "** ERROR: " << message << ": " << item->tag << ": '" << item->contents << "'\n";
+}
+
+void Compiler::addConstAssignment(mpc_ast_t *item)
+{
+    PureMethod tmp;
+    Assignment *assignment = parseAssignment(item, &tmp, 0);
+    if (assignment && tmp.variables().size() == 1)
+        m_consts.push_back(new Const(tmp.variables()[0], assignment));
+    else printError("Invalid const", item);
+}
+
+void Compiler::addConst(mpc_ast_t *tree)
 {
     bool wait_const = true;
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
-        std::string cnts = tree->children[c]->contents;
-        if (expect(tree->children[c], "string", "const")) {
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (expect(item, "string", "const"))
             wait_const = false;
-        } else if (!wait_const & expect(tree->children[c], "assignment")) {
-            PureMethod tmp;
-            Assignment *assignment = parseAssignment(tree->children[c], &tmp, level + 1);
-            if (assignment && tmp.variables().size() == 1) {
-                m_consts.push_back(new Const(tmp.variables()[0], assignment));
-            } else {
-                std::cerr << "** ERROR: Invalid const: " << tag << ": '" << cnts << "'\n";
-            }
-        } else {
-            std::cerr << "** ERROR: Unknown node in const defination: " << tag << ": '" << cnts << "'\n";
-        }
-    }
+        else if (!wait_const & expect(item, "assignment"))
+            addConstAssignment(item);
+        else printError("Unknown node in const defination", item);
+    });
 }
 
 NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
@@ -308,7 +313,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         addImport(tree);
         recurse = false;
     } else if (tag.find("const") != std::string::npos) {
-        addConst(tree, level + 1);
+        addConst(tree);
         recurse = false;
     } else if (tag.find("newline") != std::string::npos) {
         // Commit?

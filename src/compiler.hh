@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <functional>
 #include <3pp/mpc/mpc.h>
 
 #include "statement.hh"
@@ -22,7 +23,7 @@ public:
     MethodCall *parseMethodCall(mpc_ast_t *);
     NamespaceDef *parseNamespaceDef(mpc_ast_t *);
     void addImport(mpc_ast_t *);
-    void addConst(mpc_ast_t *, int level=0);
+    void addConst(mpc_ast_t *);
 
     const std::vector<Import*> imports() const
     {
@@ -50,9 +51,13 @@ public:
     void parseStruct(mpc_ast_t *tree);
 
 protected:
+    void printError(std::string, mpc_ast_t *);
+    void iterateTree(mpc_ast_t *tree, std::function<void(mpc_ast_t *)>);
     bool expect(mpc_ast_t *tree, std::string key, std::string val="") const;
     Import *addImportAs(mpc_ast_t *);
-    Import *addImportAsIdentifier(Import *, std::string);
+    Import *addImportIdentifierSub(Import *, const std::string &);
+    Import *addImportIdentifierAs(Import *, const std::string &);
+    void addConstAssignment(mpc_ast_t *item);
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
