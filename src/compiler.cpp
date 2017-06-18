@@ -390,36 +390,31 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
     PureMethod *m = new PureMethod();
     bool waitName = true;
     bool waitBody = false;
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
-        std::string cnts = tree->children[c]->contents;
-        if (waitName && tag.find("pure") != std::string::npos) {
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        std::string tag = item->tag;
+        std::string cnts = item->contents;
+        if (waitName && expect(item, "pure")) {
             m->setPure();
-        } else if (waitName && tag.find("identifier") != std::string::npos) {
+        } else if (waitName && expect(item, "identifier")) {
             m->setName(cnts);
             waitName = false;
-        } else if (!waitName && expect(tree->children[c], "args")) {
-            parseArgs(tree->children[c], m, level + 1);
-        } else if (!waitName && expect(tree->children[c], "methodret")) {
-            parseMethodRet(tree->children[c], m, level + 1);
-        } else if (tag.find("ows") != std::string::npos) {
+        } else if (!waitName && expect(item, "args")) {
+            parseArgs(item, m, level + 1);
+        } else if (!waitName && expect(item, "methodret")) {
+            parseMethodRet(item, m, level + 1);
+        } else if (expect(item, "ows")) {
             // Optional whitespace
-        } else if (!waitBody && tag.find("string") != std::string::npos && cnts == "=>") {
+        } else if (!waitBody && expect(item, "string", "=>")) {
             // Body should follow
             waitBody = true;
-        } else if (waitBody && tag.find("body") != std::string::npos) {
-            m->setBody(codegen(tree->children[c], m, level));
+        } else if (waitBody && expect(item, "body")) {
+            m->setBody(codegen(item, m, level));
             if (!m_blocks.empty()) {
                 m->addBlock(m_blocks);
-                //m_blocks = std::vector<std::string>();
                 m_blocks = std::vector<std::vector<Statement*>>();
             }
-        } else if (tag.find("newline") != std::string::npos || tag.find("ws") != std::string::npos) {
-        //} else if (cnts.length() == 0) {
-            // SKIP
-        } else {
-            std::cerr << "** ERROR: Unknown node in method: " << tag << ": '" << cnts << "'\n";
-        }
-    }
+        } else if (expect(item, "newline") || expect(item, "ws")) {
+        } else printError("Unknown node in method", item);
+    });
     m_methods[m->name()] = m;
 }
