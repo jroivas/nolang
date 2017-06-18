@@ -53,7 +53,6 @@ void Compiler::addImport(mpc_ast_t *tree)
 void Compiler::addConstAssignment(mpc_ast_t *item)
 {
     PureMethod tmp;
-    //Assignment *assignment = parseAssignment(item, &tmp);
     AssignmentParser p(this, item, &tmp);
     Assignment *assignment = p.parse();
     if (assignment && tmp.variables().size() == 1)

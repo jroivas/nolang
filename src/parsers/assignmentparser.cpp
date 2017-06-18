@@ -13,6 +13,7 @@ AssignmentParser::AssignmentParser(Compiler *c, mpc_ast_t *t, PureMethod *m) :
 
 void AssignmentParser::reset()
 {
+    assignment = nullptr;
     wait_for_ident = true;
     wait_for_assign = false;
 }
