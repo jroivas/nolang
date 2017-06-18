@@ -199,9 +199,7 @@ Assignment *Compiler::parseAssignment(mpc_ast_t *tree, PureMethod *m)
             // Now need to parse statements/expr...
             std::vector<Statement*> stmt = codegen(item, m);
             ass->addStatements(stmt);
-        } else {
-            printError("Unknown node in assignment", item);
-        }
+        } else printError("Unknown node in assignment", item);
     });
 
     return ass;
@@ -211,19 +209,13 @@ void Compiler::parseStruct(mpc_ast_t *tree)
 {
     Struct *s = nullptr;
 
-
-    for (int c = 0; c < tree->children_num; ++c) {
-        if (!s && expect(tree->children[c], "identifier")) {
-            s = new Struct(tree->children[c]->contents);
-        } else if (s && expect(tree->children[c], "typeident")) {
-            TypeIdent *ident = parseTypeIdent(tree->children[c], nullptr);
-            s->addData(ident);
-        } else {
-            std::string tag = tree->children[c]->tag;
-            std::string cnts = tree->children[c]->contents;
-            std::cerr << "** ERROR: Unknown node in struct: " << tag << ": '" << cnts << "'\n";
-        }
-    }
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (!s && expect(item, "identifier"))
+            s = new Struct(item->contents);
+        else if (s && expect(item, "typeident"))
+            s->addData(parseTypeIdent(item, nullptr));
+        else printError("Unknown node in struct", item);
+    });
     m_structs.push_back(s);
 }
 
