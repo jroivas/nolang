@@ -25,7 +25,6 @@ public:
     void parseMethod(mpc_ast_t *tree, int level=0);
 
     MethodCall *parseMethodCall(mpc_ast_t *);
-    NamespaceDef *parseNamespaceDef(mpc_ast_t *);
     void addImport(mpc_ast_t *);
     void addConst(mpc_ast_t *);
 
@@ -57,7 +56,6 @@ protected:
     Import *addImportIdentifierAs(Import *, const std::string &);
 
     void addConstAssignment(mpc_ast_t *item);
-    NamespaceDef *parseNamespaceDefStrings(mpc_ast_t *);
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
 
     std::map<std::string, PureMethod*> m_methods;

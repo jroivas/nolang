@@ -1,6 +1,7 @@
 #include "compiler.hh"
 #include "tools.hh"
 #include "parsers/assignmentparser.hh"
+#include "parsers/namespacedefparser.hh"
 #include "parsers/typeidentparser.hh"
 
 #include <iostream>
@@ -73,36 +74,6 @@ void Compiler::addConst(mpc_ast_t *tree)
     });
 }
 
-NamespaceDef *Compiler::parseNamespaceDefStrings(mpc_ast_t *tree)
-{
-    NamespaceDef *def = new NamespaceDef();
-    std::vector<std::string> res;
-    bool cast = false;
-
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        std::string cnts = item->contents;
-        if (expect(item, "identifier")) {
-            if (cast) def->setCast(cnts);
-            else res.push_back(cnts);
-        } else if (cnts == "::") {
-            cast = true;
-        } else if (cnts == ".") { // FIXME
-        } else printError("Unknown node in namespace defination", item);
-    });
-    if (!res.empty()) def->setValues(res);
-    return def;
-}
-
-NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
-{
-    NamespaceDef *res = parseNamespaceDefStrings(tree);
-    if (!res->isValid()) {
-        delete res;
-        return nullptr;
-    }
-    return res;
-}
-
 MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
 {
     MethodCall *mcall = new MethodCall();
@@ -115,7 +86,8 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
             mcall->setNamespace(new NamespaceDef(item->contents));
             wait_ns = false;
         } else if (wait_ns && expect(item, "namespacedef")) {
-            mcall->setNamespace(parseNamespaceDef(item));
+            NamespaceDefParser parser(item);
+            mcall->setNamespace(parser.parse());
             wait_ns = false;
         } else if (!wait_call_end && expect(item, "char", "("))
             wait_call_end = true;
@@ -223,7 +195,8 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         if (cnts == "false" || cnts == "true") {
             rdata.push_back(new Boolean(cnts));
         } else {
-            NamespaceDef *def = parseNamespaceDef(tree);
+            NamespaceDefParser parser(tree);
+            NamespaceDef *def = parser.parse();
             if (def != nullptr) {
                 rdata.push_back(def);
             } else if (!cnts.empty()) {

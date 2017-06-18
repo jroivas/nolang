@@ -1,6 +1,7 @@
 #include "assignmentparser.hh"
 #include "typeidentparser.hh"
 #include "tools.hh"
+#include "parsers/namespacedefparser.hh"
 
 using namespace nolang;
 
@@ -41,7 +42,8 @@ void AssignmentParser::parseTypeIdent()
 
 void AssignmentParser::parseNamespaceDef()
 {
-    NamespaceDef *def = compiler->parseNamespaceDef(item);
+    NamespaceDefParser parser(item);
+    NamespaceDef *def = parser.parse();
     if (def == nullptr)
         throw std::string("Invalid NamespaceDef in assignment");
     gotIdentifier();
