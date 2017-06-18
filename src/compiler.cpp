@@ -1,6 +1,7 @@
 #include "compiler.hh"
 #include "tools.hh"
 #include "parsers/assignmentparser.hh"
+#include "parsers/typeidentparser.hh"
 
 #include <iostream>
 
@@ -128,23 +129,6 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
     return mcall;
 }
 
-TypeIdent *Compiler::parseTypeIdent(mpc_ast_t *tree, PureMethod *m)
-{
-    std::string name;
-    std::string type;
-    bool wait_colon = true;
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (expect(item, "identifier")) {
-            if (wait_colon) name += item->contents;
-            else type += item->contents;
-        }
-        else if (wait_colon && expect(item, "char", ":"))
-            wait_colon = false;
-    });
-    m_last_indent = name;
-    return new TypeIdent(name, type);
-}
-
 void Compiler::parseStruct(mpc_ast_t *tree)
 {
     Struct *s = nullptr;
@@ -152,8 +136,10 @@ void Compiler::parseStruct(mpc_ast_t *tree)
     iterateTree(tree, [&] (mpc_ast_t *item) {
         if (!s && expect(item, "identifier"))
             s = new Struct(item->contents);
-        else if (s && expect(item, "typeident"))
-            s->addData(parseTypeIdent(item, nullptr));
+        else if (s && expect(item, "typeident")) {
+            TypeIdentParser parser(item);
+            s->addData(parser.parse());
+        }
         else printError("Unknown node in struct", item);
     });
     m_structs.push_back(s);
@@ -223,7 +209,8 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     } else if (expect(tree, "string")) {
         rdata.push_back(new StringValue(cnts));
     } else if (expect(tree, "typeident")) {
-        TypeIdent *ident = parseTypeIdent(tree, m);
+        TypeIdentParser parser(tree);
+        TypeIdent *ident = parser.parse();
         if (m_parameters) {
             rdata.push_back(ident);
         } else if (m != nullptr) {

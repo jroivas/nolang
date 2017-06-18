@@ -9,6 +9,8 @@
 #include "methodcall.hh"
 #include "namespacedef.hh"
 #include "assignment.hh"
+#include "typeident.hh"
+#include "struct.hh"
 #include "const.hh"
 
 namespace nolang
@@ -43,8 +45,6 @@ public:
     {
         return m_structs;
     }
-
-    TypeIdent *parseTypeIdent(mpc_ast_t *tree, PureMethod *m);
 
     void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);

@@ -80,19 +80,6 @@ public:
     Op(std::string val) : Statement("Op", val) {}
 };
 
-class TypeIdent : public Statement
-{
-public:
-    TypeIdent(std::string val, std::string type) : Statement("TypeIdent", val), m_var_type(type) {}
-    const std::string varType() const
-    {
-        return m_var_type;
-    }
-
-protected:
-    std::string m_var_type;
-};
-
 class TypeDef : public Statement
 {
 public:
@@ -147,25 +134,6 @@ protected:
     std::vector<std::string> m_tree;
 
     std::string m_as;
-};
-
-class Struct : public Statement
-{
-public:
-    Struct(std::string val) : Statement("Struct", val) {}
-
-    void addData(TypeIdent *def)
-    {
-        m_datas.push_back(def);
-    }
-
-    const std::vector<TypeIdent *> datas() const
-    {
-        return m_datas;
-    }
-
-protected:
-    std::vector<TypeIdent *> m_datas;
 };
 
 class Boolean : public Statement

@@ -1,4 +1,5 @@
 #include "assignmentparser.hh"
+#include "typeidentparser.hh"
 #include "tools.hh"
 
 using namespace nolang;
@@ -31,7 +32,8 @@ void AssignmentParser::gotAssignment()
 
 void AssignmentParser::parseTypeIdent()
 {
-    TypeIdent *ident = compiler->parseTypeIdent(item, method);
+    TypeIdentParser parser(item);
+    TypeIdent *ident = parser.parse();
     if (method) method->addVariable(ident);
     gotIdentifier();
     assignment = new Assignment(ident->code());

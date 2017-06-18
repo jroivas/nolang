@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "statement.hh"
+#include "typeident.hh"
 
 namespace nolang
 {

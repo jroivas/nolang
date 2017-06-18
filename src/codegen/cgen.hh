@@ -8,6 +8,8 @@
 #include "statement.hh"
 #include "namespacedef.hh"
 #include "assignment.hh"
+#include "typeident.hh"
+#include "struct.hh"
 #include "const.hh"
 
 #include "methodcallgenerator.hh"
