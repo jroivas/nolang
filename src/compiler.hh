@@ -45,8 +45,8 @@ public:
         return m_structs;
     }
 
-    TypeIdent *parseTypeIdent(mpc_ast_t *tree, PureMethod *m, int level=0);
-    Assignment *parseAssignment(mpc_ast_t *tree, PureMethod *m, int level=0);
+    TypeIdent *parseTypeIdent(mpc_ast_t *tree, PureMethod *m);
+    Assignment *parseAssignment(mpc_ast_t *tree, PureMethod *m);
 
     void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);
@@ -63,6 +63,7 @@ protected:
 
     void addConstAssignment(mpc_ast_t *item);
     NamespaceDef *parseNamespaceDefStrings(mpc_ast_t *);
+    Assignment *parseAssignmentTypeIdent(mpc_ast_t *, PureMethod *);
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
