@@ -24,4 +24,6 @@ void printError(std::string, mpc_ast_t *);
     C();\
 });
 
+mpc_ast_t *findFirstItemFromTree(mpc_ast_t *, std::string name);
+
 }

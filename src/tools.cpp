@@ -25,3 +25,14 @@ void nolang::printError(std::string message, mpc_ast_t *item)
 {
     std::cerr << "** ERROR: " << message << ": " << item->tag << ": '" << item->contents << "'\n";
 }
+
+mpc_ast_t *nolang::findFirstItemFromTree(mpc_ast_t *tree, std::string name)
+{
+    for (int c = 0; c < tree->children_num; ++c) {
+        mpc_ast_t *item = tree->children[c];
+        if (std::string(item->tag).find(name) != std::string::npos) return item;
+        item = findFirstItemFromTree(item, name);
+        if (item != nullptr) return item;
+    };
+    return nullptr;
+}
