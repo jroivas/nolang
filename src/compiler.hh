@@ -62,7 +62,7 @@ protected:
     Import *addImportIdentifierAs(Import *, const std::string &);
 
     void addConstAssignment(mpc_ast_t *item);
-    std::vector<std::string> parseNamespaceDefStrings(mpc_ast_t *, NamespaceDef *);
+    NamespaceDef *parseNamespaceDefStrings(mpc_ast_t *);
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;

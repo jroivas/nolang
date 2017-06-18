@@ -17,6 +17,10 @@ public:
     const std::vector<std::string> values() const;
     void setCast(std::string to);
     const std::string cast() const;
+    bool isValid() const
+    {
+        return !m_values.empty();
+    }
 
 protected:
     std::vector<std::string> m_values;

@@ -21,7 +21,7 @@ public:
 
     void addParameter(std::vector<Statement*> p)
     {
-        m_params.push_back(p);
+        if (!p.empty()) m_params.push_back(p);
     }
 
     const NamespaceDef *namespaces() const

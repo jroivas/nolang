@@ -3,7 +3,7 @@
 using namespace nolang;
 
 NamespaceDef::NamespaceDef() :
-    Statement("NamespaceDe", "")
+    Statement("NamespaceDef", "")
 {
 }
 

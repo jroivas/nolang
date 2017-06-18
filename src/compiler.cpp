@@ -79,8 +79,9 @@ void Compiler::addConst(mpc_ast_t *tree)
     });
 }
 
-std::vector<std::string> Compiler::parseNamespaceDefStrings(mpc_ast_t *tree, NamespaceDef *def)
+NamespaceDef *Compiler::parseNamespaceDefStrings(mpc_ast_t *tree)
 {
+    NamespaceDef *def = new NamespaceDef();
     std::vector<std::string> res;
     bool cast = false;
 
@@ -94,18 +95,17 @@ std::vector<std::string> Compiler::parseNamespaceDefStrings(mpc_ast_t *tree, Nam
         } else if (cnts == ".") { // FIXME
         } else printError("Unknown node in namespace defination", item);
     });
-    return res;
+    if (!res.empty()) def->setValues(res);
+    return def;
 }
 
 NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
 {
-    NamespaceDef *res = new NamespaceDef();
-    std::vector<std::string> def = parseNamespaceDefStrings(tree, res);
-    if (def.empty()) {
+    NamespaceDef *res = parseNamespaceDefStrings(tree);
+    if (!res->isValid()) {
         delete res;
         return nullptr;
     }
-    res->setValues(def);
     return res;
 }
 
@@ -116,30 +116,22 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
     bool wait_ns = true;
     bool wait_call_end = false;
 
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
-        std::string cnts = tree->children[c]->contents;
-        if (wait_ns && tag.find("identifier") != std::string::npos) {
-            mcall->setNamespace(new NamespaceDef(cnts));
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (wait_ns && expect(item, "identifier")) {
+            mcall->setNamespace(new NamespaceDef(item->contents));
             wait_ns = false;
-        } else if (wait_ns && tag.find("namespacedef") != std::string::npos) {
-            mcall->setNamespace(parseNamespaceDef(tree->children[c]));
+        } else if (wait_ns && expect(item, "namespacedef")) {
+            mcall->setNamespace(parseNamespaceDef(item));
             wait_ns = false;
-        } else if (!wait_call_end && tag.find("char") != std::string::npos && cnts == "(") {
+        } else if (!wait_call_end && expect(item, "char", "("))
             wait_call_end = true;
-        } else if (wait_call_end && tag.find("char") != std::string::npos && cnts == ")") {
+        else if (wait_call_end && expect(item, "char", ")"))
             wait_call_end = false;
-        } else if (wait_call_end) {
-            std::vector<Statement*> stmt = codegen(tree->children[c]);
-            if (!stmt.empty()) {
-                mcall->addParameter(stmt);
-            }
-        } else {
-            std::cerr << "** ERROR: Unknown node in method call: " << tag << ": '" << cnts << "'\n";
-        }
-    }
+        else if (wait_call_end)
+            mcall->addParameter(codegen(item));
+        else printError("Unknown node in method call", item);
+    });
 
-    // TODO Return methodcall object
     return mcall;
 }
 
