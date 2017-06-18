@@ -1,4 +1,5 @@
 #include "compiler.hh"
+#include "tools.hh"
 
 #include <iostream>
 
@@ -219,6 +220,24 @@ void Compiler::parseStruct(mpc_ast_t *tree)
     m_structs.push_back(s);
 }
 
+std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level)
+{
+    std::vector<Statement*> rdata;
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        std::vector<Statement*> st = codegen(item, m, level);
+        for (auto s : st) {
+            if (s->type() == "EOS") {
+                rdata.push_back(s);
+                m_blocks.push_back(rdata);
+                rdata = std::vector<Statement*>();
+            } else {
+                rdata.push_back(s);
+            }
+        }
+    });
+    return rdata;
+}
+
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
@@ -229,10 +248,10 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
 
     if (tag == ">") {
         //std::cout << "ROOT\n";
-    } else if (tag.find("comment") != std::string::npos) {
+    } else if (expect(tree, "comment")) {
         // Ignore comments
         recurse = false;
-    } else if (tag.find("methoddef") != std::string::npos) {
+    } else if (expect(tree, "methoddef")) {
         // New method
         parseMethod(tree, level);
         recurse = false;
@@ -240,7 +259,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     } else if (expect(tree, "struct")) {
         parseStruct(tree);
         recurse = false;
-    } else if (tag.find("indent") != std::string::npos) {
+    } else if (expect(tree, "indent")) {
         int new_level = cnts.length();
         if (new_level != level) {
             if (m && !m_blocks.empty()) {
@@ -249,21 +268,21 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
             }
         }
         // SKIP and recurse
-    } else if (tag.find("methodcall") != std::string::npos) {
+    } else if (expect(tree, "methodcall")) {
         rdata.push_back(parseMethodCall(tree));
         recurse = false;
-    } else if (tag.find("assignment") != std::string::npos) {
+    } else if (expect(tree, "assignment")) {
         rdata.push_back(parseAssignment(tree, m));
         recurse = false;
-    } else if (tag.find("number") != std::string::npos) {
+    } else if (expect(tree, "number")) {
         rdata.push_back(new NumberValue(cnts));
-    } else if (tag.find("termop") != std::string::npos) {
+    } else if (expect(tree, "termop")) {
         rdata.push_back(new Op(cnts));
-    } else if (tag.find("factorop") != std::string::npos) {
+    } else if (expect(tree, "factorop")) {
         rdata.push_back(new Op(cnts));
-    } else if (tag.find("string") != std::string::npos) {
+    } else if (expect(tree, "string")) {
         rdata.push_back(new StringValue(cnts));
-    } else if (tag.find("typeident") != std::string::npos) {
+    } else if (expect(tree, "typeident")) {
         TypeIdent *ident = parseTypeIdent(tree, m);
         if (m_parameters) {
             rdata.push_back(ident);
@@ -273,7 +292,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
             rdata.push_back(ident);
         }
         recurse = false;
-    } else if (tag.find("namespacedef") != std::string::npos) {
+    } else if (expect(tree, "namespacedef")) {
         if (cnts == "false" || cnts == "true") {
             rdata.push_back(new Boolean(cnts));
         } else {
@@ -285,58 +304,30 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
             }
         }
         recurse = false;
-    } else if (tag.find("identifier") != std::string::npos) {
+    } else if (expect(tree, "identifier")) {
         // FIXME Some idenfiers are special/reserved words
         if (cnts == "false" || cnts == "true") {
             rdata.push_back(new Boolean(cnts));
         } else {
             rdata.push_back(new Identifier(cnts));
         }
-    } else if (tag.find("import") != std::string::npos) {
+    } else if (expect(tree, "import")) {
         addImport(tree);
         recurse = false;
-    } else if (tag.find("const") != std::string::npos) {
+    } else if (expect(tree, "const")) {
         addConst(tree);
         recurse = false;
-    } else if (tag.find("newline") != std::string::npos) {
-        // Commit?
-        //ensureBlockLevel(blocks, level);
-        //m_blocks.push_back(res);
-        /*
-        m_blocks.push_back(rdata);
-        std::cout << "NL\n";
-        for (auto b : rdata) {
-            dumpStatement(b);
-        }
-        std::cout << "CC\n";
-        rdata = std::vector<Statement*>();
-        */
+    } else if (expect(tree, "newline")) {
         rdata.push_back(new EOS());
     } else if (expect(tree, "comparator")) {
         rdata.push_back(new Comparator(cnts));
     } else if (expect(tree, "char", "(") || expect(tree, "char", ")")) {
         rdata.push_back(new Braces(cnts));
-    } else if (tag.find("ows") != std::string::npos ||
-               tag.find("ws") != std::string::npos) {
-    } else {
-        std::cerr << "** ERROR: Unknown node in statement: " << tag << ": '" << cnts << "'\n";
-    }
+    } else if (expect(tree, "ows") || expect(tree, "ws")) {
+    } else printError("Unknown node in statement", tree);
 
-    if (recurse) {
-        for (int c = 0; c < tree->children_num; ++c) {
-            std::vector<Statement*>  st = codegen(tree->children[c], m, level);
-            //if (!st.empty()) {
-            for (auto s : st) {
-                if (s->type() == "EOS") {
-                    rdata.push_back(s);
-                    m_blocks.push_back(rdata);
-                    rdata = std::vector<Statement*>();
-                } else {
-                    rdata.push_back(s);
-                }
-            }
-        }
-    }
+    if (recurse)
+        rdata = applyToVector<Statement*>(rdata, codegenRecurse(tree, m, level));
 
     return rdata;
 }
