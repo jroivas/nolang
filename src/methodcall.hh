@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "statement.hh"
+#include "namespacedef.hh"
 
 namespace nolang
 {
@@ -35,7 +36,6 @@ public:
 
 protected:
     NamespaceDef *m_namespace;
-    //std::vector<std::string> m_namespace;
     std::vector<std::vector<Statement*>> m_params;
 };
 

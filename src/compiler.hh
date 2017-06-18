@@ -8,6 +8,9 @@
 #include "statement.hh"
 #include "puremethod.hh"
 #include "methodcall.hh"
+#include "namespacedef.hh"
+#include "assignment.hh"
+#include "const.hh"
 
 namespace nolang
 {
@@ -57,7 +60,9 @@ protected:
     Import *addImportAs(mpc_ast_t *);
     Import *addImportIdentifierSub(Import *, const std::string &);
     Import *addImportIdentifierAs(Import *, const std::string &);
+
     void addConstAssignment(mpc_ast_t *item);
+    std::vector<std::string> parseNamespaceDefStrings(mpc_ast_t *, NamespaceDef *);
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;

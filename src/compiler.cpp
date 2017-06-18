@@ -79,33 +79,33 @@ void Compiler::addConst(mpc_ast_t *tree)
     });
 }
 
-NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
+std::vector<std::string> Compiler::parseNamespaceDefStrings(mpc_ast_t *tree, NamespaceDef *def)
 {
-    std::vector<std::string> def;
+    std::vector<std::string> res;
     bool cast = false;
-    std::string cast_type;
-    for (int c = 0; c < tree->children_num; ++c) {
-        std::string tag = tree->children[c]->tag;
-        std::string cnts = tree->children[c]->contents;
-        if (tag.find("identifier") != std::string::npos) {
-            if (cast) {
-                cast_type = cnts;
-            } else {
-                def.push_back(cnts);
-            }
+
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        std::string cnts = item->contents;
+        if (expect(item, "identifier")) {
+            if (cast) def->setCast(cnts);
+            else res.push_back(cnts);
         } else if (cnts == "::") {
             cast = true;
-        } else if (cnts == ".") {
-            //std::cerr << "DOT " << cnts <<  "\n";
-        } else {
-            std::cerr << "** ERROR: Unknown node in namespace defination: " << tag << ": '" << cnts << "'\n";
-        }
-    }
+        } else if (cnts == ".") { // FIXME
+        } else printError("Unknown node in namespace defination", item);
+    });
+    return res;
+}
+
+NamespaceDef *Compiler::parseNamespaceDef(mpc_ast_t *tree)
+{
+    NamespaceDef *res = new NamespaceDef();
+    std::vector<std::string> def = parseNamespaceDefStrings(tree, res);
     if (def.empty()) {
+        delete res;
         return nullptr;
     }
-    NamespaceDef *res = new NamespaceDef(def);
-    if (!cast_type.empty()) res->setCast(cast_type);
+    res->setValues(def);
     return res;
 }
 

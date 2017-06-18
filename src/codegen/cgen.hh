@@ -6,6 +6,9 @@
 #include "codegen.hh"
 #include "moduledef.hh"
 #include "statement.hh"
+#include "namespacedef.hh"
+#include "assignment.hh"
+#include "const.hh"
 
 #include "methodcallgenerator.hh"
 

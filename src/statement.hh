@@ -62,47 +62,6 @@ public:
     Braces(std::string val) : Statement("Braces", val) {}
 };
 
-class NamespaceDef : public Statement
-{
-public:
-    NamespaceDef(std::string val) :
-        Statement("NamespaceDef", val)
-    {
-        m_values.push_back(val);
-    }
-    NamespaceDef(std::vector<std::string> val) :
-        Statement("NamespaceDef", val.front()),
-        m_values(val) {}
-
-    const std::string name() const
-    {
-        std::string res;
-        for (auto p : m_values) {
-            if (!res.empty()) res += '.';
-            res += p;
-        }
-        return res;
-    }
-
-    const std::vector<std::string> values() const {
-        return m_values;
-    }
-
-    void setCast(std::string to)
-    {
-        m_cast_to = to;
-    }
-
-    const std::string cast() const
-    {
-        return m_cast_to;
-    }
-
-protected:
-    std::vector<std::string> m_values;
-    std::string m_cast_to;
-};
-
 class StringValue : public Statement
 {
 public:
@@ -152,57 +111,6 @@ public:
     EOS() : Statement("EOS", "EOS") {}
 };
 
-class Assignment : public Statement
-{
-public:
-    Assignment(std::string var) : Statement("Assignment", var), m_def(nullptr) {}
-    Assignment(NamespaceDef *var) : Statement("Assignment", var->name()), m_def(var)  {}
-
-    void addStatements(std::vector<Statement*> stmt) {
-        for (auto s : stmt) {
-            m_statements.push_back(s);
-        }
-    }
-
-    const std::vector<Statement*> statements() const
-    {
-        return m_statements;
-    }
-
-    const NamespaceDef *def() const
-    {
-        return m_def;
-    }
-
-protected:
-    std::vector<Statement*> m_statements;
-    NamespaceDef *m_def;
-};
-
-
-class Const : public Statement
-{
-public:
-    Const(TypeIdent *i, Assignment *v) :
-        Statement("Const", ""),
-        m_ident(i),
-        m_assignment(v)
-    {}
-
-    const TypeIdent *ident() const
-    {
-        return m_ident;
-    }
-
-    const Assignment *assignment() const
-    {
-        return m_assignment;
-    }
-
-protected:
-    TypeIdent *m_ident;
-    Assignment *m_assignment;
-};
 
 class Import : public Statement
 {
