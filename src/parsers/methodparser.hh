@@ -9,7 +9,7 @@ namespace nolang {
 class MethodParser
 {
 public:
-    MethodParser(mpc_ast_t *);
+    MethodParser(Compiler *, mpc_ast_t *);
     PureMethod *parse();
 
 private:
@@ -17,11 +17,20 @@ private:
 
     bool isPure() const;
     bool isIdentifier() const;
+    bool isArguments() const;
+    bool isMethodReturn() const;
+    bool isOptionalWhitespace() const;
+    bool isBodyStart() const;
+    bool isBody() const;
+    bool isWhitespace() const;
 
     void parseIdentifier();
-    void parseCast();
-    void parseItem();
+    void parseArguments();
+    void parseMethodReturn();
+    void parseBodyStart();
+    void parseBody();
 
+    Compiler *compiler;
     mpc_ast_t *tree;
     mpc_ast_t *item;
 
