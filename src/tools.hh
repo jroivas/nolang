@@ -18,6 +18,9 @@ template<typename T> std::vector<T> applyToVector(std::vector<T> &dst, const std
 void iterateTree(mpc_ast_t *tree, std::function<void(mpc_ast_t *)> closure);
 bool expect(mpc_ast_t *tree, std::string key, std::string val="");
 void printError(std::string, mpc_ast_t *);
+void throwError(std::string);
+void throwError(std::string, std::string);
+void throwError(std::string, std::string, std::string);
 
 #define iterate(A, B, C) iterateTree(B, [&] (mpc_ast_t *i) {\
     A = i;\

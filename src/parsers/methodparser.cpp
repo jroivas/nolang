@@ -73,11 +73,11 @@ void MethodParser::parseMethodReturn()
     auto r = compiler->codegen(item, method, 0);
     if (r.size() == 0) return;
     if (r.size() > 1) {
-        throw std::string("Expected one return type, got " + std::to_string(r.size()) + " for '" + method->name() + "'");
+        throwError("Expected one return type, got", std::to_string(r.size()) + " for", method->name());
     }
 
     if (r[0]->type() != "Identifier") {
-        throw std::string("Expected identifier as return type, got " + r[0]->type() + " for '" + method->name() + "'");
+        throwError("Expected identifier as return type, got ", r[0]->type() + " for", method->name());
     }
     method->setReturnType(TypeDef(r[0]->code()));
 }
