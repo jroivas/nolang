@@ -74,6 +74,8 @@ public:
         m_params.push_back(i);
     }
 
+    void setParameters(std::vector<TypeIdent*> p);
+
     const std::vector<TypeIdent*> params() const
     {
         return m_params;

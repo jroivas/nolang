@@ -68,4 +68,3 @@ NamespaceDef *NamespaceDefParser::parse()
     setValues();
     return namespacedef;
 }
-

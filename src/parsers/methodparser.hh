@@ -29,6 +29,7 @@ private:
     void parseMethodReturn();
     void parseBodyStart();
     void parseBody();
+    void parseItem();
 
     Compiler *compiler;
     mpc_ast_t *tree;
@@ -41,5 +42,3 @@ private:
 };
 
 }
-
-

@@ -1,6 +1,7 @@
 #include "compiler.hh"
 #include "tools.hh"
 #include "parsers/assignmentparser.hh"
+#include "parsers/methodparser.hh"
 #include "parsers/namespacedefparser.hh"
 #include "parsers/typeidentparser.hh"
 
@@ -8,8 +9,7 @@
 
 using namespace nolang;
 
-Compiler::Compiler() :
-    m_parameters(false)
+Compiler::Compiler()
 {
 }
 
@@ -132,7 +132,7 @@ std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m,
     return rdata;
 }
 
-std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level)
+std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level, bool parameters)
 {
     std::vector<Statement*> rdata;
 
@@ -147,7 +147,10 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         recurse = false;
     } else if (expect(tree, "methoddef")) {
         // New method
-        parseMethod(tree, level);
+        //parseMethod(tree, level);
+        PureMethod *method = MethodParser(this, tree).parse();
+        if (method == nullptr) throw "Invalid method!";
+        m_methods[method->name()] = method;
         recurse = false;
         level = 0;
     } else if (expect(tree, "struct")) {
@@ -178,7 +181,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata.push_back(new StringValue(cnts));
     } else if (expect(tree, "typeident")) {
         TypeIdent *ident = TypeIdentParser(tree).parse();
-        if (m_parameters) {
+        if (parameters) {
             rdata.push_back(ident);
         } else if (m != nullptr) {
             m->addVariable(ident);
@@ -226,6 +229,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     return rdata;
 }
 
+/*
 void Compiler::parseParamDef(mpc_ast_t *tree, PureMethod *m, int level)
 {
     iterateTree(tree, [&] (mpc_ast_t *item) {
@@ -312,3 +316,4 @@ void Compiler::parseMethod(mpc_ast_t *tree, int level)
     });
     m_methods[m->name()] = m;
 }
+*/

@@ -1,4 +1,5 @@
 #include "methodparser.hh"
+#include "argumentparser.hh"
 #include "tools.hh"
 
 using namespace nolang;
@@ -11,49 +12,49 @@ MethodParser::MethodParser(Compiler *c, mpc_ast_t *t) :
 
 void MethodParser::reset()
 {
-    bool waitName = true;
-    bool waitBody = false;
+    waitName = true;
+    waitBody = false;
     method = new PureMethod();
 }
 
 bool MethodParser::isPure() const
 {
-    return waitName && expect(item, "pure")
+    return waitName && expect(item, "pure");
 }
 
 bool MethodParser::isIdentifier() const
 {
-    return waitName && expect(item, "identifier")
+    return waitName && expect(item, "identifier");
 }
 
 bool MethodParser::isArguments() const
 {
-    return !waitName && expect(item, "args")
+    return !waitName && expect(item, "args");
 }
 
 bool MethodParser::isMethodReturn() const
 {
-    return !waitName && expect(item, "methodret")
+    return !waitName && expect(item, "methodret");
 }
 
 bool MethodParser::isOptionalWhitespace() const
 {
-    return expect(item, "ows")
+    return expect(item, "ows");
 }
 
 bool MethodParser::isWhitespace() const
 {
-    return expect(item, "newline") || expect(item, "ws")
+    return expect(item, "newline") || expect(item, "ws");
 }
 
 bool MethodParser::isBodyStart() const
 {
-    return !waitBody && expect(item, "string", "=>")
+    return !waitBody && expect(item, "string", "=>");
 }
 
 bool MethodParser::isBody() const
 {
-    return waitBody && expect(item, "body")
+    return waitBody && expect(item, "body");
 }
 
 void MethodParser::parseIdentifier()
@@ -62,33 +63,15 @@ void MethodParser::parseIdentifier()
     waitName = false;
 }
 
-void MethodParser::parseArgs(mpc_ast_t *args)
-{
-    int open = 0;
-    iterateTree(args, [&] (mpc_ast_t *item) {
-        if (expect(item, "char")) {
-            std::string cnts = item->contents;
-            if (cnts == "(") open++;
-            else if (cnts == ")") open--;
-            else {
-                throw std::string("Unexpected char: " + cnts);
-            }
-        } else if (open > 0 && expect(item, "paramdef"))
-            parseParamDef(item, m, level + 1);
-        else printError("Unknown node in arguments", item);
-    });
-}
-
 void MethodParser::parseArguments()
 {
-    // FIXME
-    parseArgs(item);
+    method->setParameters(ArgumentParser(compiler, item).parse());
 }
 
 void MethodParser::parseMethodReturn()
 {
-    auto r = compiler->codegen(tree, method, 0);
-    if (r.size() == 0) return
+    auto r = compiler->codegen(item, method, 0);
+    if (r.size() == 0) return;
     if (r.size() > 1) {
         throw std::string("Expected one return type, got " + std::to_string(r.size()) + " for '" + method->name() + "'");
     }
@@ -107,13 +90,12 @@ void MethodParser::parseBodyStart()
 void MethodParser::parseBody()
 {
     method->setBody(compiler->codegen(item, method, 0));
-    // FIXME
-    /*
-    if (!m_blocks.empty()) {
-        m->addBlock(m_blocks);
-        m_blocks = std::vector<std::vector<Statement*>>();
-    }
-    */
+    std::vector<std::vector<Statement*>> blocks = compiler->blocks();
+
+    if (!blocks.empty()) {
+        method->addBlock(blocks);
+        compiler->clearBlocks();
+    } 
 }
 
 void MethodParser::parseItem()
@@ -135,4 +117,3 @@ PureMethod *MethodParser::parse()
     iterate(item, tree, parseItem);
     return method;
 }
-

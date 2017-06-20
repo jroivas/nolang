@@ -21,8 +21,8 @@ class Compiler
 public:
     Compiler();
 
-    std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0);
-    void parseMethod(mpc_ast_t *tree, int level=0);
+    std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
+    //void parseMethod(mpc_ast_t *tree, int level=0);
 
     MethodCall *parseMethodCall(mpc_ast_t *);
     void addImport(mpc_ast_t *);
@@ -45,10 +45,20 @@ public:
         return m_structs;
     }
 
-    void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
-    void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);
+    //void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
+    //void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseMethodRet(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseStruct(mpc_ast_t *tree);
+
+    std::vector<std::vector<Statement*>> blocks()
+    {
+        return m_blocks;
+    }
+
+    void clearBlocks()
+    {
+        m_blocks.clear();
+    }
 
 protected:
     Import *addImportAs(mpc_ast_t *);
@@ -65,7 +75,6 @@ protected:
     std::vector<Struct*> m_structs;
 
     std::string m_last_indent;
-    bool m_parameters;
 };
 
 }
