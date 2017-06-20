@@ -55,8 +55,7 @@ void Compiler::addImport(mpc_ast_t *tree)
 void Compiler::addConstAssignment(mpc_ast_t *item)
 {
     PureMethod tmp;
-    AssignmentParser p(this, item, &tmp);
-    Assignment *assignment = p.parse();
+    Assignment *assignment = AssignmentParser(this, item, &tmp).parse();
     if (assignment && tmp.variables().size() == 1)
         m_consts.push_back(new Const(tmp.variables()[0], assignment));
     else printError("Invalid const", item);
@@ -86,8 +85,7 @@ MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
             mcall->setNamespace(new NamespaceDef(item->contents));
             wait_ns = false;
         } else if (wait_ns && expect(item, "namespacedef")) {
-            NamespaceDefParser parser(item);
-            mcall->setNamespace(parser.parse());
+            mcall->setNamespace(NamespaceDefParser(item).parse());
             wait_ns = false;
         } else if (!wait_call_end && expect(item, "char", "("))
             wait_call_end = true;
@@ -109,8 +107,7 @@ void Compiler::parseStruct(mpc_ast_t *tree)
         if (!s && expect(item, "identifier"))
             s = new Struct(item->contents);
         else if (s && expect(item, "typeident")) {
-            TypeIdentParser parser(item);
-            s->addData(parser.parse());
+            s->addData(TypeIdentParser(item).parse());
         }
         else printError("Unknown node in struct", item);
     });
@@ -169,8 +166,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata.push_back(parseMethodCall(tree));
         recurse = false;
     } else if (expect(tree, "assignment")) {
-        AssignmentParser p(this, tree, m);
-        rdata.push_back(p.parse());
+        rdata.push_back(AssignmentParser(this, tree, m).parse());
         recurse = false;
     } else if (expect(tree, "number")) {
         rdata.push_back(new NumberValue(cnts));
@@ -181,8 +177,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
     } else if (expect(tree, "string")) {
         rdata.push_back(new StringValue(cnts));
     } else if (expect(tree, "typeident")) {
-        TypeIdentParser parser(tree);
-        TypeIdent *ident = parser.parse();
+        TypeIdent *ident = TypeIdentParser(tree).parse();
         if (m_parameters) {
             rdata.push_back(ident);
         } else if (m != nullptr) {
@@ -195,8 +190,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         if (cnts == "false" || cnts == "true") {
             rdata.push_back(new Boolean(cnts));
         } else {
-            NamespaceDefParser parser(tree);
-            NamespaceDef *def = parser.parse();
+            NamespaceDef *def = NamespaceDefParser(tree).parse();
             if (def != nullptr) {
                 rdata.push_back(def);
             } else if (!cnts.empty()) {

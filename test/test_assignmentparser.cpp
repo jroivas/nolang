@@ -31,8 +31,7 @@ TEST_MAIN(
         )
 
         TEST_CASE(AssignmentParser: assign parse assignment,
-            nolang::AssignmentParser aparser(&compiler, asstree, nullptr);
-            assignment = aparser.parse();
+            assignment = nolang::AssignmentParser(&compiler, asstree, nullptr).parse();
             TEST_ASSERT_TRUE(assignment != nullptr);
         )
 
@@ -67,8 +66,7 @@ TEST_MAIN(
         )
 
         TEST_CASE(AssignmentParser: assign parse assignment,
-            nolang::AssignmentParser aparser(&compiler, asstree, nullptr);
-            assignment = aparser.parse();
+            assignment = nolang::AssignmentParser(&compiler, asstree, nullptr).parse();
             TEST_ASSERT_TRUE(assignment != nullptr);
         )
 
