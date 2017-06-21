@@ -22,7 +22,6 @@ public:
     Compiler();
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
-    //void parseMethod(mpc_ast_t *tree, int level=0);
 
     MethodCall *parseMethodCall(mpc_ast_t *);
     void addImport(mpc_ast_t *);
@@ -45,8 +44,6 @@ public:
         return m_structs;
     }
 
-    //void parseParamDef(mpc_ast_t *tree, PureMethod *m, int level=0);
-    //void parseArgs(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseMethodRet(mpc_ast_t *tree, PureMethod *m, int level=0);
     void parseStruct(mpc_ast_t *tree);
 

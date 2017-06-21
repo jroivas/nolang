@@ -63,23 +63,33 @@ void MethodParser::parseIdentifier()
     waitName = false;
 }
 
-void MethodParser::parseArguments()
+bool MethodParser::isValidMethodReturn() const
 {
-    method->setParameters(ArgumentParser(compiler, item).parse());
+    if (ret.size() > 1) throwError("Expected one return type, got", std::to_string(ret.size()) + " for", method->name());
+    return ret.size() == 1;
+}
+
+bool MethodParser::isMethodReturnTypeIdentifier() const
+{
+    bool isOk = ret[0]->type() == "Identifier";
+    if (!isOk) throwError("Expected identifier as return type, got ", ret[0]->type() + " for", method->name());
+    return isOk;
+}
+
+void MethodParser::setMethodReturnType()
+{
+    method->setReturnType(TypeDef(ret[0]->code()));
 }
 
 void MethodParser::parseMethodReturn()
 {
-    auto r = compiler->codegen(item, method, 0);
-    if (r.size() == 0) return;
-    if (r.size() > 1) {
-        throwError("Expected one return type, got", std::to_string(r.size()) + " for", method->name());
-    }
+    ret = compiler->codegen(item, method, 0);
+    if (isValidMethodReturn() && isMethodReturnTypeIdentifier()) setMethodReturnType();
+}
 
-    if (r[0]->type() != "Identifier") {
-        throwError("Expected identifier as return type, got ", r[0]->type() + " for", method->name());
-    }
-    method->setReturnType(TypeDef(r[0]->code()));
+void MethodParser::parseArguments()
+{
+    method->setParameters(ArgumentParser(compiler, item).parse());
 }
 
 void MethodParser::parseBodyStart()

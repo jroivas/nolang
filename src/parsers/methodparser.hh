@@ -23,6 +23,8 @@ private:
     bool isBodyStart() const;
     bool isBody() const;
     bool isWhitespace() const;
+    bool isValidMethodReturn() const;
+    bool isMethodReturnTypeIdentifier() const;
 
     void parseIdentifier();
     void parseArguments();
@@ -30,10 +32,12 @@ private:
     void parseBodyStart();
     void parseBody();
     void parseItem();
+    void setMethodReturnType();
 
     Compiler *compiler;
     mpc_ast_t *tree;
     mpc_ast_t *item;
+    std::vector<Statement*> ret;
 
     bool waitName;
     bool waitBody;
