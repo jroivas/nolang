@@ -23,7 +23,6 @@ public:
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 
-    MethodCall *parseMethodCall(mpc_ast_t *);
     void addImport(mpc_ast_t *);
     void addConst(mpc_ast_t *);
 

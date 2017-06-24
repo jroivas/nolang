@@ -2,6 +2,7 @@
 #include "tools.hh"
 #include "parsers/assignmentparser.hh"
 #include "parsers/methodparser.hh"
+#include "parsers/methodcallparser.hh"
 #include "parsers/namespacedefparser.hh"
 #include "parsers/typeidentparser.hh"
 
@@ -73,32 +74,6 @@ void Compiler::addConst(mpc_ast_t *tree)
     });
 }
 
-MethodCall *Compiler::parseMethodCall(mpc_ast_t *tree)
-{
-    MethodCall *mcall = new MethodCall();
-
-    bool wait_ns = true;
-    bool wait_call_end = false;
-
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (wait_ns && expect(item, "identifier")) {
-            mcall->setNamespace(new NamespaceDef(item->contents));
-            wait_ns = false;
-        } else if (wait_ns && expect(item, "namespacedef")) {
-            mcall->setNamespace(NamespaceDefParser(item).parse());
-            wait_ns = false;
-        } else if (!wait_call_end && expect(item, "char", "("))
-            wait_call_end = true;
-        else if (wait_call_end && expect(item, "char", ")"))
-            wait_call_end = false;
-        else if (wait_call_end)
-            mcall->addParameter(codegen(item));
-        else printError("Unknown node in method call", item);
-    });
-
-    return mcall;
-}
-
 void Compiler::parseStruct(mpc_ast_t *tree)
 {
     Struct *s = nullptr;
@@ -147,7 +122,6 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         recurse = false;
     } else if (expect(tree, "methoddef")) {
         // New method
-        //parseMethod(tree, level);
         PureMethod *method = MethodParser(this, tree).parse();
         if (method == nullptr) throw "Invalid method!";
         m_methods[method->name()] = method;
@@ -166,7 +140,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         }
         // SKIP and recurse
     } else if (expect(tree, "methodcall")) {
-        rdata.push_back(parseMethodCall(tree));
+        rdata.push_back(MethodCallParser(this, tree).parse());
         recurse = false;
     } else if (expect(tree, "assignment")) {
         rdata.push_back(AssignmentParser(this, tree, m).parse());
