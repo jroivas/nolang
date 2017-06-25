@@ -2,6 +2,7 @@
 
 #include "statement.hh"
 #include "assignment.hh"
+#include "typeident.hh"
 
 namespace nolang {
 

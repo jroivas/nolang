@@ -105,7 +105,7 @@ void MethodParser::parseBody()
     if (!blocks.empty()) {
         method->addBlock(blocks);
         compiler->clearBlocks();
-    } 
+    }
 }
 
 void MethodParser::parseItem()

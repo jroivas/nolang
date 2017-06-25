@@ -1,6 +1,7 @@
 #include "compiler.hh"
 #include "tools.hh"
 #include "parsers/assignmentparser.hh"
+#include "parsers/constparser.hh"
 #include "parsers/methodparser.hh"
 #include "parsers/methodcallparser.hh"
 #include "parsers/namespacedefparser.hh"
@@ -53,6 +54,7 @@ void Compiler::addImport(mpc_ast_t *tree)
     if (imp) m_imports.push_back(imp);
 }
 
+/*
 void Compiler::addConstAssignment(mpc_ast_t *item)
 {
     PureMethod tmp;
@@ -73,6 +75,7 @@ void Compiler::addConst(mpc_ast_t *tree)
         else printError("Unknown node in const defination", item);
     });
 }
+*/
 
 void Compiler::parseStruct(mpc_ast_t *tree)
 {
@@ -176,7 +179,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         }
         recurse = false;
     } else if (expect(tree, "identifier")) {
-        // FIXME Some idenfiers are special/reserved words
+        // FIXME Some identifiers are special/reserved words
         if (cnts == "false" || cnts == "true") {
             rdata.push_back(new Boolean(cnts));
         } else {
@@ -186,7 +189,8 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         addImport(tree);
         recurse = false;
     } else if (expect(tree, "const")) {
-        addConst(tree);
+        //addConst(tree);
+        m_consts.push_back(ConstParser(this, tree).parse());
         recurse = false;
     } else if (expect(tree, "newline")) {
         rdata.push_back(new EOS());
