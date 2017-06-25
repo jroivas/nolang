@@ -54,29 +54,6 @@ void Compiler::addImport(mpc_ast_t *tree)
     if (imp) m_imports.push_back(imp);
 }
 
-/*
-void Compiler::addConstAssignment(mpc_ast_t *item)
-{
-    PureMethod tmp;
-    Assignment *assignment = AssignmentParser(this, item, &tmp).parse();
-    if (assignment && tmp.variables().size() == 1)
-        m_consts.push_back(new Const(tmp.variables()[0], assignment));
-    else printError("Invalid const", item);
-}
-
-void Compiler::addConst(mpc_ast_t *tree)
-{
-    bool wait_const = true;
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (expect(item, "string", "const"))
-            wait_const = false;
-        else if (!wait_const & expect(item, "assignment"))
-            addConstAssignment(item);
-        else printError("Unknown node in const defination", item);
-    });
-}
-*/
-
 void Compiler::parseStruct(mpc_ast_t *tree)
 {
     Struct *s = nullptr;
@@ -189,7 +166,6 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         addImport(tree);
         recurse = false;
     } else if (expect(tree, "const")) {
-        //addConst(tree);
         m_consts.push_back(ConstParser(this, tree).parse());
         recurse = false;
     } else if (expect(tree, "newline")) {
