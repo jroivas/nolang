@@ -35,6 +35,23 @@ std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m,
     return rdata;
 }
 
+NumberValue *Compiler::parseNumber(mpc_ast_t *tree)
+{
+    std::string val;
+    bool negate = false;
+    iterateTree(tree, [&] (mpc_ast_t *item) {
+        if (expect(item, "char", "-")) {
+            negate ^= true;
+        }
+        else if (val.empty() && expect(item, "regex")) {
+            val = item->contents;
+        }
+        else printError("Unknown node in number", item);
+    });
+
+    return new NumberValue((negate ? "-" : "") + val);
+}
+
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level, bool parameters)
 {
     std::vector<Statement*> rdata;
@@ -74,7 +91,11 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata.push_back(AssignmentParser(this, tree, m).parse());
         recurse = false;
     } else if (expect(tree, "number")) {
-        rdata.push_back(new NumberValue(cnts));
+        if (cnts.empty()) {
+            rdata.push_back(parseNumber(tree));
+        } else {
+            rdata.push_back(new NumberValue(cnts));
+        }
     } else if (expect(tree, "termop")) {
         rdata.push_back(new Op(cnts));
     } else if (expect(tree, "factorop")) {

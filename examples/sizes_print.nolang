@@ -1,10 +1,10 @@
 import IO
 
 main =>
-    a : int8 = 8
-    b : int16 = 16
-    c : int32 = 32
-    d : int64 = 64
+    a : int8 = -8
+    b : int16 = -16
+    c : int32 = -32
+    d : int64 = -64
     e : uint8 = 8
     f : uint16 = 16
     g : uint32 = 32

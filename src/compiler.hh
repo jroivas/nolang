@@ -53,6 +53,7 @@ public:
 
 protected:
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
+    NumberValue *parseNumber(mpc_ast_t *tree);
 
     std::map<std::string, PureMethod*> m_methods;
     std::vector<std::vector<Statement*>> m_blocks;
