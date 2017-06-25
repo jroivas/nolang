@@ -24,8 +24,6 @@ public:
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 
-    //void addImport(mpc_ast_t *);
-
     const std::vector<Import*> imports() const
     {
         return m_imports;
@@ -54,12 +52,6 @@ public:
     }
 
 protected:
-    /*
-    Import *addImportAs(mpc_ast_t *);
-    Import *addImportIdentifierSub(Import *, const std::string &);
-    Import *addImportIdentifierAs(Import *, const std::string &);
-    */
-
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
 
     std::map<std::string, PureMethod*> m_methods;

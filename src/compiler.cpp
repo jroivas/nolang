@@ -17,47 +17,6 @@ Compiler::Compiler()
 {
 }
 
-/*
-Import *Compiler::addImportIdentifierSub(Import *imp, const std::string &cnts)
-{
-    if (imp == nullptr) imp = new Import(cnts);
-    else imp->addSub(cnts);
-    return imp;
-}
-
-Import *Compiler::addImportIdentifierAs(Import *imp, const std::string &cnts)
-{
-    if (imp == nullptr) imp = new Import(cnts);
-    else imp->addAs(cnts);
-    return imp;
-}
-
-Import *Compiler::addImportAs(mpc_ast_t *tree)
-{
-    Import *imp = nullptr;
-
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (expect(item, "identifier"))
-            imp = addImportIdentifierSub(imp, item->contents);
-    });
-
-    return imp;
-}
-
-void Compiler::addImport(mpc_ast_t *tree)
-{
-    Import *imp = nullptr;
-
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (expect(item, "identifier"))
-            imp = addImportIdentifierAs(imp, item->contents);
-        else if (expect(item, "namespacedef"))
-            imp = addImportAs(item);
-    });
-    if (imp) m_imports.push_back(imp);
-}
-*/
-
 std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
