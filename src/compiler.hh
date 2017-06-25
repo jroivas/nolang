@@ -24,7 +24,6 @@ public:
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 
     void addImport(mpc_ast_t *);
-    void addConst(mpc_ast_t *);
 
     const std::vector<Import*> imports() const
     {
@@ -43,9 +42,6 @@ public:
         return m_structs;
     }
 
-    void parseMethodRet(mpc_ast_t *tree, PureMethod *m, int level=0);
-    void parseStruct(mpc_ast_t *tree);
-
     std::vector<std::vector<Statement*>> blocks()
     {
         return m_blocks;
@@ -61,7 +57,6 @@ protected:
     Import *addImportIdentifierSub(Import *, const std::string &);
     Import *addImportIdentifierAs(Import *, const std::string &);
 
-    void addConstAssignment(mpc_ast_t *item);
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
 
     std::map<std::string, PureMethod*> m_methods;

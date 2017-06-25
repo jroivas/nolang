@@ -1,6 +1,7 @@
 #pragma once
 
 #include "statement.hh"
+#include "typeident.hh"
 
 namespace nolang {
 

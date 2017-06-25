@@ -5,6 +5,7 @@
 #include "parsers/methodparser.hh"
 #include "parsers/methodcallparser.hh"
 #include "parsers/namespacedefparser.hh"
+#include "parsers/structparser.hh"
 #include "parsers/typeidentparser.hh"
 
 #include <iostream>
@@ -54,21 +55,6 @@ void Compiler::addImport(mpc_ast_t *tree)
     if (imp) m_imports.push_back(imp);
 }
 
-void Compiler::parseStruct(mpc_ast_t *tree)
-{
-    Struct *s = nullptr;
-
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (!s && expect(item, "identifier"))
-            s = new Struct(item->contents);
-        else if (s && expect(item, "typeident")) {
-            s->addData(TypeIdentParser(item).parse());
-        }
-        else printError("Unknown node in struct", item);
-    });
-    m_structs.push_back(s);
-}
-
 std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
@@ -108,7 +94,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         recurse = false;
         level = 0;
     } else if (expect(tree, "struct")) {
-        parseStruct(tree);
+        m_structs.push_back(StructParser(tree).parse());
         recurse = false;
     } else if (expect(tree, "indent")) {
         int new_level = cnts.length();
