@@ -33,7 +33,7 @@ bool NamespaceDefParser::isIdentifier() const
 
 bool NamespaceDefParser::isCast() const
 {
-    return expect(item, "regex", "::");
+    return expect(item, "string", "::");
 }
 
 bool NamespaceDefParser::isDot() const
@@ -45,7 +45,7 @@ void NamespaceDefParser::parseItem()
 {
     if (isIdentifier()) parseIdentifier();
     else if (isCast()) parseCast();
-    else if (isDot()) { /* FIXME */ }
+    else if (isDot()); // TODO
     else printError("Unknown node in namespace defination", item);
 }
 
