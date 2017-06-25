@@ -63,7 +63,7 @@ std::string Cgen::solveNativeType(const std::string & s) const
 bool Cgen::isNativeType(const std::string & s) const
 {
     if (s.substr(0, 3) == "int" ||
-        s.substr(0, 3) == "uint" ||
+        s.substr(0, 4) == "uint" ||
         s == "Double" ||
         s == "f64" ||
         s == "f32" ||
