@@ -1,0 +1,20 @@
+import IO
+
+main =>
+    a : int8 = 8
+    b : int16 = 16
+    c : int32 = 32
+    d : int64 = 64
+    e : uint8 = 8
+    f : uint16 = 16
+    g : uint32 = 32
+    h : uint64 = 64
+
+    IO.println(a)
+    IO.println(b)
+    IO.println(c)
+    IO.println(d)
+    IO.println(e)
+    IO.println(f)
+    IO.println(g)
+    IO.println(h)
