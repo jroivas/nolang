@@ -12,12 +12,17 @@ public:
     Import *parse();
 
 private:
-    bool isAs();
+    bool isImport() const;
+    bool isIdentifier() const;
+    bool isSub() const;
 
     void reset();
     void parseItem();
     void createImport();
     void addAs();
+    void addSub();
+    void parseSub();
+    void parseSubIdentifier();
     void parseAs();
 
     mpc_ast_t *tree;
