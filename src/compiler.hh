@@ -12,6 +12,7 @@
 #include "typeident.hh"
 #include "struct.hh"
 #include "const.hh"
+#include "import.hh"
 
 namespace nolang
 {
@@ -23,7 +24,7 @@ public:
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 
-    void addImport(mpc_ast_t *);
+    //void addImport(mpc_ast_t *);
 
     const std::vector<Import*> imports() const
     {
@@ -53,9 +54,11 @@ public:
     }
 
 protected:
+    /*
     Import *addImportAs(mpc_ast_t *);
     Import *addImportIdentifierSub(Import *, const std::string &);
     Import *addImportIdentifierAs(Import *, const std::string &);
+    */
 
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
 

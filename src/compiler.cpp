@@ -2,6 +2,7 @@
 #include "tools.hh"
 #include "parsers/assignmentparser.hh"
 #include "parsers/constparser.hh"
+#include "parsers/importparser.hh"
 #include "parsers/methodparser.hh"
 #include "parsers/methodcallparser.hh"
 #include "parsers/namespacedefparser.hh"
@@ -16,6 +17,7 @@ Compiler::Compiler()
 {
 }
 
+/*
 Import *Compiler::addImportIdentifierSub(Import *imp, const std::string &cnts)
 {
     if (imp == nullptr) imp = new Import(cnts);
@@ -54,6 +56,7 @@ void Compiler::addImport(mpc_ast_t *tree)
     });
     if (imp) m_imports.push_back(imp);
 }
+*/
 
 std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level)
 {
@@ -149,7 +152,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
             rdata.push_back(new Identifier(cnts));
         }
     } else if (expect(tree, "import")) {
-        addImport(tree);
+        m_imports.push_back(ImportParser(tree).parse());
         recurse = false;
     } else if (expect(tree, "const")) {
         m_consts.push_back(ConstParser(this, tree).parse());
