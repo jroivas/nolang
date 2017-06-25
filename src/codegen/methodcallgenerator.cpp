@@ -162,7 +162,7 @@ std::vector<std::string> MethodCallGenerator::generateStructInitStatements()
 {
     std::vector<std::string> res;
     Struct *s = cgen->getStruct(def->values()[0]);
-    std::string postponed = cgen->usePostponed();
+    std::string postponed = cgen->usePostponedMethod();
     uint32_t m = s->datas().size();
     if (m > pnames.size()) m = pnames.size();
     for (uint32_t i = 0; i < m; ++i) {

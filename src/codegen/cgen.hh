@@ -43,7 +43,7 @@ public:
 
     std::vector<std::string> applyPostponed(std::vector<std::string> &);
 
-    std::string usePostponed();
+    std::string usePostponedMethod();
 
 protected:
     std::string generateStructInitializer(const Struct *c);
@@ -52,6 +52,7 @@ protected:
     std::string solveNolangType(const Statement *t, const PureMethod *m) const;
     std::string solveNativeType(const std::string & s) const;
     std::string solveReturnType(const Statement *t, const PureMethod *m) const;
+    bool isAssignmentMethodCall(const Assignment *) const;
     bool isNativeType(const std::string & s) const;
     std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
     std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret, const PureMethod *m);
@@ -68,6 +69,7 @@ private:
     std::map<std::string, ModuleDef*> m_modules;
     const ModuleDef *m_current_module;
     std::string m_postponed_assignment;
+    std::string m_postponed_method;
     std::vector<Struct*> m_structs;
 };
 

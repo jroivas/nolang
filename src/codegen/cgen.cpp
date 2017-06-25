@@ -301,10 +301,10 @@ std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
     return res;
 }
 
-std::string Cgen::usePostponed()
+std::string Cgen::usePostponedMethod()
 {
-    std::string tmp = m_postponed_assignment;
-    m_postponed_assignment = "";
+    std::string tmp = m_postponed_method;
+    m_postponed_method = "";
     return tmp;
 }
 
@@ -321,24 +321,32 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
     return res;
 }
 
+bool Cgen::isAssignmentMethodCall(const Assignment *ass) const
+{
+    for (auto sss : ass->statements()) {
+        if (sss->type() == "MethodCall") return true;
+    }
+    return false;
+}
+
 std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureMethod *m)
 {
     std::vector<std::string> res;
 
     if (s->type() == "String") {
-        //res = applyPostponed(res);
+        res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "Number") {
-        //res = applyPostponed(res);
+        res = applyPostponed(res);
         res.push_back(s->code());
     } else if (s->type() == "Boolean") {
-        //res = applyPostponed(res);
+        res = applyPostponed(res);
         res.push_back(s->code());
     } else if (s->type() == "Braces") {
         res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "Comparator") {
-        //res = applyPostponed(res);
+        res = applyPostponed(res);
         res.push_back(s->code() + " ");
     } else if (s->type() == "Op") {
         //res = applyPostponed(res);
@@ -361,7 +369,11 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             }
             //m_postponed_assignment += "= ";
         } else {
-            m_postponed_assignment = s->code();
+            if (isAssignmentMethodCall(ass)) {
+                m_postponed_method = s->code();
+            } else {
+                m_postponed_assignment = s->code();
+            }
             //m_postponed_assignment = s->code() + " = ";
         }
         std::vector<std::string> tmp = generateStatements(ass->statements(), m);
