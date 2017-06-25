@@ -67,22 +67,6 @@ void ArgumentParser::parseParamDef()
         if (isTypeIdent()) parseTypeIdent();
         else if (isComma() || isOptionalWhitespace());
         else printError("Unknown node in parameter", item);
-        /*
-        std::string cnts = item->contents;
-        if (expect(item, "typeident")) {
-            m_parameters = true;
-            auto res = codegen(item, m, level + 1);
-            m_parameters = false;
-            for (auto r : res){
-                if (r->type() == "TypeIdent")
-                    m->addParameter(static_cast<TypeIdent*>(r));
-                else
-                    throw std::string("Invalid parameter definition: " + r->code());
-            }
-        } else if (expect(item, "char") && cnts == ",") {
-            // FIXME Can ',' separate in params something else than next param?
-        } else printError("Unknown node in parameter", item);
-        */
     });
 }
 
