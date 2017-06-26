@@ -24,32 +24,12 @@ public:
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 
-    const std::vector<Import*> imports() const
-    {
-        return m_imports;
-    }
-    std::map<std::string, PureMethod*> methods() const
-    {
-        return m_methods;
-    }
-    const std::vector<Const*> consts() const
-    {
-        return m_consts;
-    }
-    const std::vector<Struct*> structs() const
-    {
-        return m_structs;
-    }
-
-    std::vector<std::vector<Statement*>> blocks()
-    {
-        return m_blocks;
-    }
-
-    void clearBlocks()
-    {
-        m_blocks.clear();
-    }
+    const std::vector<Import*> imports() const { return m_imports; }
+    std::map<std::string, PureMethod*> methods() const { return m_methods; }
+    const std::vector<Const*> consts() const { return m_consts; }
+    const std::vector<Struct*> structs() const { return m_structs; }
+    std::vector<std::vector<Statement*>> blocks() { return m_blocks; }
+    void clearBlocks() { m_blocks.clear(); }
 
 protected:
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
