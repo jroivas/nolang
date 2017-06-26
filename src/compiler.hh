@@ -20,7 +20,7 @@ namespace nolang
 class Compiler
 {
 public:
-    Compiler();
+    Compiler() {}
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 

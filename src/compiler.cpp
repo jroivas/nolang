@@ -14,10 +14,6 @@
 
 using namespace nolang;
 
-Compiler::Compiler()
-{
-}
-
 std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
@@ -34,23 +30,6 @@ std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m,
         }
     });
     return rdata;
-}
-
-NumberValue *Compiler::parseNumber(mpc_ast_t *tree)
-{
-    std::string val;
-    bool negate = false;
-    iterateTree(tree, [&] (mpc_ast_t *item) {
-        if (expect(item, "char", "-")) {
-            negate ^= true;
-        }
-        else if (val.empty() && expect(item, "regex")) {
-            val = item->contents;
-        }
-        else printError("Unknown node in number", item);
-    });
-
-    return new NumberValue((negate ? "-" : "") + val);
 }
 
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int level, bool parameters)
