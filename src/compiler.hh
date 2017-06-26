@@ -32,6 +32,10 @@ public:
     void clearBlocks() { m_blocks.clear(); }
 
 protected:
+    bool isEOS(Statement *s) const { return s->type() == "EOS"; }
+    std::vector<Statement*> appendStatement(std::vector<Statement*>, Statement *s);
+    std::vector<Statement*> appendBlock(std::vector<Statement*>);
+
     std::vector<Statement*> codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level);
 
     std::map<std::string, PureMethod*> m_methods;

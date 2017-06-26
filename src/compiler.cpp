@@ -14,19 +14,26 @@
 
 using namespace nolang;
 
+std::vector<Statement*> Compiler::appendStatement(std::vector<Statement*> rdata, Statement *s)
+{
+    rdata.push_back(s);
+    return rdata;
+}
+
+std::vector<Statement*> Compiler::appendBlock(std::vector<Statement*> rdata)
+{
+    m_blocks.push_back(rdata);
+    return std::vector<Statement*>();
+}
+
 std::vector<Statement*> Compiler::codegenRecurse(mpc_ast_t *tree, PureMethod *m, int level)
 {
     std::vector<Statement*> rdata;
     iterateTree(tree, [&] (mpc_ast_t *item) {
         std::vector<Statement*> st = codegen(item, m, level);
         for (auto s : st) {
-            if (s->type() == "EOS") {
-                rdata.push_back(s);
-                m_blocks.push_back(rdata);
-                rdata = std::vector<Statement*>();
-            } else {
-                rdata.push_back(s);
-            }
+            rdata = appendStatement(rdata, s);
+            if (isEOS(s)) rdata = appendBlock(rdata);
         }
     });
     return rdata;
