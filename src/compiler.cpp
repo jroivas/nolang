@@ -6,6 +6,7 @@
 #include "parsers/methodparser.hh"
 #include "parsers/methodcallparser.hh"
 #include "parsers/namespacedefparser.hh"
+#include "parsers/numberparser.hh"
 #include "parsers/structparser.hh"
 #include "parsers/typeidentparser.hh"
 
@@ -91,11 +92,7 @@ std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int le
         rdata.push_back(AssignmentParser(this, tree, m).parse());
         recurse = false;
     } else if (expect(tree, "number")) {
-        if (cnts.empty()) {
-            rdata.push_back(parseNumber(tree));
-        } else {
-            rdata.push_back(new NumberValue(cnts));
-        }
+        rdata.push_back(NumberParser(tree).parse());
     } else if (expect(tree, "termop")) {
         rdata.push_back(new Op(cnts));
     } else if (expect(tree, "factorop")) {
