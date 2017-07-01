@@ -143,13 +143,9 @@ void Compiler::parseNamespaceDef()
 
 void Compiler::parseIdentifier()
 {
-    std::string cnts = item->contents;
     // FIXME Some identifiers are special/reserved words
-    if (cnts == "false" || cnts == "true") {
-        rdata.push_back(new Boolean(cnts));
-    } else {
-        rdata.push_back(new Identifier(cnts));
-    }
+    if (isBooleanDef()) rdata.push_back(new Boolean(item->contents));
+    else rdata.push_back(new Identifier(item->contents));
 }
 
 void Compiler::parseImport()
