@@ -13,6 +13,26 @@
 
 using namespace nolang;
 
+Compiler::Compiler()
+{
+    parent = this;
+}
+
+Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
+    tree(t),
+    method(m),
+    level(l),
+    parameters(p)
+{
+    Compiler *cp = pt;
+    while (cp->parent != cp) {
+        cp = cp->parent;
+    }
+    parent = cp;
+    item = tree;
+}
+
+
 std::vector<Statement*> Compiler::appendStatement(std::vector<Statement*> rdata3, Statement *s)
 {
     rdata3.push_back(s);
@@ -85,23 +105,89 @@ void Compiler::parseTermOp()
     rdata.push_back(new Op(item->contents));
 }
 
-Compiler::Compiler()
+void Compiler::parseFactorOp()
 {
-    parent = this;
+    rdata.push_back(new Op(item->contents));
 }
 
-Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
-    tree(t),
-    method(m),
-    level(l),
-    parameters(p)
+void Compiler::parseString()
 {
-    Compiler *cp = pt;
-    while (cp->parent != cp) {
-        cp = cp->parent;
+    rdata.push_back(new StringValue(item->contents));
+}
+
+void Compiler::parseTypeIdent()
+{
+    TypeIdent *ident = TypeIdentParser(item).parse();
+    if (parameters) {
+        rdata.push_back(ident);
+    } else if (method != nullptr) {
+        method->addVariable(ident);
+    } else {
+        rdata.push_back(ident);
     }
-    parent = cp;
-    item = tree;
+    recurse = false;
+}
+
+void Compiler::parseNamespaceDef()
+{
+    std::string cnts = item->contents;
+    if (cnts == "false" || cnts == "true") {
+        rdata.push_back(new Boolean(cnts));
+    } else {
+        NamespaceDef *def = NamespaceDefParser(item).parse();
+        if (def != nullptr) {
+            rdata.push_back(def);
+        } else if (!cnts.empty()) {
+            rdata.push_back(new Identifier(cnts));
+        }
+    }
+    recurse = false;
+}
+
+void Compiler::parseIdentifier()
+{
+    std::string cnts = item->contents;
+    // FIXME Some identifiers are special/reserved words
+    if (cnts == "false" || cnts == "true") {
+        rdata.push_back(new Boolean(cnts));
+    } else {
+        rdata.push_back(new Identifier(cnts));
+    }
+}
+
+void Compiler::parseImport()
+{
+    parent->m_imports.push_back(ImportParser(item).parse());
+    recurse = false;
+}
+
+void Compiler::parseConst()
+{
+    parent->m_consts.push_back(ConstParser(this, item).parse());
+    recurse = false;
+}
+
+void Compiler::parseNewLine()
+{
+    rdata.push_back(new EOS());
+}
+
+void Compiler::parseComparator()
+{
+    rdata.push_back(new Comparator(item->contents));
+}
+
+void Compiler::parseBrace()
+{
+    rdata.push_back(new Braces(item->contents));
+}
+
+void Compiler::doRecurse()
+{
+    if (recurse) {
+        Compiler g(parent, item, method, level, parameters);
+        rdata = applyToVector<Statement*>(rdata, g.codegenRecurse(level));
+    }
 }
 
 std::vector<Statement*> Compiler::gen()
@@ -117,58 +203,20 @@ std::vector<Statement*> Compiler::gen()
     else if (isAssignment()) parseAssignment();
     else if (isNumber()) parseNumber();
     else if (isTermOp()) parseTermOp();
-    else if (expect(tree, "factorop")) {
-        rdata.push_back(new Op(cnts));
-    } else if (expect(tree, "string")) {
-        rdata.push_back(new StringValue(cnts));
-    } else if (expect(tree, "typeident")) {
-        TypeIdent *ident = TypeIdentParser(tree).parse();
-        if (parameters) {
-            rdata.push_back(ident);
-        } else if (method != nullptr) {
-            method->addVariable(ident);
-        } else {
-            rdata.push_back(ident);
-        }
-        recurse = false;
-    } else if (expect(tree, "namespacedef")) {
-        if (cnts == "false" || cnts == "true") {
-            rdata.push_back(new Boolean(cnts));
-        } else {
-            NamespaceDef *def = NamespaceDefParser(tree).parse();
-            if (def != nullptr) {
-                rdata.push_back(def);
-            } else if (!cnts.empty()) {
-                rdata.push_back(new Identifier(cnts));
-            }
-        }
-        recurse = false;
-    } else if (expect(tree, "identifier")) {
-        // FIXME Some identifiers are special/reserved words
-        if (cnts == "false" || cnts == "true") {
-            rdata.push_back(new Boolean(cnts));
-        } else {
-            rdata.push_back(new Identifier(cnts));
-        }
-    } else if (expect(tree, "import")) {
-        parent->m_imports.push_back(ImportParser(tree).parse());
-        recurse = false;
-    } else if (expect(tree, "const")) {
-        parent->m_consts.push_back(ConstParser(this, tree).parse());
-        recurse = false;
-    } else if (expect(tree, "newline")) {
-        rdata.push_back(new EOS());
-    } else if (expect(tree, "comparator")) {
-        rdata.push_back(new Comparator(cnts));
-    } else if (expect(tree, "char", "(") || expect(tree, "char", ")")) {
-        rdata.push_back(new Braces(cnts));
-    } else if (expect(tree, "ows") || expect(tree, "ws")) {
-    } else printError("Unknown node in statement", tree);
+    else if (isFactorOp()) parseFactorOp();
+    else if (isString()) parseString();
+    else if (isTypeIdent()) parseTypeIdent();
+    else if (isNamespaceDef()) parseNamespaceDef();
+    else if (isIdentifier()) parseIdentifier();
+    else if (isImport()) parseImport();
+    else if (isConst()) parseConst();
+    else if (isNewLine()) parseNewLine();
+    else if (isComparator()) parseComparator();
+    else if (isBrace()) parseBrace();
+    else if (isWhitespace());
+    else printError("Unknown node in statement", tree);
 
-    if (recurse) {
-        Compiler g(parent, item, method, level, parameters);
-        rdata = applyToVector<Statement*>(rdata, g.codegenRecurse(level));
-    }
+    doRecurse();
 
     return rdata;
 }

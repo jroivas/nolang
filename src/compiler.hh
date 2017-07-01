@@ -58,6 +58,17 @@ protected:
     bool isAssignment() const { return expect(item, "assignment"); }
     bool isNumber() const { return expect(item, "number"); }
     bool isTermOp() const { return expect(item, "termop"); }
+    bool isFactorOp() const { return expect(item, "factorop"); }
+    bool isString() const { return expect(item, "string"); }
+    bool isTypeIdent() const { return expect(item, "typeident"); }
+    bool isNamespaceDef() const { return expect(item, "namespacedef"); }
+    bool isIdentifier() const { return expect(item, "identifier"); }
+    bool isImport() const { return expect(item, "import"); }
+    bool isConst() const { return expect(item, "const"); }
+    bool isNewLine() const { return expect(item, "newline"); }
+    bool isComparator() const { return expect(item, "comparator"); }
+    bool isBrace() const { return expect(item, "char", "(") || expect(item, "char", ")"); }
+    bool isWhitespace() const { return expect(item, "ows") || expect(item, "ws"); }
 
     void parseMethodDef();
     void parseMethodCall();
@@ -66,6 +77,17 @@ protected:
     void parseAssignment();
     void parseNumber();
     void parseTermOp();
+    void parseFactorOp();
+    void parseString();
+    void parseTypeIdent();
+    void parseNamespaceDef();
+    void parseIdentifier();
+    void parseImport();
+    void parseConst();
+    void parseNewLine();
+    void parseComparator();
+    void parseBrace();
+    void doRecurse();
 
     Compiler *parent;
     mpc_ast_t *tree;
