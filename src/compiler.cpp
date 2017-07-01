@@ -13,22 +13,21 @@
 
 using namespace nolang;
 
-Compiler::Compiler()
+Compiler::Compiler() :
+    recurse(true)
 {
     parent = this;
-    recurse = true;
 }
 
 Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
     tree(t),
     method(m),
     level(l),
-    parameters(p)
+    parameters(p),
+    recurse(true)
 {
     Compiler *cp = pt;
-    while (cp->parent != cp) {
-        cp = cp->parent;
-    }
+    while (cp->parent != cp) cp = cp->parent;
     parent = cp;
     item = tree;
     recurse = true;
@@ -75,11 +74,15 @@ void Compiler::parseStruct()
     recurse = false;
 }
 
-void Compiler::parseIndent()
+bool Compiler::isValidIndentBlock()
 {
     int new_level = std::string(item->contents).length();
-    if (!method || new_level == level) return;
-    if (parent->m_blocks.empty()) return;
+    return method && new_level != level && !parent->m_blocks.empty();
+}
+
+void Compiler::parseIndent()
+{
+    if (!isValidIndentBlock()) return;
 
     method->addBlock(parent->m_blocks);
     parent->m_blocks = std::vector<std::vector<Statement*>>();
@@ -191,7 +194,6 @@ void Compiler::doRecurse()
 std::vector<Statement*> Compiler::gen()
 {
     item = tree;
-    std::string cnts = tree->contents;
     if (isRoot());
     else if (isComment()) recurse = false;
     else if (isMethodDef()) parseMethodDef();

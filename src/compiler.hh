@@ -73,6 +73,7 @@ protected:
         std::string cnts = item->contents;
         return cnts == "false" || cnts == "true";
     }
+    bool isValidIndentBlock();
 
     void parseMethodDef();
     void parseMethodCall();
@@ -101,8 +102,8 @@ protected:
     PureMethod *method;
 
     int level;
-    bool recurse;
     bool parameters;
+    bool recurse;
 
     std::vector<Statement*> rdata;
 };
