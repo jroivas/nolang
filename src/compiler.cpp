@@ -128,19 +128,18 @@ void Compiler::parseTypeIdent()
     recurse = false;
 }
 
-void Compiler::parseNamespaceDef()
+void Compiler::parseNamespace()
 {
     std::string cnts = item->contents;
-    if (cnts == "false" || cnts == "true") {
-        rdata.push_back(new Boolean(cnts));
-    } else {
-        NamespaceDef *def = NamespaceDefParser(item).parse();
-        if (def != nullptr) {
-            rdata.push_back(def);
-        } else if (!cnts.empty()) {
-            rdata.push_back(new Identifier(cnts));
-        }
-    }
+    NamespaceDef *def = NamespaceDefParser(item).parse();
+    if (def != nullptr) rdata.push_back(def);
+    else if (!cnts.empty()) rdata.push_back(new Identifier(cnts));
+}
+
+void Compiler::parseNamespaceDef()
+{
+    if (isBooleanDef()) rdata.push_back(new Boolean(item->contents));
+    else parseNamespace();
     recurse = false;
 }
 
@@ -223,7 +222,5 @@ std::vector<Statement*> Compiler::gen()
 
 std::vector<Statement*> Compiler::codegen(mpc_ast_t *tree, PureMethod *m, int lvl, bool parameters)
 {
-    Compiler g(parent, tree, m, lvl, parameters);
-    std::vector<Statement*> res = g.gen();
-    return res;
+    return Compiler(parent, tree, m, lvl, parameters).gen();
 }

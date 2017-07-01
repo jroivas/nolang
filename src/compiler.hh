@@ -69,6 +69,10 @@ protected:
     bool isComparator() const { return expect(item, "comparator"); }
     bool isBrace() const { return expect(item, "char", "(") || expect(item, "char", ")"); }
     bool isWhitespace() const { return expect(item, "ows") || expect(item, "ws"); }
+    bool isBooleanDef() const {
+        std::string cnts = item->contents;
+        return cnts == "false" || cnts == "true";
+    }
 
     void parseMethodDef();
     void parseMethodCall();
@@ -80,6 +84,7 @@ protected:
     void parseFactorOp();
     void parseString();
     void parseTypeIdent();
+    void parseNamespace();
     void parseNamespaceDef();
     void parseIdentifier();
     void parseImport();
