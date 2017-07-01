@@ -16,6 +16,7 @@ using namespace nolang;
 Compiler::Compiler()
 {
     parent = this;
+    recurse = true;
 }
 
 Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
@@ -30,6 +31,7 @@ Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
     }
     parent = cp;
     item = tree;
+    recurse = true;
 }
 
 
