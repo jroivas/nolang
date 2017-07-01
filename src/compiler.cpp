@@ -137,7 +137,6 @@ void Compiler::parseNamespace()
 void Compiler::parseBoolean()
 {
     rdata.push_back(new Boolean(item->contents));
-    if (isBooleanDef()) parseBoolean();
 }
 
 void Compiler::parseNamespaceDef()
