@@ -134,9 +134,15 @@ void Compiler::parseNamespace()
     else if (!cnts.empty()) rdata.push_back(new Identifier(cnts));
 }
 
+void Compiler::parseBoolean()
+{
+    rdata.push_back(new Boolean(item->contents));
+    if (isBooleanDef()) parseBoolean();
+}
+
 void Compiler::parseNamespaceDef()
 {
-    if (isBooleanDef()) rdata.push_back(new Boolean(item->contents));
+    if (isBooleanDef()) parseBoolean();
     else parseNamespace();
     recurse = false;
 }
@@ -144,7 +150,7 @@ void Compiler::parseNamespaceDef()
 void Compiler::parseIdentifier()
 {
     // FIXME Some identifiers are special/reserved words
-    if (isBooleanDef()) rdata.push_back(new Boolean(item->contents));
+    if (isBooleanDef()) parseBoolean();
     else rdata.push_back(new Identifier(item->contents));
 }
 

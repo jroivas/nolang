@@ -92,6 +92,7 @@ protected:
     void parseNewLine();
     void parseComparator();
     void parseBrace();
+    void parseBoolean();
     void doRecurse();
 
     Compiler *parent;
