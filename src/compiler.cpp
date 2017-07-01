@@ -120,13 +120,9 @@ void Compiler::parseString()
 void Compiler::parseTypeIdent()
 {
     TypeIdent *ident = TypeIdentParser(item).parse();
-    if (parameters) {
-        rdata.push_back(ident);
-    } else if (method != nullptr) {
-        method->addVariable(ident);
-    } else {
-        rdata.push_back(ident);
-    }
+    if (parameters) rdata.push_back(ident);
+    else if (method != nullptr) method->addVariable(ident);
+    else rdata.push_back(ident);
     recurse = false;
 }
 
