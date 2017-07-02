@@ -37,8 +37,8 @@ protected:
     Compiler(Compiler *, mpc_ast_t *, PureMethod *, int level, bool parameters);
     std::vector<Statement*> gen();
 
-    std::vector<Statement*> appendStatement(std::vector<Statement*>, Statement *s);
-    std::vector<Statement*> appendBlock(std::vector<Statement*>);
+    void appendStatement(Statement *s);
+    void appendBlock();
 
     std::vector<Statement*> codegenRecurse(int level);
 

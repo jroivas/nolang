@@ -29,34 +29,31 @@ Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
     Compiler *cp = pt;
     while (cp->parent != cp) cp = cp->parent;
     parent = cp;
-    item = tree;
     recurse = true;
 }
 
 
-std::vector<Statement*> Compiler::appendStatement(std::vector<Statement*> rdata3, Statement *s)
+void Compiler::appendStatement(Statement *s)
 {
-    rdata3.push_back(s);
-    return rdata3;
+    rdata.push_back(s);
 }
 
-std::vector<Statement*> Compiler::appendBlock(std::vector<Statement*> rdata3)
+void Compiler::appendBlock()
 {
-    parent->m_blocks.push_back(rdata3);
-    return std::vector<Statement*>();
+    parent->m_blocks.push_back(rdata);
+    rdata = std::vector<Statement*>();
 }
 
 std::vector<Statement*> Compiler::codegenRecurse(int lvl)
 {
-    std::vector<Statement*> rdata2;
     iterateTree(tree, [&] (mpc_ast_t *sub) {
-        std::vector<Statement*> st = codegen(sub, method, lvl, parameters);
+        auto st = codegen(sub, method, lvl, parameters);
         for (auto s : st) {
-            rdata2 = appendStatement(rdata2, s);
-            if (isEOS(s)) rdata2 = appendBlock(rdata2);
+            appendStatement(s);
+            if (isEOS(s)) appendBlock();
         }
     });
-    return rdata2;
+    return rdata;
 }
 
 void Compiler::parseMethodDef()
@@ -185,10 +182,9 @@ void Compiler::parseBrace()
 
 void Compiler::doRecurse()
 {
-    if (recurse) {
-        Compiler g(parent, item, method, level, parameters);
-        rdata = applyToVector<Statement*>(rdata, g.codegenRecurse(level));
-    }
+    if (!recurse) return;
+    Compiler g(parent, item, method, level, parameters);
+    rdata = applyToVector<Statement*>(rdata, g.codegenRecurse(level));
 }
 
 std::vector<Statement*> Compiler::gen()
