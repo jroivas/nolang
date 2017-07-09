@@ -36,6 +36,7 @@ nolang_lib = static_library('nolang',
         'src/parsers/structparser.cpp',
         'src/parsers/typeidentparser.cpp',
         'src/codegen/cgen.cpp',
+        'src/codegen/typesolver.cpp',
         'src/codegen/methodcallgenerator.cpp',
         '3pp/mpc/mpc.c'
     ],

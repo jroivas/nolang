@@ -4,9 +4,8 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <cmath>
-#include <limits>
 
+#include "typesolver.hh"
 #include "trim.hh"
 
 using namespace nolang;
@@ -23,196 +22,6 @@ std::string Cgen::autogen()
     std::stringstream ss;
     ss << __autogen_prefix << ++__autogen_index;
     return ss.str();
-}
-
-std::string Cgen::solveNativeType(const std::string & s) const
-{
-    // Defaulting "int" to int32
-    if (s == "int32" || s == "int") {
-        return "int32_t";
-    } else if (s == "int8") {
-        return "int8_t";
-    } else if (s == "int16") {
-        return "int16_t";
-    } else if (s == "int64") {
-        return "int64_t";
-    } else if (s == "uint32") {
-        return "uint32_t";
-    } else if (s == "uint8") {
-        return "uint8_t";
-    } else if (s == "uint16") {
-        return "uint16_t";
-    } else if (s == "uint64") {
-        return "uint64_t";
-    } else if (s == "Double") {
-        return "double";
-    } else if (s == "f64") {
-        return "double";
-    } else if (s == "f32") {
-        return "float";
-    } else if (s == "boolean") {
-        return "boolean";
-    } else if (s == "string" || s == "String") {
-        return "const char *";
-    } else {
-        return s + " *";
-    }
-    throw "Unknown native type: " + s;
-}
-
-bool Cgen::isNativeType(const std::string & s) const
-{
-    if (s.substr(0, 3) == "int" ||
-        s.substr(0, 4) == "uint" ||
-        s == "Double" ||
-        s == "f64" ||
-        s == "f32" ||
-        s == "boolean" ||
-        s == "string" ||
-        s == "String") {
-        return true;
-    }
-    return false;
-}
-
-TypeIdent *Cgen::solveVariable(const std::string &name, const PureMethod *m) const
-{
-    if (!m) return nullptr;
-    for (auto var : m->variables()) {
-        if (var->code() == name) {
-            return var;
-        }
-    }
-    return nullptr;
-}
-
-std::string Cgen::solveNativeType(const Statement *s, const PureMethod *m) const
-{
-    if (s->type() == "TypeDef") {
-        if (s->code() == "void") {
-            return "void";
-        }
-        return solveNativeType(s->code());
-        // FIXME
-    } else if (s->type() == "TypeIdent") {
-        const TypeIdent *i = static_cast<const TypeIdent *>(s);
-        std::string native = solveNativeType(i->varType());
-    } else if (s->type() == "Identifier") {
-        TypeIdent *var = solveVariable(s->code(), m);
-        if (var) {
-            return solveNativeType(var->varType());
-        }
-        return "invalid";
-    } else if (s->type() == "String" || s->type() == "string") {
-        // FIXME "const char*" or "char*"
-        return "char *";
-    } else if (s->type() == "Number") {
-        // FIXME type and size, floats
-        std::string num = s->code();
-        num = trim(num);
-        /* TODO FIXME
-        if (num.substr(0,2) == "0b") {
-            // TODO Convert binary to hex
-        }
-        */
-        double value = std::stod(num, nullptr);
-        if (num[0] == '-') {
-            if (fabs(value) >= std::numeric_limits<int32_t>::max()) {
-                return "int64_t";
-            }
-            return "int32_t";
-        } else {
-            if (value >= std::numeric_limits<int32_t>::max()) {
-                return "uint64_t";
-            }
-            return "uint32_t";
-        }
-    } else if (s->type() == "Boolean") {
-        return "boolean";
-    } else {
-        throw std::string("Unknown native type: " + s->type());
-    }
-    #if 0
-    //if (TypeDef *tdef = dynamic_cast<TypeDef*>(s)) {
-    else if (StringValue *sval = dynamic_cast<StringValue*>(s)) {
-        // FIXME "const char*" or "char*"
-        return "char *";
-    }
-    else if (NumberValue *nval = dynamic_cast<NumberValue*>(s)) {
-        // FIXME type and size, floats
-        return "long";
-    }
-    #endif
-    return "";
-}
-
-std::string Cgen::solveNolangType(const Statement *s, const PureMethod *m) const
-{
-    if (s->type() == "TypeDef") {
-        if (s->code() == "void") {
-            return "void";
-        }
-        return s->code();
-        // FIXME
-    } else if (s->type() == "TypeIdent") {
-        const TypeIdent *i = static_cast<const TypeIdent *>(s);
-        return i->varType();
-    } else if (s->type() == "Identifier") {
-        TypeIdent *var = solveVariable(s->code(), m);
-        if (var) {
-            var->varType();
-        }
-        return "invalid";
-    } else if (s->type() == "String") {
-        return "String";
-    } else if (s->type() == "Number") {
-        // FIXME type and size, floats
-        return "int32";
-    } else if (s->type() == "Boolean") {
-        return "boolean";
-    } else {
-        throw std::string("Unknown type: " + s->type());
-    }
-    return "";
-}
-
-// FIXME Combine with below
-std::string Cgen::solveTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
-{
-    std::string res;
-    for (auto c : chain) {
-        std::string t = solveNativeType(c, m);
-        if (!t.empty()) {
-            if (res.empty()) {
-                res = t;
-            } else if (res == t) {
-                // OK
-            } else {
-                // Need to solve
-                std::cerr << "*** ERROR: Can't solve type of chain, conflicting types: " << res << ", " << t << "\n";
-            }
-        }
-    }
-    return res;
-}
-
-std::string Cgen::solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const
-{
-    std::string res;
-    for (auto c : chain) {
-        std::string t = solveNolangType(c, m);
-        if (!t.empty()) {
-            if (res.empty()) {
-                res = t;
-            } else if (res == t) {
-                // OK
-            } else {
-                // Need to solve
-                std::cerr << "*** ERROR: Can't solve type of chain, conflicting types: " << res << ", " << t << "\n";
-            }
-        }
-    }
-    return res;
 }
 
 const ModuleDef *Cgen::getModule(std::string name) const
@@ -388,11 +197,11 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             const NamespaceDef *def = static_cast<const NamespaceDef *>(s);
             res = applyPostponed(res);
             if (!def->cast().empty()) {
-                TypeIdent *st = solveVariable(def->code(), m);
+                TypeIdent *st = TypeSolver(m).solveVariable(def->code());
                 res.push_back(castCode(def->code(), st->varType(), def->cast()));
             } else if (!def->values().empty()) {
                 // FIXME
-                TypeIdent *st = solveVariable(def->code(), m);
+                TypeIdent *st = TypeSolver(m).solveVariable(def->code());
                 std::string tmp;
                 for (auto v : def->values()) {
                     if (!tmp.empty()) tmp += "->";
@@ -485,7 +294,7 @@ std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
     std::vector<std::string> res;
 
     std::string varType = i->varType();
-    std::string native = solveNativeType(varType);
+    std::string native = TypeSolver::native(varType);
 
     res.push_back(native + " " + i->code() + ";\n");
 
@@ -495,7 +304,7 @@ std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
 std::string Cgen::generateVariableInit(const TypeIdent *i)
 {
     std::string varType = i->varType();
-    if (!isNativeType(varType)) {
+    if (!TypeSolver::isNative(varType)) {
         return i->code() + " = new_" + varType + "();\n";
     }
     return "";
@@ -503,12 +312,12 @@ std::string Cgen::generateVariableInit(const TypeIdent *i)
 
 std::string Cgen::solveReturnType(const Statement *t, const PureMethod *m) const
 {
-    std::string ret = solveNativeType(m->returnType(), m);
+    std::string ret = TypeSolver(m).nativeFromStatement(m->returnType());
     // FIXME Return type if not defined?
 #if 1
     // FIXME Forcing main to be "int"
     if (m->name() == "main") {
-        // 
+        //
         if (ret == "void") ret = "int";
     }
 #endif
@@ -524,7 +333,7 @@ std::string Cgen::generateMethodPrototype(const PureMethod *m)
         param_str = "int argc, char **argv";
     } else {
         for (auto param : m->params()) {
-            std::string t = solveNativeType(param->varType());
+            std::string t = TypeSolver::native(param->varType());
             if (!param_str.empty()) param_str += ", ";
             param_str += t + " " + param->code();
         }
@@ -595,7 +404,7 @@ std::string Cgen::generateStructInitializer(const Struct *c)
     // TODO Change to jemalloc or something else
     res += "    " + c->code() + " *tmp = calloc(1, sizeof(" + c->code() + "));\n";
     for (auto i : c->datas()) {
-        if (!isNativeType(i->varType())) {
+        if (!TypeSolver::isNative(i->varType())) {
             res += "    tmp->" + i->code() + " = new_" + i->varType() + "();\n";
         }
     }
@@ -620,7 +429,7 @@ std::string Cgen::generateStruct(const Struct *c)
 std::string Cgen::generateConst(const Const *c)
 {
     std::string res;
-    std::string t = solveNativeType(c->ident()->varType());
+    std::string t = TypeSolver::native(c->ident()->varType());
     res += "const " + t + " " + c->ident()->code();
     res += " = ";
     const Assignment *ass = c->assignment();

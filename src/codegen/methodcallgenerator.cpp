@@ -1,6 +1,7 @@
 #include "methodcallgenerator.hh"
 #include "tools.hh"
 #include "cgen.hh"
+#include "typesolver.hh"
 
 using namespace nolang;
 
@@ -27,7 +28,7 @@ void MethodCallGenerator::solveParameterNames()
 void MethodCallGenerator::solveParameterTypes()
 {
     for (auto parm : mc->params()) {
-        std::string t = cgen->solveTypeOfChain(parm, m);
+        std::string t = TypeSolver(m).typeOfChain(parm);
         if (t.empty()) t = "void *";
         ptypes.push_back(t);
     }
@@ -36,7 +37,7 @@ void MethodCallGenerator::solveParameterTypes()
 void MethodCallGenerator::solveParameterNolangTypes()
 {
     for (auto parm : mc->params()) {
-        std::string nt = cgen->solveNolangTypeOfChain(parm, m);
+        std::string nt = TypeSolver(m).nolangTypeOfChain(parm);
         nolang_ptypes.push_back(nt);
     }
 }
