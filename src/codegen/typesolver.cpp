@@ -81,7 +81,7 @@ TypeIdent *TypeSolver::solveVariable(const std::string &name) const
     return nullptr;
 }
 
-std::string TypeSolver::nativeFromStatement(const Statement *s) const
+std::string TypeSolver::native(const Statement *s) const
 {
     if (s->type() == "TypeDef") {
         if (s->code() == "void") {
@@ -92,6 +92,7 @@ std::string TypeSolver::nativeFromStatement(const Statement *s) const
         const TypeIdent *i = static_cast<const TypeIdent *>(s);
         std::string n = native(i->varType());
         // FIXME
+        std::cerr << "INVALID TYPEIDENT\n";
     } else if (s->type() == "Identifier") {
         TypeIdent *var = solveVariable(s->code());
         if (var) {
@@ -165,7 +166,7 @@ std::string TypeSolver::typeOfChain(std::vector<Statement*> chain) const
 {
     std::string res;
     for (auto c : chain) {
-        std::string t = nativeFromStatement(c);
+        std::string t = native(c);
         if (!t.empty()) {
             if (res.empty()) {
                 res = t;
@@ -184,7 +185,7 @@ std::string TypeSolver::nolangTypeOfChain(std::vector<Statement*> chain) const
 {
     std::string res;
     for (auto c : chain) {
-        std::string t = nativeFromStatement(c);
+        std::string t = nolangType(c);
         if (!t.empty()) {
             if (res.empty()) {
                 res = t;

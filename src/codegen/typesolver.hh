@@ -14,7 +14,7 @@ public:
     TypeSolver(const PureMethod *);
     static bool isNative(const std::string & s);
     static std::string native(const std::string & s);
-    std::string nativeFromStatement(const Statement *s) const;
+    std::string native(const Statement *s) const;
     std::string nolangType(const Statement *s) const;
     std::string typeOfChain(std::vector<Statement*> chain) const;
     std::string nolangTypeOfChain(std::vector<Statement*> chain) const;

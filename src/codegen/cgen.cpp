@@ -312,7 +312,7 @@ std::string Cgen::generateVariableInit(const TypeIdent *i)
 
 std::string Cgen::solveReturnType(const Statement *t, const PureMethod *m) const
 {
-    std::string ret = TypeSolver(m).nativeFromStatement(m->returnType());
+    std::string ret = TypeSolver(m).native(m->returnType());
     // FIXME Return type if not defined?
 #if 1
     // FIXME Forcing main to be "int"
