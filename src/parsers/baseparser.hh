@@ -15,6 +15,10 @@ public:
 protected:
     bool isRoot() const { return std::string(item->tag) == ">"; }
     bool isBody() const { return expect(item, "body"); }
+    bool isStatement() const { return expect(item, "stmt"); }
+    bool isTerm() const { return expect(item, "term"); }
+    bool isExpr() const { return expect(item, "expr"); }
+    bool isLexp() const { return expect(item, "lexp"); }
     bool isComment() const { return expect(item, "comment"); }
     bool isMethodDef() const { return expect(item, "methoddef"); }
     bool isMethodCall() const { return expect(item, "methodcall"); }

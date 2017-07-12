@@ -15,6 +15,8 @@ public:
 private:
     bool isImport() const;
     bool isImportString() const;
+    bool isAs() const { return expect(item, "string", "as"); }
+    bool isAsDef() const { return gotAs && isIdentifier(); }
     bool isSub() const { return isNamespaceDef(); }
 
     void reset();
@@ -27,6 +29,7 @@ private:
     void parseAs();
 
     mpc_ast_t *tree;
+    bool gotAs;
 
     Import *res;
 };

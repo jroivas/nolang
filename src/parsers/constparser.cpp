@@ -48,6 +48,7 @@ void ConstParser::parseItem()
 {
     if (isConst()) wait_const = false;
     else if (isAssignment()) parseAssignment();
+    else if (isWhitespace() || isNewLine());
     else printError("Unknown node in const defination", item);
 }
 

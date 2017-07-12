@@ -31,6 +31,7 @@ void NamespaceDefParser::parseItem()
     if (isIdentifier()) parseIdentifier();
     else if (isCast()) parseCast();
     else if (isDot()); // TODO
+    else if (isWhitespace());
     else printError("Unknown node in namespace defination", item);
 }
 

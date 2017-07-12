@@ -104,7 +104,7 @@ void MethodParser::parseItem()
     else if (isIdentifier()) parseIdentifier();
     else if (isArguments()) parseArguments();
     else if (isMethodReturn()) parseMethodReturn();
-    else if (isOptionalWhitespace()) {}
+    else if (isOptionalWhitespace());
     else if (isBodyStart()) parseBodyStart();
     else if (isBody()) parseBody();
     else if (isWhitespace() || isNewLine()) {}

@@ -66,6 +66,7 @@ void MethodCallParser::parseItem()
     else if (isOpenBrace()) wait_call_end = true;
     else if (isCloseBrace()) wait_call_end = false;
     else if (isParameter()) parseParameter();
+    else if (isOptionalWhitespace());
     else printError("Unknown node in method call", item);
 }
 

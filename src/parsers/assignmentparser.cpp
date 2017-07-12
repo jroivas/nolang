@@ -81,6 +81,7 @@ void AssignmentParser::parseItem()
     else if (isNamespaceDef()) parseNamespaceDef();
     else if (isAssignment()) gotAssignment();
     else if (isStatement()) parseStatements();
+    else if (isWhitespace());
     else printError("Unknown node in assignment", item);
 }
 

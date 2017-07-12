@@ -12,11 +12,14 @@ StructParser::StructParser(mpc_ast_t *t) :
 void StructParser::reset()
 {
     res = nullptr;
+    got_struct = false;
+    begin_struct = false;
+    end_struct = false;
 }
 
 bool StructParser::isStruct()
 {
-    return !res && expect(item, "identifier");
+    return got_struct && !res && expect(item, "identifier");
 }
 
 bool StructParser::isData()
@@ -31,13 +34,18 @@ void StructParser::createStruct()
 
 void StructParser::parseData()
 {
+    if (!begin_struct || end_struct) throw std::string("Struct not open!");
     res->addData(TypeIdentParser(item).parse());
 }
 
 void StructParser::parseItem()
 {
-    if (isStruct()) createStruct();
+    if (isStructString()) got_struct = true;
+    else if (isStruct()) createStruct();
+    else if (isBraceOpen()) begin_struct = true;
+    else if (isBraceClose()) end_struct = true;
     else if (isData()) parseData();
+    else if (isWhitespace() || isNewLine());
     else printError("Unknown node in struct", item);
 }
 

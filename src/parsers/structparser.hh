@@ -14,6 +14,9 @@ public:
 
 private:
     bool isStruct();
+    bool isStructString() { return expect(item, "string", "struct"); }
+    bool isBraceOpen() { return expect(item, "char", "{"); }
+    bool isBraceClose() { return expect(item, "char", "}"); }
     bool isData();
 
     void reset();
@@ -24,6 +27,9 @@ private:
     mpc_ast_t *tree;
 
     Struct *res;
+    bool got_struct;
+    bool begin_struct;
+    bool end_struct;
 };
 
 }

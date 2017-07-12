@@ -11,6 +11,7 @@ ImportParser::ImportParser(mpc_ast_t *t) :
 void ImportParser::reset()
 {
     res = nullptr;
+    gotAs = false;
 }
 
 bool ImportParser::isImport() const
@@ -30,6 +31,7 @@ void ImportParser::createImport()
 
 void ImportParser::addAs()
 {
+    if (!gotAs) throw std::string("Invalid import: did not get 'as'.");
     res->addAs(item->contents);
 }
 
@@ -56,6 +58,7 @@ void ImportParser::parseSub()
     iterateTree(tmp, [&] (mpc_ast_t *sub) {
         item = sub;
         if (isIdentifier()) parseSubIdentifier();
+        else if (isDot()); //FIXME
         else printError("Unknown node in import as", item);
     });
 }
@@ -63,6 +66,7 @@ void ImportParser::parseSub()
 void ImportParser::parseItem()
 {
     if (isImportString());
+    else if (isAs()) gotAs = true;
     else if (isIdentifier()) parseAs();
     else if (isSub()) parseSub();
     else if (isWhitespace() || isNewLine());

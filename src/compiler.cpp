@@ -100,6 +100,7 @@ void Compiler::parseAssignment()
 void Compiler::parseNumber()
 {
     rdata.push_back(NumberParser(item).parse());
+    recurse = false;
 }
 
 void Compiler::parseTermOp()
@@ -210,6 +211,10 @@ std::vector<Statement*> Compiler::gen()
     else if (isComparator()) parseComparator();
     else if (isBrace()) parseBrace();
     else if (isWhitespace());
+    else if (isStatement() || isTerm()); //recurse
+    else if (isExpr() || isLexp()); //recurse
+    // FIXME methodret
+    // FIXME comma separated
     else printError("Unknown node in statement", tree);
 
     doRecurse();
