@@ -1,12 +1,15 @@
 #pragma once
 
 #include <3pp/mpc/mpc.h>
+#include "baseparser.hh"
 #include "const.hh"
 #include "compiler.hh"
 
-namespace nolang {
+namespace nolang
+{
 
-class ConstParser {
+class ConstParser : public BaseParser
+{
 public:
     ConstParser(Compiler *, mpc_ast_t *);
     Const *parse();
@@ -23,7 +26,6 @@ private:
 
     Compiler *compiler;
     mpc_ast_t *tree;
-    mpc_ast_t *item;
     Const *res;
     PureMethod tmpMethod;
     Assignment *assignment;

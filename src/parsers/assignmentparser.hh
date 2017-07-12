@@ -1,13 +1,15 @@
 #pragma once
 
 #include <3pp/mpc/mpc.h>
+#include "baseparser.hh"
 #include "assignment.hh"
 #include "compiler.hh"
 #include "puremethod.hh"
 
-namespace nolang {
+namespace nolang
+{
 
-class AssignmentParser
+class AssignmentParser : public BaseParser
 {
 public:
     AssignmentParser(Compiler *, mpc_ast_t *, PureMethod *);
@@ -30,7 +32,6 @@ private:
 
     Compiler *compiler;
     mpc_ast_t *tree;
-    mpc_ast_t *item;
     PureMethod *method;
     Assignment *assignment;
 

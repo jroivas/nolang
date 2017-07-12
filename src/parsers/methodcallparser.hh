@@ -1,12 +1,14 @@
 #pragma once
 
 #include <3pp/mpc/mpc.h>
+#include "baseparser.hh"
 #include "methodcall.hh"
 #include "compiler.hh"
 
 namespace nolang {
 
-class MethodCallParser {
+class MethodCallParser : public BaseParser
+{
 public:
     MethodCallParser(Compiler *, mpc_ast_t *);
     MethodCall *parse();
@@ -26,7 +28,6 @@ private:
 
     Compiler *compiler;
     mpc_ast_t *tree;
-    mpc_ast_t *item;
     MethodCall *mcall;
 
     bool wait_ns;

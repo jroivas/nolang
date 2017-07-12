@@ -1,11 +1,12 @@
 #pragma once
 
 #include <3pp/mpc/mpc.h>
+#include "baseparser.hh"
 #include "struct.hh"
 
 namespace nolang {
 
-class StructParser
+class StructParser : public BaseParser
 {
 public:
     StructParser(mpc_ast_t *);
@@ -21,7 +22,6 @@ private:
     void createStruct();
 
     mpc_ast_t *tree;
-    mpc_ast_t *item;
 
     Struct *res;
 };

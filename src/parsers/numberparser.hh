@@ -1,11 +1,12 @@
 #pragma once
 
 #include <3pp/mpc/mpc.h>
+#include "baseparser.hh"
 #include "statement.hh"
 
 namespace nolang {
 
-class NumberParser
+class NumberParser : public BaseParser
 {
 public:
     NumberParser(mpc_ast_t *);
@@ -23,7 +24,6 @@ private:
     void parseItem();
 
     mpc_ast_t *tree;
-    mpc_ast_t *item;
     bool negate;
 
     NumberValue *res;
