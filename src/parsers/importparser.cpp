@@ -13,19 +13,14 @@ void ImportParser::reset()
     res = nullptr;
 }
 
-bool ImportParser::isIdentifier() const
-{
-    return expect(item, "identifier");
-}
-
-bool ImportParser::isSub() const
-{
-    return expect(item, "namespacedef");
-}
-
 bool ImportParser::isImport() const
 {
     return res != nullptr;
+}
+
+bool ImportParser::isImportString() const
+{
+    return expect(item, "string","import");
 }
 
 void ImportParser::createImport()
@@ -67,8 +62,10 @@ void ImportParser::parseSub()
 
 void ImportParser::parseItem()
 {
-    if (isIdentifier()) parseAs();
+    if (isImportString());
+    else if (isIdentifier()) parseAs();
     else if (isSub()) parseSub();
+    else if (isWhitespace() || isNewLine());
     else printError("Unknown node in import", item);
 }
 

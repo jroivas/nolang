@@ -1,11 +1,12 @@
 #pragma once
 
 #include <3pp/mpc/mpc.h>
+#include "baseparser.hh"
 #include "import.hh"
 
 namespace nolang {
 
-class ImportParser
+class ImportParser : public BaseParser
 {
 public:
     ImportParser(mpc_ast_t *);
@@ -13,8 +14,8 @@ public:
 
 private:
     bool isImport() const;
-    bool isIdentifier() const;
-    bool isSub() const;
+    bool isImportString() const;
+    bool isSub() const { return isNamespaceDef(); }
 
     void reset();
     void parseItem();
@@ -26,7 +27,6 @@ private:
     void parseAs();
 
     mpc_ast_t *tree;
-    mpc_ast_t *item;
 
     Import *res;
 };

@@ -32,11 +32,6 @@ bool TypeIdentParser::isIdentifierName() const
     return wait_colon;
 }
 
-bool TypeIdentParser::isIdentifier() const
-{
-    return expect(item, "identifier");
-}
-
 bool TypeIdentParser::isColon() const
 {
     return wait_colon && expect(item, "char", ":");

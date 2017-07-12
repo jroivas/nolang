@@ -45,10 +45,6 @@ bool ArgumentParser::isTypeIdentifier(Statement *s) const
     return s && s->type() == "TypeIdent";
 }
 
-bool ArgumentParser::isOptionalWhitespace() const
-{
-    return expect(item, "ows");
-}
 
 void ArgumentParser::parseTypeIdent()
 {

@@ -37,16 +37,6 @@ bool MethodParser::isMethodReturn() const
     return !waitName && expect(item, "methodret");
 }
 
-bool MethodParser::isOptionalWhitespace() const
-{
-    return expect(item, "ows");
-}
-
-bool MethodParser::isWhitespace() const
-{
-    return expect(item, "newline") || expect(item, "ws");
-}
-
 bool MethodParser::isBodyStart() const
 {
     return !waitBody && expect(item, "string", "=>");
@@ -117,7 +107,7 @@ void MethodParser::parseItem()
     else if (isOptionalWhitespace()) {}
     else if (isBodyStart()) parseBodyStart();
     else if (isBody()) parseBody();
-    else if (isWhitespace()) {}
+    else if (isWhitespace() || isNewLine()) {}
     else printError("Unknown node in method", item);
 }
 

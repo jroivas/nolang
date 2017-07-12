@@ -2,11 +2,12 @@
 
 #include <3pp/mpc/mpc.h>
 #include "puremethod.hh"
+#include "baseparser.hh"
 #include "compiler.hh"
 
 namespace nolang {
 
-class MethodParser
+class MethodParser : public BaseParser
 {
 public:
     MethodParser(Compiler *, mpc_ast_t *);
@@ -19,10 +20,8 @@ private:
     bool isIdentifier() const;
     bool isArguments() const;
     bool isMethodReturn() const;
-    bool isOptionalWhitespace() const;
     bool isBodyStart() const;
     bool isBody() const;
-    bool isWhitespace() const;
     bool isValidMethodReturn() const;
     bool isMethodReturnTypeIdentifier() const;
 
@@ -36,7 +35,6 @@ private:
 
     Compiler *compiler;
     mpc_ast_t *tree;
-    mpc_ast_t *item;
     std::vector<Statement*> ret;
 
     bool waitName;

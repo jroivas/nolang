@@ -2,12 +2,13 @@
 
 #include <3pp/mpc/mpc.h>
 #include "namespacedef.hh"
+#include "baseparser.hh"
 #include "compiler.hh"
 #include "puremethod.hh"
 
 namespace nolang {
 
-class NamespaceDefParser
+class NamespaceDefParser : public BaseParser
 {
 public:
     NamespaceDefParser(mpc_ast_t *);
@@ -15,10 +16,6 @@ public:
 
 private:
     void reset();
-
-    bool isIdentifier() const;
-    bool isCast() const;
-    bool isDot() const;
 
     void parseIdentifier();
     void parseCast();
@@ -28,7 +25,6 @@ private:
     void setValues();
 
     mpc_ast_t *tree;
-    mpc_ast_t *item;
     bool cast;
 
     NamespaceDef *namespacedef;

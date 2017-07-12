@@ -2,12 +2,13 @@
 
 #include <3pp/mpc/mpc.h>
 #include <vector>
+#include "baseparser.hh"
 #include "puremethod.hh"
 #include "compiler.hh"
 
 namespace nolang {
 
-class ArgumentParser
+class ArgumentParser : public BaseParser
 {
 public:
     ArgumentParser(Compiler *, mpc_ast_t *);
@@ -22,7 +23,6 @@ private:
     bool isTypeIdent() const;
     bool isComma() const;
     bool isTypeIdentifier(Statement *s) const;
-    bool isOptionalWhitespace() const;
 
     void parseTypeIdent();
     void parseParamDef();
@@ -30,7 +30,6 @@ private:
 
     Compiler *compiler;
     mpc_ast_t *tree;
-    mpc_ast_t *item;
 
     int braceOpenLevel;
 

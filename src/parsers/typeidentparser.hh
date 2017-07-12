@@ -1,13 +1,14 @@
 #pragma once
 
 #include <3pp/mpc/mpc.h>
+#include "baseparser.hh"
 #include "typeident.hh"
 #include "compiler.hh"
 #include "puremethod.hh"
 
 namespace nolang {
 
-class TypeIdentParser
+class TypeIdentParser : public BaseParser
 {
 public:
     TypeIdentParser(mpc_ast_t *);
@@ -18,14 +19,12 @@ private:
     void foundColon();
 
     bool isIdentifierName() const;
-    bool isIdentifier() const;
     bool isColon() const;
 
     void parseIdentifier();
     void parseItem();
 
     mpc_ast_t *tree;
-    mpc_ast_t *item;
 
     bool wait_colon;
     std::string name;

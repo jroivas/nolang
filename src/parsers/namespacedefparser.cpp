@@ -26,21 +26,6 @@ void NamespaceDefParser::parseCast()
     cast = true;
 }
 
-bool NamespaceDefParser::isIdentifier() const
-{
-    return expect(item, "identifier");
-}
-
-bool NamespaceDefParser::isCast() const
-{
-    return expect(item, "string", "::");
-}
-
-bool NamespaceDefParser::isDot() const
-{
-    return expect(item, "char", ".");
-}
-
 void NamespaceDefParser::parseItem()
 {
     if (isIdentifier()) parseIdentifier();

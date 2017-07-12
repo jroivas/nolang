@@ -190,7 +190,7 @@ void Compiler::doRecurse()
 std::vector<Statement*> Compiler::gen()
 {
     item = tree;
-    if (isRoot());
+    if (isRoot() || isBody());
     else if (isComment()) recurse = false;
     else if (isMethodDef()) parseMethodDef();
     else if (isStruct()) parseStruct();

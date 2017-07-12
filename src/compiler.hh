@@ -5,6 +5,7 @@
 #include <iostream>
 #include <3pp/mpc/mpc.h>
 
+#include "parsers/baseparser.hh"
 #include "statement.hh"
 #include "puremethod.hh"
 #include "methodcall.hh"
@@ -19,7 +20,7 @@
 namespace nolang
 {
 
-class Compiler
+class Compiler : public BaseParser
 {
 public:
     Compiler();
@@ -49,26 +50,6 @@ protected:
     std::vector<Struct*> m_structs;
 
     bool isEOS(Statement *s) const { return s->type() == "EOS"; }
-    bool isRoot() const { return std::string(item->tag) == ">"; }
-    bool isComment() const { return expect(item, "comment"); }
-    bool isMethodDef() const { return expect(item, "methoddef"); }
-    bool isMethodCall() const { return expect(item, "methodcall"); }
-    bool isStruct() const { return expect(item, "struct"); }
-    bool isIndent() const { return expect(item, "indent"); }
-    bool isAssignment() const { return expect(item, "assignment"); }
-    bool isNumber() const { return expect(item, "number"); }
-    bool isTermOp() const { return expect(item, "termop"); }
-    bool isFactorOp() const { return expect(item, "factorop"); }
-    bool isString() const { return expect(item, "string"); }
-    bool isTypeIdent() const { return expect(item, "typeident"); }
-    bool isNamespaceDef() const { return expect(item, "namespacedef"); }
-    bool isIdentifier() const { return expect(item, "identifier"); }
-    bool isImport() const { return expect(item, "import"); }
-    bool isConst() const { return expect(item, "const"); }
-    bool isNewLine() const { return expect(item, "newline"); }
-    bool isComparator() const { return expect(item, "comparator"); }
-    bool isBrace() const { return expect(item, "char", "(") || expect(item, "char", ")"); }
-    bool isWhitespace() const { return expect(item, "ows") || expect(item, "ws"); }
     bool isBooleanDef() const {
         std::string cnts = item->contents;
         return cnts == "false" || cnts == "true";
@@ -98,7 +79,6 @@ protected:
 
     Compiler *parent;
     mpc_ast_t *tree;
-    mpc_ast_t *item;
     PureMethod *method;
 
     int level;
