@@ -74,9 +74,14 @@ void ArgumentParser::parseItem()
     else printError("Unknown node in arguments", item);
 }
 
-std::vector<TypeIdent*> ArgumentParser::parse()
+std::vector<TypeIdent*> ArgumentParser::parseList()
 {
     reset();
     iterate(item, tree, parseItem);
     return params;
+}
+
+Statement* ArgumentParser::parse()
+{
+    throw std::string("Call parseList instead");
 }

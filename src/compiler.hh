@@ -24,6 +24,7 @@ class Compiler : public BaseParser
 {
 public:
     Compiler();
+    Statement *parse() { throw std::string("Not implemented"); }
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 

@@ -79,7 +79,7 @@ void MethodParser::parseMethodReturn()
 
 void MethodParser::parseArguments()
 {
-    method->setParameters(ArgumentParser(compiler, item).parse());
+    method->setParameters(ArgumentParser(compiler, item).parseList());
 }
 
 void MethodParser::parseBodyStart()

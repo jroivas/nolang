@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tools.hh"
+#include "statement.hh"
 
 namespace nolang {
 
@@ -8,6 +9,8 @@ class BaseParser
 {
 public:
     BaseParser() {}
+    virtual ~BaseParser() {}
+    virtual Statement *parse() = 0;
 
 protected:
     bool isRoot() const { return std::string(item->tag) == ">"; }
