@@ -27,7 +27,6 @@ private:
     void parseParameter();
 
     Compiler *compiler;
-    mpc_ast_t *tree;
     MethodCall *mcall;
 
     bool wait_ns;

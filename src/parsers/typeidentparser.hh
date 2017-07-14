@@ -24,8 +24,6 @@ private:
     void parseIdentifier();
     void parseItem();
 
-    mpc_ast_t *tree;
-
     bool wait_colon;
     std::string name;
     std::string type;

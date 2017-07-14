@@ -25,7 +25,6 @@ private:
     void generateConst();
 
     Compiler *compiler;
-    mpc_ast_t *tree;
     Const *res;
     PureMethod tmpMethod;
     Assignment *assignment;

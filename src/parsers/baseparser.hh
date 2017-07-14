@@ -8,7 +8,7 @@ namespace nolang {
 class BaseParser
 {
 public:
-    BaseParser() {}
+    BaseParser(mpc_ast_t *t) : tree(t), item(nullptr) {}
     virtual ~BaseParser() {}
     virtual Statement *parse() = 0;
 
@@ -42,6 +42,7 @@ protected:
     bool isIdentifier() const { return expect(item, "identifier"); }
     bool isBrace() const { return expect(item, "char", "(") || expect(item, "char", ")"); }
 
+    mpc_ast_t *tree;
     mpc_ast_t *item;
 };
 

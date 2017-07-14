@@ -23,7 +23,6 @@ private:
     void createSimpleNumber();
     void parseItem();
 
-    mpc_ast_t *tree;
     bool negate;
 
     NumberValue *res;

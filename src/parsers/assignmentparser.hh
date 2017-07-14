@@ -31,7 +31,6 @@ private:
     bool isStatement() const;
 
     Compiler *compiler;
-    mpc_ast_t *tree;
     PureMethod *method;
     Assignment *assignment;
 

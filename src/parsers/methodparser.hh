@@ -34,7 +34,6 @@ private:
     void setMethodReturnType();
 
     Compiler *compiler;
-    mpc_ast_t *tree;
     std::vector<Statement*> ret;
 
     bool waitName;

@@ -30,7 +30,6 @@ private:
     void parseItem();
 
     Compiler *compiler;
-    mpc_ast_t *tree;
 
     int braceOpenLevel;
 

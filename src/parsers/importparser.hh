@@ -28,7 +28,6 @@ private:
     void parseSubIdentifier();
     void parseAs();
 
-    mpc_ast_t *tree;
     bool gotAs;
 
     Import *res;

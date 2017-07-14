@@ -4,7 +4,7 @@
 using namespace nolang;
 
 NamespaceDefParser::NamespaceDefParser(mpc_ast_t *t) :
-    tree(t)
+    BaseParser(t)
 {
 }
 

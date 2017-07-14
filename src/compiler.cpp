@@ -14,13 +14,14 @@
 using namespace nolang;
 
 Compiler::Compiler() :
+    BaseParser(nullptr),
     recurse(true)
 {
     parent = this;
 }
 
 Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
-    tree(t),
+    BaseParser(t),
     method(m),
     level(l),
     parameters(p),

@@ -5,8 +5,8 @@
 using namespace nolang;
 
 MethodParser::MethodParser(Compiler *c, mpc_ast_t *t) :
-    compiler(c),
-    tree(t)
+    BaseParser(t),
+    compiler(c)
 {
 }
 

@@ -79,7 +79,6 @@ protected:
     void doRecurse();
 
     Compiler *parent;
-    mpc_ast_t *tree;
     PureMethod *method;
 
     int level;

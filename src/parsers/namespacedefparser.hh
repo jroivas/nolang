@@ -24,7 +24,6 @@ private:
     void destroyResult();
     void setValues();
 
-    mpc_ast_t *tree;
     bool cast;
 
     NamespaceDef *namespacedef;

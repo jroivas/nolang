@@ -6,8 +6,8 @@
 using namespace nolang;
 
 AssignmentParser::AssignmentParser(Compiler *c, mpc_ast_t *t, PureMethod *m) :
+    BaseParser(t),
     compiler(c),
-    tree(t),
     method(m),
     assignment(nullptr)
 {

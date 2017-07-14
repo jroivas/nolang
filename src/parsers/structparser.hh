@@ -24,8 +24,6 @@ private:
     void parseData();
     void createStruct();
 
-    mpc_ast_t *tree;
-
     Struct *res;
     bool got_struct;
     bool begin_struct;

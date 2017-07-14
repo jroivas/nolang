@@ -4,7 +4,7 @@
 using namespace nolang;
 
 TypeIdentParser::TypeIdentParser(mpc_ast_t *t) :
-    tree(t)
+    BaseParser(t)
 {
 }
 
