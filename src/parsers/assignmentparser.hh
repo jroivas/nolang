@@ -9,11 +9,10 @@
 namespace nolang
 {
 
-class AssignmentParser : public BaseParser
+class AssignmentParser : public BaseParser<Assignment>
 {
 public:
     AssignmentParser(Compiler *, mpc_ast_t *, PureMethod *);
-    Assignment *parse();
 
 private:
     void reset();
@@ -32,7 +31,6 @@ private:
 
     Compiler *compiler;
     PureMethod *method;
-    Assignment *assignment;
 
     bool wait_for_ident;
     bool wait_for_assign;

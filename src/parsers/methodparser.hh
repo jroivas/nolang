@@ -7,11 +7,10 @@
 
 namespace nolang {
 
-class MethodParser : public BaseParser
+class MethodParser : public BaseParser<PureMethod>
 {
 public:
     MethodParser(Compiler *, mpc_ast_t *);
-    PureMethod *parse();
 
 private:
     void reset();
@@ -38,8 +37,6 @@ private:
 
     bool waitName;
     bool waitBody;
-
-    PureMethod *method;
 };
 
 }

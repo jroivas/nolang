@@ -14,7 +14,7 @@ void MethodCallParser::reset()
 {
     wait_ns = true;
     wait_call_end = false;
-    mcall = new MethodCall();
+    res = new MethodCall();
 }
 
 bool MethodCallParser::isIdentifier() const
@@ -44,19 +44,19 @@ bool MethodCallParser::isParameter() const
 
 void MethodCallParser::parseIdentifier()
 {
-    mcall->setNamespace(new NamespaceDef(item->contents));
+    res->setNamespace(new NamespaceDef(item->contents));
     wait_ns = false;
 }
 
 void MethodCallParser::parseNamespaceDef()
 {
-    mcall->setNamespace(NamespaceDefParser(item).parse());
+    res->setNamespace(NamespaceDefParser(item).parse());
     wait_ns = false;
 }
 
 void MethodCallParser::parseParameter()
 {
-    mcall->addParameter(compiler->codegen(item));
+    res->addParameter(compiler->codegen(item));
 }
 
 void MethodCallParser::parseItem()
@@ -68,11 +68,4 @@ void MethodCallParser::parseItem()
     else if (isParameter()) parseParameter();
     else if (isOptionalWhitespace());
     else printError("Unknown node in method call", item);
-}
-
-MethodCall *MethodCallParser::parse()
-{
-    reset();
-    iterate(item, tree, parseItem);
-    return mcall;
 }

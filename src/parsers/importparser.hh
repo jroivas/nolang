@@ -6,11 +6,10 @@
 
 namespace nolang {
 
-class ImportParser : public BaseParser
+class ImportParser : public BaseParser<Import>
 {
 public:
     ImportParser(mpc_ast_t *);
-    Import *parse();
 
 private:
     bool isImport() const;
@@ -20,7 +19,7 @@ private:
     bool isSub() const { return isNamespaceDef(); }
 
     void reset();
-    void parseItem();
+    virtual void parseItem();
     void createImport();
     void addAs();
     void addSub();
@@ -29,8 +28,6 @@ private:
     void parseAs();
 
     bool gotAs;
-
-    Import *res;
 };
 
 }

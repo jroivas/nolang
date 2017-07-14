@@ -8,11 +8,10 @@
 namespace nolang
 {
 
-class ConstParser : public BaseParser
+class ConstParser : public BaseParser<Const>
 {
 public:
     ConstParser(Compiler *, mpc_ast_t *);
-    Const *parse();
 
 private:
     bool isConst() const;
@@ -25,7 +24,6 @@ private:
     void generateConst();
 
     Compiler *compiler;
-    Const *res;
     PureMethod tmpMethod;
     Assignment *assignment;
 

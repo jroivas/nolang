@@ -48,10 +48,3 @@ void StructParser::parseItem()
     else if (isWhitespace() || isNewLine());
     else printError("Unknown node in struct", item);
 }
-
-Struct *StructParser::parse()
-{
-    reset();
-    iterate(item, tree, parseItem);
-    return res;
-}

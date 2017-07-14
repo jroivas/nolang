@@ -7,6 +7,7 @@ ArgumentParser::ArgumentParser(Compiler *c, mpc_ast_t *t) :
     BaseParser(t),
     compiler(c)
 {
+    parse_implemented = false;
 }
 
 void ArgumentParser::reset()
@@ -48,8 +49,8 @@ bool ArgumentParser::isTypeIdentifier(Statement *s) const
 
 void ArgumentParser::parseTypeIdent()
 {
-    auto res = compiler->codegen(item, nullptr, 0, true);
-    for (auto r : res){
+    auto code = compiler->codegen(item, nullptr, 0, true);
+    for (auto r : code) {
         if (isTypeIdentifier(r)) params.push_back(static_cast<TypeIdent*>(r));
         else throw std::string("Invalid parameter definition: " + r->code());
     }
@@ -79,9 +80,4 @@ std::vector<TypeIdent*> ArgumentParser::parseList()
     reset();
     iterate(item, tree, parseItem);
     return params;
-}
-
-Statement* ArgumentParser::parse()
-{
-    throw std::string("Call parseList instead");
 }

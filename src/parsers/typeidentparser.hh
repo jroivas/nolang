@@ -8,11 +8,10 @@
 
 namespace nolang {
 
-class TypeIdentParser : public BaseParser
+class TypeIdentParser : public BaseParser<TypeIdent>
 {
 public:
     TypeIdentParser(mpc_ast_t *);
-    TypeIdent *parse();
 
 private:
     void reset();

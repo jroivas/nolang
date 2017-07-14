@@ -8,14 +8,13 @@ using namespace nolang;
 AssignmentParser::AssignmentParser(Compiler *c, mpc_ast_t *t, PureMethod *m) :
     BaseParser(t),
     compiler(c),
-    method(m),
-    assignment(nullptr)
+    method(m)
 {
 }
 
 void AssignmentParser::reset()
 {
-    assignment = nullptr;
+    res = nullptr;
     wait_for_ident = true;
     wait_for_assign = false;
 }
@@ -37,7 +36,7 @@ void AssignmentParser::parseTypeIdent()
     TypeIdent *ident = parser.parse();
     if (method) method->addVariable(ident);
     gotIdentifier();
-    assignment = new Assignment(ident->code());
+    res = new Assignment(ident->code());
 }
 
 void AssignmentParser::parseNamespaceDef()
@@ -47,12 +46,12 @@ void AssignmentParser::parseNamespaceDef()
     if (def == nullptr)
         throw std::string("Invalid NamespaceDef in assignment");
     gotIdentifier();
-    assignment = new Assignment(def);
+    res = new Assignment(def);
 }
 
 void AssignmentParser::parseStatements()
 {
-    assignment->addStatements(compiler->codegen(item, method));
+    res->addStatements(compiler->codegen(item, method));
 }
 
 bool AssignmentParser::isTypeIdent() const
@@ -83,11 +82,4 @@ void AssignmentParser::parseItem()
     else if (isStatement()) parseStatements();
     else if (isWhitespace());
     else printError("Unknown node in assignment", item);
-}
-
-Assignment *AssignmentParser::parse()
-{
-    reset();
-    iterate(item, tree, parseItem);
-    return assignment;
 }

@@ -8,14 +8,14 @@
 
 namespace nolang {
 
-class NamespaceDefParser : public BaseParser
+class NamespaceDefParser : public BaseParser<NamespaceDef>
 {
 public:
     NamespaceDefParser(mpc_ast_t *);
-    NamespaceDef *parse();
 
 private:
     void reset();
+    void postProcess();
 
     void parseIdentifier();
     void parseCast();
@@ -26,7 +26,6 @@ private:
 
     bool cast;
 
-    NamespaceDef *namespacedef;
     std::vector<std::string> definitions;
 };
 

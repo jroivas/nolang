@@ -17,6 +17,7 @@ Compiler::Compiler() :
     BaseParser(nullptr),
     recurse(true)
 {
+    parse_implemented = false;
     parent = this;
 }
 
@@ -27,6 +28,7 @@ Compiler::Compiler(Compiler *pt, mpc_ast_t *t, PureMethod *m, int l, bool p) :
     parameters(p),
     recurse(true)
 {
+    parse_implemented = false;
     Compiler *cp = pt;
     while (cp->parent != cp) cp = cp->parent;
     parent = cp;

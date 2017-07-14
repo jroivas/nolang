@@ -8,12 +8,11 @@
 
 namespace nolang {
 
-class ArgumentParser : public BaseParser
+class ArgumentParser : public BaseParser<void>
 {
 public:
     ArgumentParser(Compiler *, mpc_ast_t *);
     std::vector<TypeIdent*> parseList();
-    Statement *parse();
 
 private:
     void reset();

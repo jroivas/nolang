@@ -7,11 +7,10 @@
 
 namespace nolang {
 
-class MethodCallParser : public BaseParser
+class MethodCallParser : public BaseParser<MethodCall>
 {
 public:
     MethodCallParser(Compiler *, mpc_ast_t *);
-    MethodCall *parse();
 
 private:
     bool isIdentifier() const;
@@ -27,7 +26,6 @@ private:
     void parseParameter();
 
     Compiler *compiler;
-    MethodCall *mcall;
 
     bool wait_ns;
     bool wait_call_end;

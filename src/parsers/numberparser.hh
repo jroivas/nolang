@@ -6,14 +6,15 @@
 
 namespace nolang {
 
-class NumberParser : public BaseParser
+class NumberParser : public BaseParser<NumberValue>
 {
 public:
     NumberParser(mpc_ast_t *);
-    NumberValue *parse();
 
 private:
     void reset();
+    bool isIterable();
+    void nonIterableAction();
 
     bool isNegate() const;
     bool isNumberValue() const;
@@ -24,8 +25,6 @@ private:
     void parseItem();
 
     bool negate;
-
-    NumberValue *res;
 };
 
 }

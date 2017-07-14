@@ -51,10 +51,3 @@ void ConstParser::parseItem()
     else if (isWhitespace() || isNewLine());
     else printError("Unknown node in const defination", item);
 }
-
-Const *ConstParser::parse()
-{
-    reset();
-    iterate(item, tree, parseItem);
-    return res;
-}

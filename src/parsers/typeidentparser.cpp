@@ -13,6 +13,7 @@ void TypeIdentParser::reset()
     wait_colon = true;
     name = "";
     type = "";
+    res = nullptr;
 }
 
 void TypeIdentParser::foundColon()
@@ -24,7 +25,8 @@ void TypeIdentParser::foundColon()
 void TypeIdentParser::parseIdentifier()
 {
     if (isIdentifierName()) name += item->contents;
-    else type += item->contents;
+    else res = new TypeIdent(name, item->contents);
+    // FIXME
 }
 
 bool TypeIdentParser::isIdentifierName() const
@@ -41,11 +43,4 @@ void TypeIdentParser::parseItem()
 {
     if (isIdentifier()) parseIdentifier();
     else if (isColon()) foundColon();
-}
-
-TypeIdent *TypeIdentParser::parse()
-{
-    reset();
-    iterate(item, tree, parseItem);
-    return new TypeIdent(name, type);
 }

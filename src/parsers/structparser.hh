@@ -6,11 +6,10 @@
 
 namespace nolang {
 
-class StructParser : public BaseParser
+class StructParser : public BaseParser<Struct>
 {
 public:
     StructParser(mpc_ast_t *);
-    Struct *parse();
 
 private:
     bool isStruct();
@@ -24,7 +23,6 @@ private:
     void parseData();
     void createStruct();
 
-    Struct *res;
     bool got_struct;
     bool begin_struct;
     bool end_struct;

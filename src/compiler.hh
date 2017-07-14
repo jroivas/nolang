@@ -20,11 +20,10 @@
 namespace nolang
 {
 
-class Compiler : public BaseParser
+class Compiler : public BaseParser<void>
 {
 public:
     Compiler();
-    Statement *parse() { throw std::string("Not implemented"); }
 
     std::vector<Statement*> codegen(mpc_ast_t *tree, PureMethod *m=nullptr, int level=0, bool parameters=false);
 
@@ -39,6 +38,8 @@ protected:
     Compiler(Compiler *, mpc_ast_t *, PureMethod *, int level, bool parameters);
     std::vector<Statement*> gen();
 
+    void reset() {}
+    void parseItem() {}
     void appendStatement(Statement *s);
     void appendBlock();
 

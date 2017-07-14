@@ -47,10 +47,12 @@ void NumberParser::parseItem()
     else printError("Unknown node in number", item);
 }
 
-NumberValue *NumberParser::parse()
+void NumberParser::nonIterableAction()
 {
-    reset();
-    if (isSimpleNumber()) createSimpleNumber();
-    else iterate(item, tree, parseItem);
-    return res;
+    createSimpleNumber();
+}
+
+bool NumberParser::isIterable()
+{
+    return !isSimpleNumber();
 }

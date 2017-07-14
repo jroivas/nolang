@@ -5,14 +5,31 @@
 
 namespace nolang {
 
+template<class T>
 class BaseParser
 {
 public:
-    BaseParser(mpc_ast_t *t) : tree(t), item(nullptr) {}
+    BaseParser(mpc_ast_t *t) :
+        tree(t),
+        item(nullptr),
+        res(nullptr),
+        parse_implemented(true)
+    {
+    }
     virtual ~BaseParser() {}
-    virtual Statement *parse() = 0;
+    virtual T *parse() final {
+        doParse();
+        return res;
+    }
 
 protected:
+    // Logic must be implemented here
+    virtual void reset() = 0;
+    virtual void parseItem() = 0;
+    virtual void postProcess() {}
+    virtual bool isIterable() { return true; }
+    virtual void nonIterableAction() {}
+
     bool isRoot() const { return std::string(item->tag) == ">"; }
     bool isBody() const { return expect(item, "body"); }
     bool isStatement() const { return expect(item, "stmt"); }
@@ -44,6 +61,26 @@ protected:
 
     mpc_ast_t *tree;
     mpc_ast_t *item;
+
+    T *res;
+
+    bool parse_implemented;
+
+private:
+    void doParse();
 };
+
+template<class T>
+void BaseParser<T>::doParse()
+{
+    if (!parse_implemented) throw std::string("Parse not implemented!");
+
+    reset();
+
+    if (isIterable()) iterate(item, tree, parseItem)
+    else nonIterableAction();
+
+    postProcess();
+}
 
 }

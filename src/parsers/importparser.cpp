@@ -72,10 +72,3 @@ void ImportParser::parseItem()
     else if (isWhitespace() || isNewLine());
     else printError("Unknown node in import", item);
 }
-
-Import *ImportParser::parse()
-{
-    reset();
-    iterate(item, tree, parseItem);
-    return res;
-}

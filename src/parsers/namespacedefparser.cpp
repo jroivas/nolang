@@ -12,12 +12,12 @@ void NamespaceDefParser::reset()
 {
     cast = false;
     definitions.clear();
-    namespacedef = new NamespaceDef();
+    res = new NamespaceDef();
 }
 
 void NamespaceDefParser::parseIdentifier()
 {
-    if (cast) namespacedef->setCast(item->contents);
+    if (cast) res->setCast(item->contents);
     else definitions.push_back(item->contents);
 }
 
@@ -37,20 +37,17 @@ void NamespaceDefParser::parseItem()
 
 void NamespaceDefParser::destroyResult()
 {
-    delete namespacedef;
-    namespacedef = nullptr;
+    delete res;
+    res = nullptr;
 }
 
 void NamespaceDefParser::setValues()
 {
-    if (!definitions.empty()) namespacedef->setValues(definitions);
+    if (!definitions.empty()) res->setValues(definitions);
     else destroyResult();
 }
 
-NamespaceDef *NamespaceDefParser::parse()
+void NamespaceDefParser::postProcess()
 {
-    reset();
-    iterate(item, tree, parseItem);
     setValues();
-    return namespacedef;
 }
