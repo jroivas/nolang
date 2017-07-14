@@ -22,11 +22,21 @@ void TypeIdentParser::foundColon()
     wait_colon = false;
 }
 
+void TypeIdentParser::assignName()
+{
+    name = item->contents;
+}
+
+void TypeIdentParser::assignResult()
+{
+    if (res != nullptr) throw std::string("Invalid type identfier!");
+    res = new TypeIdent(name, item->contents);
+}
+
 void TypeIdentParser::parseIdentifier()
 {
-    if (isIdentifierName()) name += item->contents;
-    else res = new TypeIdent(name, item->contents);
-    // FIXME
+    if (isIdentifierName()) assignName();
+    else assignResult();
 }
 
 bool TypeIdentParser::isIdentifierName() const

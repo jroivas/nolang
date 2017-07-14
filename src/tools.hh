@@ -22,10 +22,10 @@ void throwError(std::string);
 void throwError(std::string, std::string);
 void throwError(std::string, std::string, std::string);
 
-#define iterate(A, B, C) iterateTree(B, [&] (mpc_ast_t *i) {\
+#define iterate(A, B, C) do { iterateTree(B, [&] (mpc_ast_t *i) {\
     A = i;\
     C();\
-});
+}); } while(0)
 
 mpc_ast_t *findFirstItemFromTree(mpc_ast_t *, std::string name);
 

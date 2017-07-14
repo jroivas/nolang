@@ -19,7 +19,7 @@ private:
     bool isSub() const { return isNamespaceDef(); }
 
     void reset();
-    virtual void parseItem();
+    void parseItem();
     void createImport();
     void addAs();
     void addSub();

@@ -23,6 +23,9 @@ private:
     void parseIdentifier();
     void parseItem();
 
+    void assignName();
+    void assignResult();
+
     bool wait_colon;
     std::string name;
     std::string type;

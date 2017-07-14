@@ -13,7 +13,7 @@ public:
 
 private:
     void reset();
-    bool isIterable();
+    bool isIterable() const;
     void nonIterableAction();
 
     bool isNegate() const;

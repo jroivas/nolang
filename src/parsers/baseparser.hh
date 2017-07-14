@@ -27,7 +27,7 @@ protected:
     virtual void reset() = 0;
     virtual void parseItem() = 0;
     virtual void postProcess() {}
-    virtual bool isIterable() { return true; }
+    virtual bool isIterable() const { return true; }
     virtual void nonIterableAction() {}
 
     bool isRoot() const { return std::string(item->tag) == ">"; }
@@ -77,7 +77,7 @@ void BaseParser<T>::doParse()
 
     reset();
 
-    if (isIterable()) iterate(item, tree, parseItem)
+    if (isIterable()) iterate(item, tree, parseItem);
     else nonIterableAction();
 
     postProcess();

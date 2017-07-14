@@ -52,7 +52,7 @@ void NumberParser::nonIterableAction()
     createSimpleNumber();
 }
 
-bool NumberParser::isIterable()
+bool NumberParser::isIterable() const
 {
     return !isSimpleNumber();
 }
