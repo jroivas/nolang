@@ -28,7 +28,6 @@ private:
 
     bool wait_colon;
     std::string name;
-    std::string type;
 };
 
 }

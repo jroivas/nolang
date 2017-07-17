@@ -100,6 +100,45 @@ pure parallelSum(x:List) : List =>
         2: [head(x) + at(x, 1)]
         >2: par parallelSum(half(x)) + par parallelSum(halfRest(x))
 
+struct TestData {
+    a : int32
+    b : int32
+    c : int32
+}
+
+pure withTest() =>
+    target : TestData = TestData(1, 2)
+    // Now target.a == 1, target.b == 2, target.c == 0
+
+    with target:
+        c = a + b
+    // Now target.a == 1, target.b == 2, target.c == 3
+
+    with target:
+        c = c + 2
+    // Now target.a == 1, target.b == 2, target.c == 5
+
+pure withTest2() =>
+    target1 : TestData = TestData(1, 2)
+    target2 : TestData = TestData(2, 4)
+
+    with target1:
+        c = 5
+    // Now target1.a == 1, target1.b == 2, target1.c == 5
+    // Now target2.a == 2, target2.b == 4, target1.c == 0
+
+    with target2:
+        c = 3
+    // Now target1.a == 1, target1.b == 2, target1.c == 5
+    // Now target2.a == 2, target2.b == 4, target1.c == 3
+
+    with target1:
+        c = 8
+        with target2:
+            c = 7
+    // Now target1.a == 1, target1.b == 2, target1.c == 8
+    // Now target2.a == 2, target2.b == 4, target1.c == 7
+
 side printResult(x:List) =>
     IO.print(head(x))
 

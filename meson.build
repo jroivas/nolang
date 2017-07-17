@@ -106,3 +106,6 @@ test_assignmentparser = executable('test-assignmentparser',
 test('test_parser', test_parser)
 test('test_compiler', test_compiler)
 test('test_assignmentparser', test_assignmentparser)
+
+checks = find_program('checks.sh')
+test('test_cppcheck', checks)

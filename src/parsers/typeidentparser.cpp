@@ -12,7 +12,6 @@ void TypeIdentParser::reset()
 {
     wait_colon = true;
     name = "";
-    type = "";
     res = nullptr;
 }
 

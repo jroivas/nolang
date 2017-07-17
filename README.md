@@ -55,6 +55,14 @@ To build and run all examples do (currently majority not passing):
 
     ../test.sh
 
+## Extra dependencies
+
+For development:
+
+ - cppcheck
+    * http://cppcheck.sourceforge.net/
+    * sudo apt-get install cppcheck
+    * run as `ninja test` or `./checks.sh`
 
 ## License
 
