@@ -198,6 +198,9 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
             res = applyPostponed(res);
             if (!def->cast().empty()) {
                 TypeIdent *st = TypeSolver(m).solveVariable(def->code());
+                if (st == nullptr) {
+                    throw "Invalid type identifier: " + def->code();
+                }
                 res.push_back(castCode(def->code(), st->varType(), def->cast()));
             } else if (!def->values().empty()) {
                 // FIXME
@@ -429,6 +432,9 @@ std::string Cgen::generateStruct(const Struct *c)
 std::string Cgen::generateConst(const Const *c)
 {
     std::string res;
+    if (c == nullptr || c->ident() == nullptr) {
+        throw "Invalid const found!";
+    }
     std::string t = TypeSolver::native(c->ident()->varType());
     res += "const " + t + " " + c->ident()->code();
     res += " = ";
