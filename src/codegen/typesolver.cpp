@@ -111,7 +111,13 @@ std::string TypeSolver::native(const Statement *s) const
             // TODO Convert binary to hex
         }
         */
-        double value = std::stod(num, nullptr);
+        double value = 0;
+        try {
+            value = std::stod(num, nullptr);
+        }
+        catch (std::out_of_range r) {
+            throw "Invalid number: " + num;
+        }
         if (num[0] == '-') {
             if (fabs(value) >= std::numeric_limits<int32_t>::max()) {
                 return "int64_t";
