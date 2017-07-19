@@ -41,7 +41,7 @@ void ConstParser::parseAssignment()
 {
     assignment = AssignmentParser(compiler, item, &tmpMethod).parse();
     if (isValidAssignment()) generateConst();
-    else printError("Invalid const", item);
+    else throwError("Invalid const", item);
 }
 
 void ConstParser::parseItem()

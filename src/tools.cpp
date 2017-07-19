@@ -26,6 +26,11 @@ void nolang::printError(std::string message, mpc_ast_t *item)
     std::cerr << "** ERROR: " << message << ": " << item->tag << ": '" << item->contents << "'\n";
 }
 
+void nolang::throwError(std::string message, mpc_ast_t *item)
+{
+    throw message + ": " + item->tag + ": '" + item->contents;
+}
+
 void nolang::throwError(std::string message)
 {
     throw message;
