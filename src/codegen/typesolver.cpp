@@ -89,42 +89,31 @@ std::string TypeSolver::nolangType(const Statement *s) const
     return NolangTypeSolver(this, s).solve();
 }
 
-// FIXME Combine with below
-std::string TypeSolver::typeOfChain(std::vector<Statement*> chain) const
+std::string TypeSolver::typeOfChainImpl(std::vector<Statement*> chain, std::function<std::string(const Statement*)>& func) const
 {
     std::string res;
     for (auto c : chain) {
-        std::string t = native(c);
+        std::string t = func(c);
         if (!t.empty()) {
-            if (res.empty()) {
-                res = t;
-            } else if (res == t) {
-                // OK
-            } else {
+            if (res.empty()) res = t;
+            else if (res == t) { /* OK */ }
+            else {
                 // Need to solve
                 std::cerr << "*** ERROR: Can't solve type of chain, conflicting types: " << res << ", " << t << "\n";
             }
         }
     }
     return res;
+}
+
+std::string TypeSolver::typeOfChain(std::vector<Statement*> chain) const
+{
+    std::function<std::string(const Statement*)> f = [&](const Statement *s) { return this->native(s); };
+    return typeOfChainImpl(chain, f);
 }
 
 std::string TypeSolver::nolangTypeOfChain(std::vector<Statement*> chain) const
 {
-    std::string res;
-    for (auto c : chain) {
-        std::string t = nolangType(c);
-        if (!t.empty()) {
-            if (res.empty()) {
-                res = t;
-            } else if (res == t) {
-                // OK
-            } else {
-                // Need to solve
-                std::cerr << "*** ERROR: Can't solve type of chain, conflicting types: " << res << ", " << t << "\n";
-            }
-        }
-    }
-    return res;
+    std::function<std::string(const Statement*)> f = [&](const Statement *s) { return this->nolangType(s); };
+    return typeOfChainImpl(chain, f);
 }
-

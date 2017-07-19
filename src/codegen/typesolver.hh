@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 #include "puremethod.hh"
 #include "statement.hh"
 
@@ -21,6 +22,7 @@ public:
     TypeIdent *solveVariable(const std::string &name) const;
 
 private:
+    std::string typeOfChainImpl(std::vector<Statement*> chain, std::function<std::string(const Statement*)>&) const;
 
     const PureMethod *method;
 };
