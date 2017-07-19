@@ -38,6 +38,7 @@ nolang_lib = static_library('nolang',
         'src/codegen/cgen.cpp',
         'src/codegen/typesolver.cpp',
         'src/codegen/nativetypesolver.cpp',
+        'src/codegen/nolangtypesolver.cpp',
         'src/codegen/methodcallgenerator.cpp',
         '3pp/mpc/mpc.c'
     ],

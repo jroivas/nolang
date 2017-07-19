@@ -1,6 +1,7 @@
 #include "typesolver.hh"
 #include "typeident.hh"
 #include "nativetypesolver.hh"
+#include "nolangtypesolver.hh"
 
 #include <iostream>
 
@@ -85,32 +86,7 @@ std::string TypeSolver::native(const Statement *s) const
 
 std::string TypeSolver::nolangType(const Statement *s) const
 {
-    if (s->type() == "TypeDef") {
-        if (s->code() == "void") {
-            return "void";
-        }
-        return s->code();
-        // FIXME
-    } else if (s->type() == "TypeIdent") {
-        const TypeIdent *i = static_cast<const TypeIdent *>(s);
-        return i->varType();
-    } else if (s->type() == "Identifier") {
-        TypeIdent *var = solveVariable(s->code());
-        if (var) {
-            var->varType();
-        }
-        return "invalid";
-    } else if (s->type() == "String") {
-        return "String";
-    } else if (s->type() == "Number") {
-        // FIXME type and size, floats
-        return "int32";
-    } else if (s->type() == "Boolean") {
-        return "boolean";
-    } else {
-        throw std::string("Unknown type: " + s->type());
-    }
-    return "";
+    return NolangTypeSolver(this, s).solve();
 }
 
 // FIXME Combine with below
