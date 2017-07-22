@@ -12,9 +12,9 @@ public:
     Parser();
     ~Parser();
 
-    std::string readFile(char *);
+    std::string readFile(const char *);
     mpc_result_t *parse(std::string name, std::string data);
-    mpc_result_t *readParse(char *f) {
+    mpc_result_t *readParse(const char *f) {
         return parse(f, readFile(f));
     }
     bool success() const {

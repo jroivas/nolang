@@ -217,7 +217,7 @@ void Parser::deinit()
         TopLevel, NolangPure);
 }
 
-std::string Parser::readFile(char *fname)
+std::string Parser::readFile(const char *fname)
 {
     std::ifstream is(fname, std::ifstream::in);
     std::string str(
