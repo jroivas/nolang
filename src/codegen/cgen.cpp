@@ -32,32 +32,46 @@ const ModuleDef *Cgen::getModule(std::string name) const
     return mod->second;
 }
 
+std::string Cgen::generateIOImport() const
+{
+    return "#include <stdio.h>\n";
+}
+
+std::string Cgen::generateModuleInitCode(std::string val, const ModuleDef *def)
+{
+    m_modules[val] = def;
+    return def->initCode();
+}
+
+std::string Cgen::generateModuleFixme(const Import *import, std::string val, ModuleDef *def) const
+{
+    delete def;
+    std::string res;
+    res += "// FIXME: #include <" + val + ">";
+    if (!import->as().empty()) {
+        res += " as " + import->as();
+    }
+    res += "\n";
+    std::cerr << "** ERROR: Unhandled import " << val << "\n";
+    return res;
+}
+
+std::string Cgen::generateModuleImport(const Import *imp, std::string val)
+{
+    ModuleDef *def = new ModuleDef(val);
+    if (isValidModuleDef(def)) return generateModuleInitCode(val, def);
+    return generateModuleFixme(imp, val, def);
+}
+
 std::string Cgen::generateImport(const Import *imp)
 {
     std::string res;
     // FIXME Built-in import
     std::string val = imp->val();
     const ModuleDef *mod = getModule(val);
-    if (val == "IO") {
-        // FIXME
-        res += "#include <stdio.h>\n";
-    } else if (mod != nullptr) {
-        // FIXME
-    } else {
-        ModuleDef *def = new ModuleDef(val);
-        if (def->ok()) {
-            res += def->initCode();
-            m_modules[val] = def;
-        } else {
-            delete def;
-            res += "// FIXME: #include <" + val + ">";
-            if (!imp->as().empty()) {
-                res += " as " + imp->as();
-            }
-            res += "\n";
-            std::cerr << "** ERROR: Unhandled import " << val << "\n";
-        }
-    }
+    if (isBuiltInImport(val)) res += generateIOImport();
+    else if (!isValidImport(mod)); // FIXME
+    else res += generateModuleImport(imp, val);
     return res;
 }
 

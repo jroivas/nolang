@@ -65,6 +65,15 @@ protected:
 
 
 private:
+    bool isBuiltInImport(std::string n) const  { return n == "IO"; }
+    bool isValidImport(const ModuleDef *m) const { return m == nullptr; }
+    bool isValidModuleDef(const ModuleDef *m) const { return m->ok(); }
+
+    std::string generateIOImport() const;
+    std::string generateModuleInitCode(std::string, const ModuleDef *);
+    std::string generateModuleFixme(const Import *, std::string, ModuleDef *def) const;
+    std::string generateModuleImport(const Import *, std::string);
+
     std::string generateHeaders();
     std::string generateImports(const Compiler *);
     std::string generateStructs(const Compiler *);
@@ -74,7 +83,7 @@ private:
     std::string generateMethods(const Compiler *);
 
     void evaluatePendingAssignment();
-    std::map<std::string, ModuleDef*> m_modules;
+    std::map<std::string, const ModuleDef*> m_modules;
     const ModuleDef *m_current_module;
     std::string m_postponed_assignment;
     std::string m_postponed_method;
