@@ -65,6 +65,14 @@ protected:
 
 
 private:
+    std::string generateHeaders();
+    std::string generateImports(const Compiler *);
+    std::string generateStructs(const Compiler *);
+    std::string generateInitializers(const Compiler *);
+    std::string generateConsts(const Compiler *);
+    std::string generatePrototypes(const Compiler *);
+    std::string generateMethods(const Compiler *);
+
     void evaluatePendingAssignment();
     std::map<std::string, ModuleDef*> m_modules;
     const ModuleDef *m_current_module;

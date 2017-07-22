@@ -447,7 +447,7 @@ std::string Cgen::generateConst(const Const *c)
     return res;
 }
 
-std::string Cgen::generateUnit(const Compiler *c)
+std::string Cgen::generateHeaders()
 {
     std::string code;
     code += "#include <stddef.h>\n";
@@ -457,34 +457,64 @@ std::string Cgen::generateUnit(const Compiler *c)
     code += "static int __argc = 0;\n";
     code += "static char **__argv = NULL;\n";
 
-    code += "\n/***** Imports **/\n";
-    for (auto m : c->imports()) {
-        code += generateImport(m);
-    }
+    return code;
+}
 
-    code += "\n/***** Structs **/\n";
+std::string Cgen::generateImports(const Compiler *c)
+{
+    std::string code = "\n/***** Imports **/\n";
+    for (auto m : c->imports()) code += generateImport(m);
+    return code;
+}
+
+std::string Cgen::generateStructs(const Compiler *c)
+{
+    std::string code = "\n/***** Structs **/\n";
     for (auto m : c->structs()) {
         code += generateStruct(m);
         m_structs.push_back(m);
     }
+    return code;
+}
 
-    code += "\n/***** Struct Initializers **/\n";
-    for (auto m : c->structs()) {
-        code += generateStructInitializer(m);
-    }
+std::string Cgen::generateInitializers(const Compiler *c)
+{
+    std::string code = "\n/***** Struct Initializers **/\n";
+    for (auto m : c->structs()) code += generateStructInitializer(m);
+    return code;
+}
 
-    code += "\n/***** Consts **/\n";
-    for (auto m : c->consts()) {
-        code += generateConst(m);
-    }
+std::string Cgen::generateConsts(const Compiler *c)
+{
+    std::string code = "\n/***** Consts **/\n";
+    for (auto m : c->consts()) code += generateConst(m);
+    return code;
+}
 
-    code += "\n/***** Prototypes **/\n";
-    for (auto m : c->methods()) {
-        code += generateMethodPrototype(m.second) + ";\n";
-    }
-    code += "\n/***** Methods **/\n";
-    for (auto m : c->methods()) {
-        code += generateMethod(m.second);
-    }
+std::string Cgen::generatePrototypes(const Compiler *c)
+{
+    std::string code = "\n/***** Prototypes **/\n";
+    for (auto m : c->methods()) code += generateMethodPrototype(m.second) + ";\n";
+    return code;
+}
+
+std::string Cgen::generateMethods(const Compiler *c)
+{
+    std::string code = "\n/***** Methods **/\n";
+    for (auto m : c->methods()) code += generateMethod(m.second);
+    return code;
+}
+
+std::string Cgen::generateUnit(const Compiler *c)
+{
+    std::string code;
+    code += generateHeaders();
+    code += generateImports(c);
+    code += generateStructs(c);
+    code += generateInitializers(c);
+    code += generateConsts(c);
+    code += generatePrototypes(c);
+    code += generateMethods(c);
+
     return code;
 }
