@@ -7,6 +7,7 @@
 
 #include "typesolver.hh"
 #include "trim.hh"
+#include "blockgenerator.hh"
 
 using namespace nolang;
 static const std::string __autogen_prefix = "__autogen_";
@@ -255,52 +256,7 @@ std::vector<std::string> Cgen::generateStatements(const std::vector<Statement *>
 
 std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret, const PureMethod *m)
 {
-    std::vector<std::string> lines;
-    for (auto line : block) {
-        std::vector<std::string> tmp = generateStatements(line, m);
-        //tmp = trim(tmp);
-        if (!tmp.empty()) {
-            std::string resline;
-            for (auto ll : tmp) {
-                if (ll == "<EOS>") {
-                    resline = trim(resline);
-                    if (!resline.empty()) {
-                        lines.push_back(resline + ";\n");
-                    }
-                    resline = "";
-                } else {
-                    resline += ll;
-                    //lines.push_back(ll);
-                }
-            }
-            if (!resline.empty()) {
-                lines.push_back(resline + ";\n");
-            }
-        }
-    }
-
-    // FIXME multiline block does not work with this
-#if 0
-    if (!lines.empty() && ret != "void") {
-        std::string last = lines.back();
-
-        if (last.substr(0, 6) != "return ") {
-            lines.pop_back();
-            last = "return " + last;
-            lines.push_back(last);
-        }
-    }
-#endif
-
-#if 0
-    std::string res;
-    for (auto line : lines) {
-        res += line + ";\n";
-    }
-
-    return res;
-#endif
-    return lines;
+    return BlockGenerator(this, block, ret, m).generate();
 }
 
 std::vector<std::string> Cgen::generateVariable(const TypeIdent *i) const
