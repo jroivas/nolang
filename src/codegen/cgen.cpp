@@ -72,7 +72,7 @@ std::string Cgen::generateImport(const Import *imp)
     else return generateModuleImport(imp, val);
 }
 
-Struct *Cgen::getStruct(const std::string &name) const
+const Struct *Cgen::getStruct(const std::string &name) const
 {
     for (auto s : m_structs) {
         if (s->code() == name) return s;
@@ -447,8 +447,14 @@ std::string Cgen::generateStructElements(const Struct *c) const
     return res;
 }
 
+void Cgen::addStruct(const Struct *c)
+{
+    m_structs.push_back(c);
+}
+
 std::string Cgen::generateStruct(const Struct *c)
 {
+    addStruct(c);
     return generateStructHeader(c) + "{\n" +
            generateStructElements(c) + "} " +
            generateStructFooter(c) + ";\n";
@@ -495,10 +501,7 @@ std::string Cgen::generateImports(const Compiler *c)
 std::string Cgen::generateStructs(const Compiler *c)
 {
     std::string code = "\n/***** Structs **/\n";
-    for (auto m : c->structs()) {
-        code += generateStruct(m);
-        m_structs.push_back(m);
-    }
+    for (auto m : c->structs()) code += generateStruct(m);
     return code;
 }
 

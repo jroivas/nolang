@@ -38,7 +38,7 @@ public:
     std::string solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const;
     std::vector<std::string> generateStatements(const std::vector<Statement *> stmts, const PureMethod *m);
     bool isStruct(const std::string &name) const;
-    Struct *getStruct(const std::string &name) const;
+    const Struct *getStruct(const std::string &name) const;
     const ModuleDef *getModule(std::string name) const;
 
     std::vector<std::string> applyPostponed(std::vector<std::string> &);
@@ -85,13 +85,14 @@ private:
     std::string generateStructHeader(const Struct *) const;
     std::string generateStructFooter(const Struct *) const;
     std::string generateStructElements(const Struct *) const;
+    void addStruct(const Struct *);
 
     void evaluatePendingAssignment();
     std::map<std::string, const ModuleDef*> m_modules;
     const ModuleDef *m_current_module;
     std::string m_postponed_assignment;
     std::string m_postponed_method;
-    std::vector<Struct*> m_structs;
+    std::vector<const Struct*> m_structs;
 };
 
 }
