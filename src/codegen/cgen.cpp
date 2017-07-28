@@ -410,19 +410,39 @@ std::string Cgen::generateMethod(const PureMethod *m)
     return res;
 }
 
+std::string Cgen::generateStructInitPrototype(const Struct *c) const
+{
+    return c->code() + "* new_" + c->code() + "()\n";
+}
+
+std::string Cgen::generateStructAlloc(const Struct *c) const
+{
+    // TODO Change to jemalloc or something else
+    return c->code() + " *tmp = calloc(1, sizeof(" + c->code() + "));\n";
+}
+
+std::string Cgen::generateStructElementInitCall(const TypeIdent *i) const
+{
+    return indent() + "tmp->" + i->code() + " = new_" + i->varType() + "();\n";
+}
+
+std::string Cgen::generateStructElementInit(const Struct *c) const
+{
+    std::string res;
+    for (auto i : c->datas()) {
+        if (!TypeSolver::isNative(i->varType())) res += generateStructElementInitCall(i);
+    }
+    return res;
+}
+
 std::string Cgen::generateStructInitializer(const Struct *c)
 {
     std::string res;
-    res += c->code() + "* new_" + c->code() + "()\n";
+    res += generateStructInitPrototype(c);
     res += "{\n";
-    // TODO Change to jemalloc or something else
-    res += "    " + c->code() + " *tmp = calloc(1, sizeof(" + c->code() + "));\n";
-    for (auto i : c->datas()) {
-        if (!TypeSolver::isNative(i->varType())) {
-            res += "    tmp->" + i->code() + " = new_" + i->varType() + "();\n";
-        }
-    }
-    res += "    return tmp;\n";
+    res += indent() + generateStructAlloc(c);
+    res += generateStructElementInit(c);
+    res += indent() + "return tmp;\n";
     res += "}\n";
     return res;
 }
@@ -441,8 +461,7 @@ std::string Cgen::generateStructElements(const Struct *c) const
 {
     std::string res;
     for (auto var : c->datas()) {
-        // FIXME indent
-        for (auto l : generateVariable(var)) res += "    " + l;
+        for (auto l : generateVariable(var)) res += indent() + l;
     }
     return res;
 }
@@ -460,22 +479,31 @@ std::string Cgen::generateStruct(const Struct *c)
            generateStructFooter(c) + ";\n";
 }
 
-std::string Cgen::generateConst(const Const *c)
+bool Cgen::isValidConst(const Const *c) const
 {
-    std::string res;
-    if (c == nullptr || c->ident() == nullptr) {
-        throw "Invalid const found!";
-    }
+    return c != nullptr && c->ident() != nullptr;
+}
+
+std::string Cgen::generateConstPrototype(const Const *c) const
+{
     std::string t = TypeSolver::native(c->ident()->varType());
-    res += "const " + t + " " + c->ident()->code();
-    res += " = ";
+    return "const " + t + " " + c->ident()->code();
+}
+
+std::string Cgen::generateConstAssignment(const Const *c)
+{
     const Assignment *ass = c->assignment();
     std::vector<std::string> tmp = generateStatements(ass->statements(), nullptr);
-    for (auto i : tmp) {
-        res += i;
-    }
-    res += ";\n";
+    std::string res;
+    for (auto i : tmp) res += i;
     return res;
+}
+
+std::string Cgen::generateConst(const Const *c)
+{
+    if (!isValidConst(c)) throw "Invalid const found!";
+    return generateConstPrototype(c) + " = " +
+           generateConstAssignment(c) + ";\n";
 }
 
 std::string Cgen::generateHeaders()

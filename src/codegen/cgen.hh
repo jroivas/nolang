@@ -62,9 +62,8 @@ protected:
     std::vector<std::string> generateMethodCall(const MethodCall *mc, const PureMethod *m);
     std::string castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const;
 
-
-
 private:
+    const std::string indent() const { return "    "; }
     bool isBuiltInImport(std::string n) const  { return n == "IO"; }
     bool isValidImport(const ModuleDef *m) const { return m == nullptr; }
     bool isValidModuleDef(const ModuleDef *m) const { return m->ok(); }
@@ -86,6 +85,15 @@ private:
     std::string generateStructFooter(const Struct *) const;
     std::string generateStructElements(const Struct *) const;
     void addStruct(const Struct *);
+
+    std::string generateStructInitPrototype(const Struct *) const;
+    std::string generateStructAlloc(const Struct *) const;
+    std::string generateStructElementInit(const Struct *) const;
+    std::string generateStructElementInitCall(const TypeIdent *i) const;
+
+    bool isValidConst(const Const *) const;
+    std::string generateConstPrototype(const Const *) const;
+    std::string generateConstAssignment(const Const *);
 
     void evaluatePendingAssignment();
     std::map<std::string, const ModuleDef*> m_modules;
