@@ -356,6 +356,26 @@ std::string Cgen::generateMethodPrototype(const PureMethod *m)
     return ret + " " + m->name() + "(" + param_str +  ")";
 }
 
+bool Cgen::isAssignment(const std::string &s) const
+{
+    return s.find("==") == std::string::npos && s.find('=') != std::string::npos;
+}
+
+std::vector<std::string> Cgen::generateMethodAutoReturn(std::vector<std::string> lines, std::string ret)
+{
+    if (lines.empty() || ret == "void") return lines;
+
+    std::string last = trim(lines.back());
+    if (last.substr(0, 7) == "return ") return lines;
+
+    lines.pop_back();
+    // If not assignment, apply return
+    if (!isAssignment(last)) last = "   return " + last;
+    lines.push_back(last);
+
+    return lines;
+}
+
 std::string Cgen::generateMethod(const PureMethod *m)
 {
     std::string res;
@@ -365,33 +385,17 @@ std::string Cgen::generateMethod(const PureMethod *m)
 
     std::vector<std::string> lines;
     for (auto var : m->variables()) {
-        for (auto l : generateVariable(var)) {
-            lines.push_back(l);
-        }
+        for (auto l : generateVariable(var)) lines.push_back(l);
     }
     for (auto var : m->variables()) {
         lines.push_back(generateVariableInit(var));
     }
 
     for (auto block : m->blocks()) {
-        for (auto l : generateBlock(block, ret, m)) {
-            lines.push_back(l);
-        }
+        for (auto l : generateBlock(block, ret, m)) lines.push_back(l);
     }
 
-    if (!lines.empty() && ret != "void") {
-        std::string last = trim(lines.back());
-
-        if (last.substr(0, 7) != "return ") {
-            lines.pop_back();
-            // No on assignment
-            if (last.find("==") != std::string::npos ||
-                last.find('=') == std::string::npos) {
-                last = "   return " + last;
-            }
-            lines.push_back(last);
-        }
-    }
+    lines = generateMethodAutoReturn(lines, ret);
 
     std::string body;
     for (auto l : lines) {

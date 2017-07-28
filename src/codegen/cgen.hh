@@ -95,6 +95,9 @@ private:
     std::string generateConstPrototype(const Const *) const;
     std::string generateConstAssignment(const Const *);
 
+    bool isAssignment(const std::string &) const;
+    std::vector<std::string> generateMethodAutoReturn(std::vector<std::string>, std::string);
+
     void evaluatePendingAssignment();
     std::map<std::string, const ModuleDef*> m_modules;
     const ModuleDef *m_current_module;
