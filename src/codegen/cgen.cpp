@@ -65,14 +65,11 @@ std::string Cgen::generateModuleImport(const Import *imp, std::string val)
 
 std::string Cgen::generateImport(const Import *imp)
 {
-    std::string res;
     // FIXME Built-in import
     std::string val = imp->val();
-    const ModuleDef *mod = getModule(val);
-    if (isBuiltInImport(val)) res += generateIOImport();
-    else if (!isValidImport(mod)); // FIXME
-    else res += generateModuleImport(imp, val);
-    return res;
+    if (isBuiltInImport(val)) return generateIOImport();
+    else if (!isValidImport(getModule(val))) return ""; //FIXME
+    else return generateModuleImport(imp, val);
 }
 
 Struct *Cgen::getStruct(const std::string &name) const
@@ -306,7 +303,7 @@ std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<State
     return lines;
 }
 
-std::vector<std::string> Cgen::generateVariable(const TypeIdent *i)
+std::vector<std::string> Cgen::generateVariable(const TypeIdent *i) const
 {
     std::vector<std::string> res;
 
@@ -430,17 +427,31 @@ std::string Cgen::generateStructInitializer(const Struct *c)
     return res;
 }
 
-std::string Cgen::generateStruct(const Struct *c)
+std::string Cgen::generateStructHeader(const Struct *c) const
+{
+    return "typedef struct _" + c->code() + " ";
+}
+
+std::string Cgen::generateStructFooter(const Struct *c) const
+{
+    return c->code();
+}
+
+std::string Cgen::generateStructElements(const Struct *c) const
 {
     std::string res;
-    res += "typedef struct _" + c->code() + " {\n";
     for (auto var : c->datas()) {
-        for (auto l : generateVariable(var)) {
-            res += l;
-        }
+        // FIXME indent
+        for (auto l : generateVariable(var)) res += "    " + l;
     }
-    res += "} " + c->code() + ";\n";
     return res;
+}
+
+std::string Cgen::generateStruct(const Struct *c)
+{
+    return generateStructHeader(c) + "{\n" +
+           generateStructElements(c) + "} " +
+           generateStructFooter(c) + ";\n";
 }
 
 std::string Cgen::generateConst(const Const *c)

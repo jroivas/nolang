@@ -56,7 +56,7 @@ protected:
     bool isNativeType(const std::string & s) const;
     std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
     std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret, const PureMethod *m);
-    std::vector<std::string> generateVariable(const TypeIdent *i);
+    std::vector<std::string> generateVariable(const TypeIdent *i) const;
     TypeIdent *solveVariable(const std::string &name, const PureMethod *m) const;
 
     std::vector<std::string> generateMethodCall(const MethodCall *mc, const PureMethod *m);
@@ -81,6 +81,10 @@ private:
     std::string generateConsts(const Compiler *);
     std::string generatePrototypes(const Compiler *);
     std::string generateMethods(const Compiler *);
+
+    std::string generateStructHeader(const Struct *) const;
+    std::string generateStructFooter(const Struct *) const;
+    std::string generateStructElements(const Struct *) const;
 
     void evaluatePendingAssignment();
     std::map<std::string, const ModuleDef*> m_modules;
