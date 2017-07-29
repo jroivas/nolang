@@ -17,7 +17,6 @@ class MethodCallGenerator
 public:
     MethodCallGenerator(Cgen *, const MethodCall *, const PureMethod *);
 
-    void generateParameterStatements();
     bool isStruct();
 
     std::string getModuleName() const;
@@ -29,13 +28,18 @@ protected:
     void solveParameterNames();
     void solveParameterTypes();
     void solveParameterNolangTypes();
+    void generateParameterStatements();
     void getNamespaceDef();
+
     std::string generateBuiltInIOPrint() const;
     std::string generateLocalMethodCall() const;
     std::vector<std::string> generateStructInitStatements();
     const ModuleMethodDef *getModuleMethodDef(const ModuleDef *mod) const;
     std::vector<std::string> generateModuleMethodCall(const ModuleDef *mod);
     std::vector<std::string> generateModuleMethodCallWithMethod(const ModuleMethodDef *meth) const;
+    std::string generateBuiltInIOPrintParamTypes() const;
+
+    bool isPrintln() const { return mc->namespaces()->values()[1] == "println"; }
 
 
 private:

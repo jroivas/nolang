@@ -61,3 +61,15 @@ mpc_ast_t *nolang::findFirstItemFromTree(mpc_ast_t *tree, std::string name)
     };
     return nullptr;
 }
+
+std::string nolang::combineStringList(const std::vector<std::string> &l, const std::string sep)
+{
+    std::string res;
+    bool first = true;
+    for (auto v : l) {
+        if (first) first = false;
+        else res += sep;
+        res += v;
+    }
+    return res;
+}

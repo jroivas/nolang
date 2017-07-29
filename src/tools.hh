@@ -24,6 +24,7 @@ void throwError(std::string, mpc_ast_t *);
 void throwError(std::string);
 void throwError(std::string, std::string);
 void throwError(std::string, std::string, std::string);
+std::string combineStringList(const std::vector<std::string> &l, std::string sep= ",");
 
 #define iterate(A, B, C) do { iterateTree(B, [&] (mpc_ast_t *i) {\
     A = i;\

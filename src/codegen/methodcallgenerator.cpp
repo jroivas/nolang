@@ -50,9 +50,7 @@ void MethodCallGenerator::generateParameterStatements()
     for (auto parm : mc->params()) {
         parameter_statements.push_back(ptypes[i] + " " + pnames[i] + " = ");
 
-        std::vector<std::string> tmp = StatementGenerator(cgen, parm, m).generate();
-        applyToVector(parameter_statements, tmp);
-
+        applyToVector(parameter_statements, StatementGenerator(cgen, parm, m).generate());
         parameter_statements.push_back("<EOS>");
         ++i;
     }
@@ -64,9 +62,7 @@ const ModuleMethodDef *MethodCallGenerator::getModuleMethodDef(const ModuleDef *
     // Next need to check namespace depth
     while (idx < def->values().size() - 1) {
         const ModuleDef *sub = mod->getModule(def->values()[idx]);
-        if (sub == nullptr) {
-            throw std::string("Can't find from modules:" + def->name());
-        }
+        if (sub == nullptr) throwError("Can't find from modules:" + def->name());
         mod = sub;
         ++idx;
     }
@@ -77,20 +73,7 @@ const ModuleMethodDef *MethodCallGenerator::getModuleMethodDef(const ModuleDef *
 std::vector<std::string> MethodCallGenerator::generateModuleMethodCallWithMethod(const ModuleMethodDef *meth) const
 {
     std::vector<std::string> res;
-    // FIXME Combine with below, create method
-    std::string tmp;
-    tmp += meth->fullName();
-    tmp += "(";
-    bool first = true;
-    for (auto v : pnames) {
-        if (!first) {
-            tmp += ", ";
-        }
-        tmp += v;
-        first = false;
-    }
-    tmp += ")";
-    res.push_back(tmp);
+    res.push_back(meth->fullName() + "(" + combineStringList(pnames) + ")");
     res.push_back("<EOS>");
 
     return res;
@@ -99,64 +82,47 @@ std::vector<std::string> MethodCallGenerator::generateModuleMethodCallWithMethod
 std::vector<std::string> MethodCallGenerator::generateModuleMethodCall(const ModuleDef *mod)
 {
     const ModuleMethodDef *meth = getModuleMethodDef(mod);
-    if (!meth) {
-        throw std::string("Can't find method from modules:" + def->name());
-    }
+    if (!meth) throwError("Can't find method from modules:" + def->name());
     return generateModuleMethodCallWithMethod(meth);
+}
+
+std::string MethodCallGenerator::generateBuiltInIOPrintParamTypes() const
+{
+    std::string res;
+    for (auto v : ptypes) {
+        if (v == "char *") res += "%s";
+        else if (v == "const char *") res += "%s";
+        else if (v == "int") res += "%d";
+        else if (v == "uint8_t") res += "%hhu";
+        else if (v == "uint16_t") res += "%hu";
+        else if (v == "uint32_t") res += "%u";
+        else if (v == "uint64_t") res += "%lu";
+        else if (v == "int8_t") res += "%hhd";
+        else if (v == "int16_t") res += "%hd";
+        else if (v == "int32_t") res += "%d";
+        else if (v == "int64_t") res += "%ld";
+        // FIXME
+        //else res += "%d";
+    }
+    return res;
 }
 
 std::string MethodCallGenerator::generateBuiltInIOPrint() const
 {
     std::string tmp;
     tmp += "printf(\"";
-    for (auto v : ptypes) {
-        if (v == "char *") tmp += "%s";
-        else if (v == "const char *") tmp += "%s";
-        else if (v == "int") tmp += "%d";
-        else if (v == "uint8_t") tmp += "%hhu";
-        else if (v == "uint16_t") tmp += "%hu";
-        else if (v == "uint32_t") tmp += "%u";
-        else if (v == "uint64_t") tmp += "%lu";
-        else if (v == "int8_t") tmp += "%hhd";
-        else if (v == "int16_t") tmp += "%hd";
-        else if (v == "int32_t") tmp += "%d";
-        else if (v == "int64_t") tmp += "%ld";
-        // FIXME
-        //else tmp += "\%d";
-    }
-    if (mc->namespaces()->values()[1] == "println") {
-        tmp += "\\n";
-    }
+    tmp += generateBuiltInIOPrintParamTypes();
+    if (isPrintln()) tmp += "\\n";
     tmp += "\", ";
-    bool first = true;
-    for (auto v : pnames) {
-        if (!first) {
-            tmp += ", ";
-        }
-        tmp += v;
-        first = false;
-    }
+    tmp += combineStringList(pnames);
     tmp += ");";
     return tmp;
 }
 
 std::string MethodCallGenerator::generateLocalMethodCall() const
 {
-    std::string mname;
-    for (std::string n : mc->namespaces()->values()) {
-        if (!mname.empty()) mname += '.';
-        mname += n;
-    }
-    std::string params = "(";
-    bool first = true;
-    for (auto v : pnames) {
-        if (!first) {
-            params += ", ";
-        }
-        params += v;
-        first = false;
-    }
-    params += ")";
+    std::string mname = combineStringList(mc->namespaces()->values(), ".");
+    std::string params = "(" + combineStringList(pnames) + ")";
     return mname + params;
 }
 
