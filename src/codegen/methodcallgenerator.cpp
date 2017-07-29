@@ -1,12 +1,14 @@
 #include "methodcallgenerator.hh"
 #include "tools.hh"
 #include "cgen.hh"
+#include "statementgenerator.hh"
 #include "typesolver.hh"
 
 using namespace nolang;
 
-MethodCallGenerator::MethodCallGenerator(Cgen * pcgen, const MethodCall *pmc, const PureMethod *pm) :
-    cgen(pcgen),
+MethodCallGenerator::MethodCallGenerator(Cgen * c, StatementGenerator *s, const MethodCall *pmc, const PureMethod *pm) :
+    cgen(c),
+    sgen(s),
     mc(pmc),
     m(pm)
 {
@@ -163,7 +165,7 @@ std::vector<std::string> MethodCallGenerator::generateStructInitStatements()
 {
     std::vector<std::string> res;
     const Struct *s = cgen->getStruct(def->values()[0]);
-    std::string postponed = cgen->usePostponedMethod();
+    std::string postponed = sgen->usePostponedMethod();
     uint32_t m = s->datas().size();
     if (m > pnames.size()) m = pnames.size();
     for (uint32_t i = 0; i < m; ++i) {
@@ -214,7 +216,7 @@ std::vector<std::string> MethodCallGenerator::generateMethodCall()
     std::vector<std::string> res;
     applyToVector(res, parameter_statements);
 
-    res = cgen->applyPostponed(res);
+    res = sgen->applyPostponed(res);
     const ModuleDef *mod = cgen->getModule(def->values()[0]);
     if (mod) {
         std::vector<std::string> tmp = generateModuleMethodCall(mod);

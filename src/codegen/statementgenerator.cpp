@@ -65,7 +65,7 @@ void StatementGenerator::generateOperator()
 
 std::vector<std::string> StatementGenerator::generateMethodCall(const MethodCall *mc)
 {
-    MethodCallGenerator gen(cgen, mc, method);
+    MethodCallGenerator gen(cgen, this, mc, method);
 
     std::vector<std::string> res;
     if (gen.isStruct()) res = gen.generateStructInitCall();
@@ -143,13 +143,13 @@ void StatementGenerator::generateStatementCode()
 
 void StatementGenerator::generateStatement()
 {
+    statementcode.clear();
     generateStatementCode();
     if (!statementcode.empty()) lines = applyToVector(lines, statementcode);
 }
 
 void StatementGenerator::iterateStatements()
 {
-    statementcode.clear();
     for (auto s : stmts) {
         statement = s;
         generateStatement();
