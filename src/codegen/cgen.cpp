@@ -150,128 +150,6 @@ std::string Cgen::usePostponedMethod()
     return tmp;
 }
 
-#if 0
-std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
-{
-    MethodCallGenerator gen(this, mc, m);
-    std::vector<std::string> res;
-    if (gen.isStruct()) {
-        res = gen.generateStructInitCall();
-    } else {
-        res = gen.generateMethodCall();
-    }
-    m_postponed_assignment = "";
-    return res;
-}
-
-std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureMethod *m)
-{
-    std::vector<std::string> res;
-
-    if (s->type() == "String") {
-        res = applyPostponed(res);
-        res.push_back(s->code() + " ");
-    } else if (s->type() == "Number") {
-        res = applyPostponed(res);
-        res.push_back(s->code());
-    } else if (s->type() == "Boolean") {
-        res = applyPostponed(res);
-        res.push_back(s->code());
-    } else if (s->type() == "Braces") {
-        res = applyPostponed(res);
-        res.push_back(s->code() + " ");
-    } else if (s->type() == "Comparator") {
-        res = applyPostponed(res);
-        res.push_back(s->code() + " ");
-    } else if (s->type() == "Op") {
-        //res = applyPostponed(res);
-        std::string pp = s->code();
-        if (pp == "div") pp = "/";
-        res.push_back(pp + " ");
-    } else if (s->type() == "MethodCall") {
-        const MethodCall *mc = static_cast<const MethodCall*>(s);
-        for (auto l : generateMethodCall(mc, m)) {
-            res.push_back(l);
-        }
-    } else if (s->type() == "Assignment") {
-        const Assignment *ass = static_cast<const Assignment*>(s);
-
-        if (ass->def() != nullptr) {
-            m_postponed_assignment = "";
-            for (auto s : generateStatement(ass->def(), m)) {
-                if (!m_postponed_assignment.empty()) m_postponed_assignment += "->";
-                m_postponed_assignment += s;
-            }
-            //m_postponed_assignment += "= ";
-        } else {
-            if (isAssignmentMethodCall(ass)) {
-                m_postponed_method = s->code();
-            } else {
-                m_postponed_assignment = s->code();
-            }
-            //m_postponed_assignment = s->code() + " = ";
-        }
-        std::vector<std::string> tmp = generateStatements(ass->statements(), m);
-        applyToVector(res, tmp);
-
-    } else if (s->type() == "NamespaceDef") {
-        const ModuleDef *mod = getModule(s->code());
-        if (mod != nullptr) {
-            std::cerr << "MODULE " << s->code() << "\n";
-            m_current_module = mod;
-        } else {
-            const NamespaceDef *def = static_cast<const NamespaceDef *>(s);
-            res = applyPostponed(res);
-            if (!def->cast().empty()) {
-                TypeIdent *st = TypeSolver(m).solveVariable(def->code());
-                if (st == nullptr) {
-                    throw "Invalid type identifier: " + def->code();
-                }
-                res.push_back(castCode(def->code(), st->varType(), def->cast()));
-            } else if (!def->values().empty()) {
-                // FIXME
-                TypeIdent *st = TypeSolver(m).solveVariable(def->code());
-                std::string tmp;
-                for (auto v : def->values()) {
-                    if (!tmp.empty()) tmp += "->";
-                    tmp += v;
-                }
-                tmp += " ";
-                res.push_back(tmp);
-            } else {
-                res.push_back(s->code() + " ");
-            }
-        }
-    } else if (s->type() == "Identifier") {
-        res = applyPostponed(res);
-        res.push_back(s->code() + " ");
-    } else if (s->type() == "EOS") {
-        res.push_back("<EOS>");
-    } else {
-        std::cerr << "** ERROR: Unhandled statement: " << s->type() << " " << s->code() << "\n";
-    }
-
-    return res;
-}
-#endif
-
-std::vector<std::string> Cgen::generateStatements(const std::vector<Statement *> stmts, const PureMethod *m)
-{
-    return StatementGenerator(this, stmts, m).generate();
-    /*
-    std::vector<std::string> lines;
-    for (auto stmt : stmts) {
-        for (auto l : generateStatement(stmt, m)) {
-            //l = trim(l);
-            if (!l.empty()) {
-                lines.push_back(l);
-            }
-        }
-    }
-    return lines;
-    */
-}
-
 std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret, const PureMethod *m)
 {
     return BlockGenerator(this, block, ret, m).generate();
@@ -471,7 +349,7 @@ std::string Cgen::generateConstPrototype(const Const *c) const
 std::string Cgen::generateConstAssignment(const Const *c)
 {
     const Assignment *ass = c->assignment();
-    std::vector<std::string> tmp = generateStatements(ass->statements(), nullptr);
+    std::vector<std::string> tmp = StatementGenerator(this, ass->statements(), nullptr).generate();
     std::string res;
     for (auto i : tmp) res += i;
     return res;

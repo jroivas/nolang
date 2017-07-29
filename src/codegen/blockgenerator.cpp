@@ -1,4 +1,5 @@
 #include "blockgenerator.hh"
+#include "statementgenerator.hh"
 #include "trim.hh"
 
 using nolang::BlockGenerator;
@@ -33,6 +34,6 @@ void BlockGenerator::reset()
 std::vector<std::string> BlockGenerator::generate()
 {
     reset();
-    for (auto line : block) handleBlock(cgen->generateStatements(line, method));
+    for (auto line : block) handleBlock(StatementGenerator(cgen, line, method).generate());
     return lines;
 }

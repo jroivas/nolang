@@ -50,7 +50,7 @@ void MethodCallGenerator::generateParameterStatements()
     for (auto parm : mc->params()) {
         parameter_statements.push_back(ptypes[i] + " " + pnames[i] + " = ");
 
-        std::vector<std::string> tmp = cgen->generateStatements(parm, m);
+        std::vector<std::string> tmp = StatementGenerator(cgen, parm, m).generate();
         applyToVector(parameter_statements, tmp);
 
         parameter_statements.push_back("<EOS>");

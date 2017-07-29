@@ -36,7 +36,6 @@ public:
     static std::string autogen();
     std::string solveTypeOfChain(std::vector<Statement*>, const PureMethod *m) const;
     std::string solveNolangTypeOfChain(std::vector<Statement*> chain, const PureMethod *m) const;
-    std::vector<std::string> generateStatements(const std::vector<Statement *> stmts, const PureMethod *m);
     bool isStruct(const std::string &name) const;
     const Struct *getStruct(const std::string &name) const;
     const ModuleDef *getModule(std::string name) const;
