@@ -3,6 +3,7 @@
 #include "cgen.hh"
 #include "statementgenerator.hh"
 #include "typesolver.hh"
+#include "zip.hh"
 
 using namespace nolang;
 
@@ -129,17 +130,9 @@ std::string MethodCallGenerator::generateLocalMethodCall() const
 std::vector<std::string> MethodCallGenerator::generateStructInitStatements()
 {
     std::vector<std::string> res;
-    const Struct *s = cgen->getStruct(def->values()[0]);
     std::string postponed = cgen->usePostponedMethod();
-    uint32_t m = s->datas().size();
-    if (m > pnames.size()) m = pnames.size();
-    for (uint32_t i = 0; i < m; ++i) {
-        std::string tmp = postponed + "->";
-        tmp += s->datas()[i]->code();
-        tmp += " = ";
-        tmp += pnames[i];
-        tmp += ";\n";
-        res.push_back(tmp);
+    for (auto v : zip(cgen->getStruct(def->values()[0])->datas(), pnames)) {
+        res.push_back(postponed + "->" + v.first->code() + " = " + v.second + ";\n");
     }
     return res;
 }
@@ -160,9 +153,7 @@ std::vector<std::string> MethodCallGenerator::generateStructInitCall()
 void MethodCallGenerator::getNamespaceDef()
 {
     def = mc->namespaces();
-    if (def == nullptr || def->values().empty()) {
-        throw std::string("Got empty namespace in method call");
-    }
+    if (def == nullptr || def->values().empty()) throwError("Got empty namespace in method call");
 }
 
 bool MethodCallGenerator::isStruct()
