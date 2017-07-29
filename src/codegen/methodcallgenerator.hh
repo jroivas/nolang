@@ -40,6 +40,12 @@ protected:
     std::string generateBuiltInIOPrintParamTypes() const;
 
     bool isPrintln() const { return mc->namespaces()->values()[1] == "println"; }
+    bool isIOPrint() const {
+        return mc->namespaces()->values().size() == 2 &&
+               mc->namespaces()->values()[0] == "IO" &&
+               (mc->namespaces()->values()[1] == "print" ||
+                mc->namespaces()->values()[1] == "println");
+    }
 
 
 private:

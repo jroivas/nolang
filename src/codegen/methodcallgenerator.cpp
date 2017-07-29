@@ -177,13 +177,8 @@ std::vector<std::string> MethodCallGenerator::generateMethodCall()
     if (mod) {
         std::vector<std::string> tmp = generateModuleMethodCall(mod);
         applyToVector(res, tmp);
-    } else
-    // FIXME Hardcoding
-    if (mc->namespaces()->values().size() == 2 &&
-        mc->namespaces()->values()[0] == "IO" &&
-        (mc->namespaces()->values()[1] == "print" ||
-         mc->namespaces()->values()[1] == "println")) {
-
+    } else if (isIOPrint()) {
+        // FIXME Hardcoding
         res.push_back(generateBuiltInIOPrint());
         res.push_back("<EOS>");
     } else {
