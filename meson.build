@@ -41,6 +41,7 @@ nolang_lib = static_library('nolang',
         'src/codegen/nolangtypesolver.cpp',
         'src/codegen/methodcallgenerator.cpp',
         'src/codegen/blockgenerator.cpp',
+        'src/codegen/statementgenerator.cpp',
         '3pp/mpc/mpc.c'
     ],
     cpp_args : ['-std=c++11'],

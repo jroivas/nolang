@@ -8,6 +8,7 @@
 #include "typesolver.hh"
 #include "trim.hh"
 #include "blockgenerator.hh"
+#include "statementgenerator.hh"
 
 using namespace nolang;
 static const std::string __autogen_prefix = "__autogen_";
@@ -113,6 +114,7 @@ std::string Cgen::castCode(const std::string &src_var, const std::string &src_ty
     return res;
 }
 
+#if 0
 std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
 {
     if (!m_postponed_assignment.empty()) {
@@ -140,14 +142,6 @@ std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const Pu
     }
     m_postponed_assignment = "";
     return res;
-}
-
-bool Cgen::isAssignmentMethodCall(const Assignment *ass) const
-{
-    for (auto sss : ass->statements()) {
-        if (sss->type() == "MethodCall") return true;
-    }
-    return false;
 }
 
 std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureMethod *m)
@@ -239,9 +233,12 @@ std::vector<std::string> Cgen::generateStatement(const Statement *s, const PureM
 
     return res;
 }
+#endif
 
 std::vector<std::string> Cgen::generateStatements(const std::vector<Statement *> stmts, const PureMethod *m)
 {
+    return StatementGenerator(this, stmts, m).generate();
+    /*
     std::vector<std::string> lines;
     for (auto stmt : stmts) {
         for (auto l : generateStatement(stmt, m)) {
@@ -252,6 +249,7 @@ std::vector<std::string> Cgen::generateStatements(const std::vector<Statement *>
         }
     }
     return lines;
+    */
 }
 
 std::vector<std::string> Cgen::generateBlock(const std::vector<std::vector<Statement *>> &block, const std::string &ret, const PureMethod *m)

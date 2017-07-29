@@ -41,10 +41,6 @@ public:
     const Struct *getStruct(const std::string &name) const;
     const ModuleDef *getModule(std::string name) const;
 
-    std::vector<std::string> applyPostponed(std::vector<std::string> &);
-
-    std::string usePostponedMethod();
-
 protected:
     std::string generateStructInitializer(const Struct *c);
     std::string generateVariableInit(const TypeIdent *i);
@@ -52,14 +48,12 @@ protected:
     std::string solveNolangType(const Statement *t, const PureMethod *m) const;
     std::string solveNativeType(const std::string & s) const;
     std::string solveReturnType(const Statement *t, const PureMethod *m) const;
-    bool isAssignmentMethodCall(const Assignment *) const;
     bool isNativeType(const std::string & s) const;
     std::vector<std::string> generateStatement(const Statement *s, const PureMethod *m);
     std::vector<std::string> generateBlock(const std::vector<std::vector<Statement *>> &, const std::string &ret, const PureMethod *m);
     std::vector<std::string> generateVariable(const TypeIdent *i) const;
     TypeIdent *solveVariable(const std::string &name, const PureMethod *m) const;
 
-    std::vector<std::string> generateMethodCall(const MethodCall *mc, const PureMethod *m);
     std::string castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const;
 
 private:
@@ -101,8 +95,6 @@ private:
     void evaluatePendingAssignment();
     std::map<std::string, const ModuleDef*> m_modules;
     const ModuleDef *m_current_module;
-    std::string m_postponed_assignment;
-    std::string m_postponed_method;
     std::vector<const Struct*> m_structs;
 };
 
