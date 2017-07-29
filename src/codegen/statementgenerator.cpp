@@ -74,25 +74,34 @@ bool StatementGenerator::isAssignmentMethodCall(const Assignment *ass) const
     return false;
 }
 
+void StatementGenerator::generateAssignmentWithDefinition(const Assignment *a)
+{
+    cgen->clearPostponed();
+    for (auto s : StatementGenerator(cgen, a->def(), method).generateOne()) {
+        if (!cgen->isPostponed()) cgen->appendPostponed("->");
+        cgen->appendPostponed(s);
+    }
+}
+
+void StatementGenerator::generateAssignmentPreStatements(const Assignment *a)
+{
+    if (isAssignmentWithDefinition(a)) generateAssignmentWithDefinition(a);
+    else if (isAssignmentMethodCall(a)) cgen->setPostponedMethod(statement->code());
+    else cgen->setPostponed(statement->code());
+}
+
+void StatementGenerator::generateAssignmentStatements(const Assignment *a)
+{
+    std::vector<std::string> tmp = StatementGenerator(cgen, a->statements(), method).generate();
+    statementcode = applyToVector(statementcode, tmp);
+}
+
 void StatementGenerator::generateAssignment()
 {
-    const Assignment *ass = static_cast<const Assignment*>(statement);
+    const Assignment *a = static_cast<const Assignment*>(statement);
 
-    if (ass->def() != nullptr) {
-        cgen->clearPostponed();
-        for (auto s : StatementGenerator(cgen, ass->def(), method).generateOne()) {
-            if (!cgen->isPostponed()) cgen->appendPostponed("->");
-            cgen->appendPostponed(s);
-        }
-    } else {
-        if (isAssignmentMethodCall(ass)) cgen->setPostponedMethod(statement->code());
-        else cgen->setPostponed(statement->code());
-    }
-    
-    //std::vector<std::string> tmp = generateStatements(ass->statements(), m);
-    std::vector<std::string> tmp = StatementGenerator(cgen, ass->statements(), method).generate();
-    for (auto s : tmp) std::cerr << " * SG " << s << "\n";
-    statementcode = applyToVector(statementcode, tmp);
+    generateAssignmentPreStatements(a);
+    generateAssignmentStatements(a);
 }
 
 void StatementGenerator::generateNamespace()

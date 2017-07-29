@@ -45,7 +45,13 @@ private:
     bool isNamespace() { return statement->type() == "NamespaceDef"; }
     bool isIdentifier() { return statement->type() == "Identifier"; }
     bool isEOS() { return statement->type() == "EOS"; }
+
     bool isAssignmentMethodCall(const Assignment *) const;
+    bool isAssignmentWithDefinition(const Assignment *a) const { return a->def() != nullptr; }
+
+    void generateAssignmentWithDefinition(const Assignment *);
+    void generateAssignmentPreStatements(const Assignment *);
+    void generateAssignmentStatements(const Assignment *);
 
     void generateString();
     void generateNumber();
