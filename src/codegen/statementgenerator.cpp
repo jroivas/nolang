@@ -10,49 +10,33 @@ void StatementGenerator::reset()
     statementcode.clear();
 }
 
-std::vector<std::string> StatementGenerator::applyPostponed(std::vector<std::string> &res)
-{
-    if (!m_postponed_assignment.empty()) {
-        res.push_back(m_postponed_assignment + " = ");
-        m_postponed_assignment = "";
-    }
-    return res;
-}
-
-std::string StatementGenerator::usePostponedMethod()
-{
-    std::string tmp = m_postponed_method;
-    m_postponed_method = "";
-    return tmp;
-}
-
 void StatementGenerator::generateString()
 {
-    statementcode = applyPostponed(statementcode);
+    statementcode = cgen->applyPostponed(statementcode);
     statementcode.push_back(statement->code() + " ");
 }
 
 void StatementGenerator::generateNumber()
 {
-    statementcode = applyPostponed(statementcode);
+    statementcode = cgen->applyPostponed(statementcode);
     statementcode.push_back(statement->code());
 }
 
 void StatementGenerator::generateBoolean()
 {
-    statementcode = applyPostponed(statementcode);
+    statementcode = cgen->applyPostponed(statementcode);
     statementcode.push_back(statement->code());
 }
 
 void StatementGenerator::generateBraces()
 {
-    statementcode = applyPostponed(statementcode);
+    statementcode = cgen->applyPostponed(statementcode);
     statementcode.push_back(statement->code() + " ");
 }
 
 void StatementGenerator::generateComparator()
 {
-    statementcode = applyPostponed(statementcode);
+    statementcode = cgen->applyPostponed(statementcode);
     statementcode.push_back(statement->code() + " ");
 }
 
@@ -65,13 +49,13 @@ void StatementGenerator::generateOperator()
 
 std::vector<std::string> StatementGenerator::generateMethodCall(const MethodCall *mc)
 {
-    MethodCallGenerator gen(cgen, this, mc, method);
+    MethodCallGenerator gen(cgen, mc, method);
 
     std::vector<std::string> res;
     if (gen.isStruct()) res = gen.generateStructInitCall();
     else res = gen.generateMethodCall();
 
-    m_postponed_assignment = "";
+    cgen->clearPostponed();
 
     return res;
 }
@@ -95,18 +79,19 @@ void StatementGenerator::generateAssignment()
     const Assignment *ass = static_cast<const Assignment*>(statement);
 
     if (ass->def() != nullptr) {
-        m_postponed_assignment = "";
+        cgen->clearPostponed();
         for (auto s : StatementGenerator(cgen, ass->def(), method).generateOne()) {
-            if (!m_postponed_assignment.empty()) m_postponed_assignment += "->";
-            m_postponed_assignment += s;
+            if (!cgen->isPostponed()) cgen->appendPostponed("->");
+            cgen->appendPostponed(s);
         }
     } else {
-        if (isAssignmentMethodCall(ass)) m_postponed_method = statement->code();
-        else m_postponed_assignment = statement->code();
+        if (isAssignmentMethodCall(ass)) cgen->setPostponedMethod(statement->code());
+        else cgen->setPostponed(statement->code());
     }
     
     //std::vector<std::string> tmp = generateStatements(ass->statements(), m);
     std::vector<std::string> tmp = StatementGenerator(cgen, ass->statements(), method).generate();
+    for (auto s : tmp) std::cerr << " * SG " << s << "\n";
     statementcode = applyToVector(statementcode, tmp);
 }
 
@@ -116,7 +101,7 @@ void StatementGenerator::generateNamespace()
 
 void StatementGenerator::generateIdentfier()
 {
-    statementcode = applyPostponed(statementcode);
+    statementcode = cgen->applyPostponed(statementcode);
     statementcode.push_back(statement->code() + " ");
 }
 

@@ -11,12 +11,11 @@ namespace nolang
 {
 
 class Cgen;
-class StatementGenerator;
 
 class MethodCallGenerator
 {
 public:
-    MethodCallGenerator(Cgen *, StatementGenerator *, const MethodCall *, const PureMethod *);
+    MethodCallGenerator(Cgen *, const MethodCall *, const PureMethod *);
 
     void generateParameterStatements();
     bool isStruct();
@@ -41,7 +40,6 @@ protected:
 
 private:
     Cgen *cgen;
-    StatementGenerator *sgen;
     const MethodCall *mc;
     const PureMethod *m;
     const NamespaceDef *def;

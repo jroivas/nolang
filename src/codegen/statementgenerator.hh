@@ -8,14 +8,12 @@ namespace nolang {
 class StatementGenerator
 {
 public:
-    StatementGenerator(Cgen *c, const std::vector<Statement *> s, const PureMethod *m) :
+    StatementGenerator(Cgen *c, const std::vector<Statement *> s, const PureMethod *m, std::string pa="", std::string pm="") :
         cgen(c),
         stmts(s),
         method(m)
     {}
     std::vector<std::string> generate();
-    std::string usePostponedMethod();
-    std::vector<std::string> applyPostponed(std::vector<std::string> &);
 
 protected:
     StatementGenerator(Cgen *c, const Statement * s, const PureMethod *m) :
@@ -70,9 +68,6 @@ private:
 
     std::vector<std::string> lines;
     std::vector<std::string> statementcode;
-
-    std::string m_postponed_assignment;
-    std::string m_postponed_method;
 };
 
 }

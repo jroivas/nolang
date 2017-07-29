@@ -41,6 +41,18 @@ public:
     const Struct *getStruct(const std::string &name) const;
     const ModuleDef *getModule(std::string name) const;
 
+    std::vector<std::string> applyPostponed(std::vector<std::string> &);
+    void setPostponed(std::string);
+    void setPostponedMethod(std::string);
+    std::string usePostponedMethod();
+    void appendPostponed(std::string);
+    void clearPostponed() { m_postponed_assignment = ""; }
+    const std::string postponed() const;
+    bool isPostponed() const
+    {
+        return !m_postponed_assignment.empty();
+    }
+
 protected:
     std::string generateStructInitializer(const Struct *c);
     std::string generateVariableInit(const TypeIdent *i);
@@ -55,6 +67,9 @@ protected:
     TypeIdent *solveVariable(const std::string &name, const PureMethod *m) const;
 
     std::string castCode(const std::string &src_var, const std::string &src_type, const std::string &to_type) const;
+
+    std::string m_postponed_assignment;
+    std::string m_postponed_method;
 
 private:
     const std::string indent() const { return "    "; }

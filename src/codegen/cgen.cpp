@@ -114,7 +114,6 @@ std::string Cgen::castCode(const std::string &src_var, const std::string &src_ty
     return res;
 }
 
-#if 0
 std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
 {
     if (!m_postponed_assignment.empty()) {
@@ -124,6 +123,26 @@ std::vector<std::string> Cgen::applyPostponed(std::vector<std::string> &res)
     return res;
 }
 
+void Cgen::setPostponed(std::string s)
+{
+    m_postponed_assignment = s;
+}
+
+void Cgen::setPostponedMethod(std::string s)
+{
+    m_postponed_method = s;
+}
+
+void Cgen::appendPostponed(std::string s)
+{
+    m_postponed_assignment += s;
+}
+
+const std::string Cgen::postponed() const
+{
+    return m_postponed_assignment;
+}
+
 std::string Cgen::usePostponedMethod()
 {
     std::string tmp = m_postponed_method;
@@ -131,6 +150,7 @@ std::string Cgen::usePostponedMethod()
     return tmp;
 }
 
+#if 0
 std::vector<std::string> Cgen::generateMethodCall(const MethodCall *mc, const PureMethod *m)
 {
     MethodCallGenerator gen(this, mc, m);
